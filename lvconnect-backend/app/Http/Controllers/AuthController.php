@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\UserCredentialsMail;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Mail;
+use Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -13,22 +16,23 @@ class AuthController extends Controller
 {
     public function createUser(request $request)
     {
-        // Get the authenticated user
-        $authUser = Auth::user();
+       
+        $user = JWTAuth::parseToken()->authenticate();
 
-        if (!$authUser) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        if (!$user) {
+                return response()->json(['error'=> 'not authorized'], 404);
+            }
+      
+
 
         // define allowed roles
-        $allowedRoles = $authUser->hasRole('superadmin') 
+        $allowedRoles = $user->hasRole('superadmin') 
         ? ['student', 'admin', 'superadmin'] 
         : ['student'];
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|max:12|min:8',
             'role' => ['required', Rule::in($allowedRoles)], // Only allow valid roles
         ]);
 
@@ -36,16 +40,21 @@ class AuthController extends Controller
             return response()->json(['errors'=>$validator->errors(), 422]);
         }
 
-        $user = User::create([
+          // Generate a random password
+        $randomPassword = Str::random(10);
+
+        $newUser = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($randomPassword),
 
         ]);
 
-        $user->assignRole($request->role);
+        $newUser->assignRole($request->role);
 
-        return response()->json(['message'=> 'User created successfully'
+        Mail::to($newUser->email)->send(new UserCredentialsMail($newUser, $randomPassword));
+
+        return response()->json(['message'=> 'User created successfully',  
     ], 201);
     }
     public function login(request $request)
@@ -72,13 +81,51 @@ class AuthController extends Controller
 
         // Generate JWT token
         $token = JWTAuth::fromUser($user);
+        // $refreshToken = $this->createRefreshToken($user);
 
         // Return response
         return response()->json(['message'=> 'Login Successfully', 'user' => $user->makehidden(['password']),
         'token' => $token,
+        // 'refresh_token' => $refreshToken,
     ], 201);
-        
     }
+
+    private function createRefreshToken($user)
+{
+    return JWTAuth::fromUser($user, ['refresh' => true]);
+}
+
+public function refreshToken(Request $request)
+{
+    try {
+    // Get refresh token from request
+    $refreshToken = $request->input('refresh_token');
+
+    // Ensure token is provided
+    if (!$refreshToken) {
+        return response()->json(['error' => 'Refresh token is required'], 400);
+    }
+
+    // Verify and authenticate user from refresh token
+    $user = JWTAuth::setToken($refreshToken)->authenticate();
+
+    if (!$user) {
+        return response()->json(['error' => 'Invalid refresh token'], 401);
+    }
+
+    // Generate new access and refresh tokens
+    $newToken = JWTAuth::fromUser($user);
+    $newRefreshToken = $this->createRefreshToken($user);
+
+    return response()->json([
+        'token' => $newToken,
+        'refresh_token' => $newRefreshToken
+    ]);
+    } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+        return response()->json(['error' => 'Invalid or expired refresh token'], 401);
+    }
+}
+
     
     public function dashboard(request $request)
 
@@ -91,16 +138,8 @@ class AuthController extends Controller
             }
         }
 
-        catch(\Tymon\JWTAuth\Exceptions\TokenInvalidException $e){
-            return response()->json(['error' => 'token is Invalid. Please login again.'], 401);
-        }
-
-        catch(\Tymon\JWTAuth\Exceptions\TokenExpiredException $e){
-            return response()->json(['error' => 'token has Expired. Please login again.'], 401);
-
-        } 
         catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
-            return response()->json(['error' => 'Token is missing. Please provide a valid token.'], 401);
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
 
