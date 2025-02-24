@@ -1,11 +1,18 @@
 
-import './App.css'
+import { BrowserRouter, Routes, Route, RouterProvider } from 'react-router-dom';
+import Layout from "./components/DefaultLayout";
+import Dashboard from "./pages/Dashboard";
+import './index.css';
+import Login from './pages/Login';
+import CreateUser from './pages/CreateUser';
+import router from './router.jsx'
 
-function App() {
+export default function App() {
 
   return (
-    <div>bading</div>
-  )
+ 
+    <RouterProvider router={router}/>
+  );
 }
 
-export default App
+
