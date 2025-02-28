@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class OAuthController extends Controller
@@ -15,34 +14,24 @@ class OAuthController extends Controller
         return Socialite::driver('google')->stateless()->redirect();
     }
 
-
     // Handle Google callback and authentication
     public function handleGoogleCallback()
     {
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            // Check if user exists using google_id
+            // Check if user exists using google_id or email
             $user = User::where('google_id', $googleUser->getId())
                         ->orWhere('email', $googleUser->getEmail())
                         ->first();
 
             if (!$user) {
-                // Create a new user with Google ID
-                $user = User::create([
-                    'name' => $googleUser->getName(),
-                    'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(), // Store Google ID
-                    'password' => Hash::make(uniqid()), // Set a random password
-                ]);
+                return response()->json(['error' => 'Account not found. Please contact admin.'], 403);
+            }
 
-                // Assign 'student' role by default
-                $user->assignRole('student');
-            } else {
-                // If user exists but doesn't have a google_id, update it
-                if (!$user->google_id) {
-                    $user->update(['google_id' => $googleUser->getId()]);
-                }
+            // If user exists but doesn't have a google_id, update it
+            if (!$user->google_id) {
+                $user->update(['google_id' => $googleUser->getId()]);
             }
 
             // Generate JWT token
