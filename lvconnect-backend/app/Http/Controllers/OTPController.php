@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Hash;
 
 class OTPController extends Controller
 {
@@ -75,4 +76,34 @@ class OTPController extends Controller
             'token' => $token,
         ], 200);
     }
+
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'otp' => 'required|numeric|digits:6',
+            'new_password' => ['required','string','min:8','confirmed','regex:/[a-z]/','regex:/[A-Z]/','regex:/[0-9]/','regex:/[\W]/'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        // Check OTP validity
+        if (!$user->otp || $user->otp !== $request->otp || $user->otp_expires_at < Carbon::now()) {
+            return response()->json(['error' => 'Invalid or expired OTP'], 401);
+        }
+
+        // Update password
+        $user->update([
+            'password' => Hash::make($request->new_password),
+            'otp' => null, 
+            'otp_expires_at' => null
+        ]);
+
+        return response()->json(['message' => 'Password successfully changed.'], 200);
+    }
+
 }
