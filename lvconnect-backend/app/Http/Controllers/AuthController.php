@@ -63,7 +63,7 @@ class AuthController extends Controller
          // Validate input
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:8',
+            'password' => ['required','string','min:8','regex:/[a-z]/','regex:/[A-Z]/','regex:/[0-9]/','regex:/[\W]/'],
         ]);
     
         // Check if validation fails
