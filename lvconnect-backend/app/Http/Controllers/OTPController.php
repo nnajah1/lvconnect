@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OTP;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Hash;
 
 class OTPController extends Controller
 {
@@ -16,7 +16,6 @@ class OTPController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-            'device' => 'required|string', // Device info (e.g., 'iPhone-14' or 'Windows-Chrome')
         ]);
 
         if ($validator->fails()) {
@@ -25,26 +24,33 @@ class OTPController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        if ($user->otp_expires_at && $user->otp_expires_at->subMinutes(2)->gt(Carbon::now())) {
+            return response()->json(['error' => 'Please wait before requesting a new OTP'], 429);
+        }
+
+        // Generate OTP
         $otpCode = rand(100000, 999999);
 
-        OTP::updateOrCreate(
-            ['user_id' => $user->id, 'device' => $request->device],
-            ['otp' => $otpCode, 'expires_at' => Carbon::now()->addMinutes(10)]
-        );
+        // Store OTP in users table with expiration
+        $user->update([
+            'otp' => $otpCode,
+            'otp_expires_at' => Carbon::now()->addMinutes(2),
+        ]);
 
-        Mail::raw("Your OTP Code is: $otpCode. It expires in 10 minutes.", function ($message) use ($user) {
+        // Send OTP via email
+        Mail::raw("Your OTP Code is: $otpCode. It expires in 2 minutes.", function ($message) use ($user) {
             $message->to($user->email)->subject('Your OTP Code');
         });
 
         return response()->json(['message' => 'OTP sent to your email'], 200);
     }
 
+
     public function verifyOTP(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
             'otp' => 'required|numeric|digits:6',
-            'device' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -52,18 +58,16 @@ class OTPController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
-        $otpRecord = OTP::where('user_id', $user->id)
-            ->where('device', $request->device)
-            ->where('otp', $request->otp)
-            ->where('expires_at', '>', Carbon::now())
-            ->first();
 
-        if (!$otpRecord) {
+        // Check OTP validity
+        if (!$user->otp || $user->otp !== $request->otp || $user->otp_expires_at < Carbon::now()) {
             return response()->json(['error' => 'Invalid or expired OTP'], 401);
         }
 
-        $otpRecord->delete();
+        // Clear OTP after successful verification
+        $user->update(['otp' => null, 'otp_expires_at' => null]);
 
+        // Generate JWT token
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
@@ -72,4 +76,5 @@ class OTPController extends Controller
             'token' => $token,
         ], 200);
     }
+
 }
