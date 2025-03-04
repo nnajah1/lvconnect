@@ -1,100 +1,84 @@
-import api from "../api";
+import api from "../axios";
 import { createContext, useState, useContext, useEffect } from "react";
 
-const authContext = createContext( {
+const AuthContext = createContext({
     user: null,
-    token: null,
     setUser: () => {},
-    setToken: () => {},
-})
+    login: () => {},
+    logout: () => {},
+    createUser: () => {},
+    oAuthLogin: () => {},
+});
 
-export const ContextProvider = ({children}) => {
-    const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem("USER");
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
+export const ContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const [token, _setToken] = useState(localStorage.getItem('ACCESS_TOKEN'));
-
-
-    // update token state and store in localStorage
-    const setToken = (token) => {
-        _setToken(token)
-        if(token) {
-            localStorage.setItem('ACCESS_TOKEN', token);
-        }
-        else {
-            localStorage.removeItem('ACCESS_TOKEN');
-            // localStorage.removeItem("USER"); // Remove user data on logout
-            // setUser(null);
-        }
-    }
-
-    // Set User & Store in LocalStorage
-    const setUserData = (userData) => {
-        setUser(userData);
-        if (userData) {
-            localStorage.setItem("USER", JSON.stringify(userData));
-        } else {
-            localStorage.removeItem("USER");
+    const fetchUser = async () => {
+        setLoading(true);
+        try {
+            const response = await api.get("/me",{withCredentials: true});
+            setUser(response.data.user);
+        } catch (error) {
+            setUser(null);
+            if (error.response?.status === 401) {
+                console.log("Unauthorized: Redirecting to login...");
+            } else {
+                console.error("Error fetching user:", error);
+            }
+        } finally {
+            setLoading(false);
         }
     };
-    
-    // Handle Login
+
+    // Run fetchUser only once when the component mounts
+    useEffect(() => {
+        fetchUser();
+    }, []);
+
+    // Handle login
     const login = async (credentials) => {
         try {
             const response = await api.post("/login", credentials);
-            const { user, token } = response.data;
-
-            setUserData(user);
-            setToken(token);
-
+            await fetchUser(); 
             return { success: true };
         } catch (error) {
             return { success: false, message: "Login Failed" };
         }
     };
 
-    // Handle Logout
+    // Handle logout (Clears cookie)
     const logout = async () => {
         try {
-            await api.get("/logout");
+            await api.post("/logout");
         } catch (error) {
             console.error("Logout failed:", error);
         } finally {
-            setUserData(null);
-            setToken(null);
+            setUser(null);
         }
     };
 
-    // Handle User Creation (Only Admin & Super Admin)
+    // Create user (Admin/Super Admin only)
     const createUser = async (userData) => {
         try {
-            const response = await api.post(
-                "/createUser", userData
-            );
-            return response.data; // Return success message
+            const response = await api.post("/createUser", userData);
+            return response.data;
         } catch (error) {
-            throw error.response?.data || { error: "Failed to create user." };
+            return { error: "Failed to create user." };
         }
     };
 
+    // Google OAuth login (redirects to backend)
+    // const oAuthLogin = async () => {
+    //     window.location.href = `${baseURL}/login/google`;
+    // };
 
+    
     return (
-            <authContext.Provider value={{
-                token, 
-                setToken, 
-                user,
-                // setUser: setUserData,
-                login,
-                logout,
-                createUser,
-            
-            }}>
-                {children}
-            </authContext.Provider>
-        )
-}
+        <AuthContext.Provider value={{ user, login, logout, createUser, setLoading, loading }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
 
-export const useAuthContext = () => useContext(authContext);
-
+export const useAuthContext = () => useContext(AuthContext);

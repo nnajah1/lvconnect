@@ -5,12 +5,13 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import OAuthCallback from "./pages/OAuthCallback";
 
 
 const router = createBrowserRouter ([
     {
         path: '/',
-        element: <Navigate to="/login" />, 
+        element: <Navigate to="/login" />,
     },
 
     {
@@ -21,6 +22,10 @@ const router = createBrowserRouter ([
                 path: '',
                 element: <Login />,
             },
+            {
+                path: "/login/google/callback",
+                element: <OAuthCallback />,
+            }
         ],
     },
 

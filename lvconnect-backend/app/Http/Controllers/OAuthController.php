@@ -48,11 +48,11 @@ class OAuthController extends Controller
             // Generate JWT token
             $token = JWTAuth::fromUser($user);
 
-            return response()->json([
-                'message' => 'Login Successful',
-                'user' => $user->makeHidden(['password']),
-                'token' => $token,
-            ], 201);
+            // Store JWT in HttpOnly Cookie
+        $cookie = cookie('auth_token', $token, 1440, '/', null, true, true);
+
+        return response()->json(['message' => 'Login Successful'])
+            ->cookie($cookie);
 
         } catch (\Exception $e) {
             return response()->json(['error' => 'Google Authentication Failed'], 500);

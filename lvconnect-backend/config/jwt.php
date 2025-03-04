@@ -99,7 +99,7 @@ return [
     | systems in place to revoke the token if necessary.
     | Notice: If you set this to null you should remove 'exp' element from 'required_claims' list.
     |
-    */
+    */ 
 
     'ttl' => env('JWT_TTL', 60),
 
@@ -250,6 +250,8 @@ return [
     |
     */
 
+    'cookie' => 'auth_token',    
+    
     'decrypt_cookies' => false,
 
     /*

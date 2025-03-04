@@ -1,12 +1,12 @@
-import {useRef, useState} from "react";
+import {useState} from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
-// import OAuthLogin from "./GoogleAuth";
 
 export default function Login() {
    
-    const { login } = useAuthContext();
-    // const navigate = useNavigate();
-
+    const { login, oAuthLogin, setLoading, loading} = useAuthContext();
+    const navigate = useNavigate();
+    
     const [credentials, setCredentials] = useState({
         email: "",
         password: "",
@@ -20,12 +20,19 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         setError(null);
 
         try {
-            await login(credentials);
-        } catch (err) {
-            setError("Invalid credentials.");
+            const response = await login(credentials); // Correctly awaiting the login function
+    
+            if (!response.success) {
+                setError(response.message); // Show error message if login fails
+            }
+        } catch (error) {
+            setError("An unexpected error occurred. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -46,8 +53,11 @@ export default function Login() {
                     <input type="password" name="password" value={credentials.password} onChange={handleChange} required />
                 </div>
 
-                <button type="submit">Login</button>
+                <button type="submit" disabled={loading}>
+                    {loading ? "Logging in..." : "Login"}
+                </button>
             </form>
+            <button onClick={oAuthLogin}>Login with Google</button>
         </div>
     );
     

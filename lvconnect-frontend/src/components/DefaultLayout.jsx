@@ -3,8 +3,13 @@ import { Outlet, Link, Navigate } from "react-router-dom";
 
 
 export default function DefaultLayout() {
-    const {user, token, logout } = useAuthContext();
-    if(!token) {
+    const {user, loading, logout } = useAuthContext();
+
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    if(!user) {
        return <Navigate to='/login'/>
     }
 

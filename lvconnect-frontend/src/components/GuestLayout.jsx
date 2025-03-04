@@ -1,8 +1,9 @@
-import { useAuthContext } from "../context/AuthContext";import { Navigate, Outlet} from "react-router-dom";
+import { useAuthContext } from "../context/AuthContext";
+import { Navigate, Outlet} from "react-router-dom";
 
 export default function GuestLayout() {
-     const {token} = useAuthContext();
-        if(token) {
+     const {user} = useAuthContext();
+        if(user) {
            return <Navigate to='/dashboard'/>
         }
         return (
