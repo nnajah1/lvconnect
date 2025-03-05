@@ -15,6 +15,11 @@ const router = createBrowserRouter ([
     },
 
     {
+        path: '/google-auth-success',
+        element: <OAuthCallback />
+    },
+
+    {
         path: '/login',
         element: <GuestLayout />,
         children: [
@@ -22,10 +27,7 @@ const router = createBrowserRouter ([
                 path: '',
                 element: <Login />,
             },
-            {
-                path: "/login/google/callback",
-                element: <OAuthCallback />,
-            }
+           
         ],
     },
 

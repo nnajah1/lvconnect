@@ -10,7 +10,7 @@ export default function CreateUser() {
     (!user.roles.some(role => role.name === "admin") && 
      !user.roles.some(role => role.name === "superadmin"))) {
     return <p>Not authorized to create users.</p>;
-}
+    }
 
     const [formData, setFormData] = useState({
         name: "",

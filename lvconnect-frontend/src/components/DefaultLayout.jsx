@@ -10,6 +10,7 @@ export default function DefaultLayout() {
     }
 
     if(!user) {
+        // set loading to false
        return <Navigate to='/login'/>
     }
 
