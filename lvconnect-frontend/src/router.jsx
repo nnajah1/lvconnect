@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import OAuthCallback from "./pages/OAuthCallback";
+import OTPVerification from "./pages/OTPVerification";
 
 
 const router = createBrowserRouter ([
@@ -17,6 +18,11 @@ const router = createBrowserRouter ([
     {
         path: '/google-auth-success',
         element: <OAuthCallback />
+    },
+
+    {
+        path: '/otp',
+        element: <OTPVerification/>
     },
 
     {

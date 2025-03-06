@@ -2,8 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Otp;
+use App\Models\TrustedDevice;
+use App\Models\Otp;
+use App\Models\TrustedDevice;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -26,17 +32,31 @@ class OTPController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if ($user->otp_expires_at && $user->otp_expires_at->subMinutes(2)->gt(Carbon::now())) {
+        // Check if an OTP was recently requested
+        $existingOTP = Otp::where('user_id', $user->id)->latest()->first();
+
+        if ($existingOTP && $existingOTP->expires_at->subMinutes(2)->gt(Carbon::now())) {
+        // Check if an OTP was recently requested
+        $existingOTP = Otp::where('user_id', $user->id)->latest()->first();
+
+        if ($existingOTP && $existingOTP->expires_at->subMinutes(2)->gt(Carbon::now())) {
             return response()->json(['error' => 'Please wait before requesting a new OTP'], 429);
         }
+
+
 
         // Generate OTP
         $otpCode = rand(100000, 999999);
 
-        // Store OTP in users table with expiration
-        $user->update([
+        // Store OTP in otps table with expiration
+        Otp::create([
+            'user_id' => $user->id,
+        // Store OTP in otps table with expiration
+        Otp::create([
+            'user_id' => $user->id,
             'otp' => $otpCode,
-            'otp_expires_at' => Carbon::now()->addMinutes(2),
+            'expires_at' => Carbon::now()->addMinutes(2),
+            'expires_at' => Carbon::now()->addMinutes(2),
         ]);
 
         // Send OTP via notification (dynamic purpose)
@@ -50,8 +70,16 @@ class OTPController extends Controller
     public function verifyOTP(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-            'otp' => 'required|numeric|digits:6',
+            'user_id' => 'required|exists:users,id',
+            'otp' => 'required|string',
+            'device_id' => 'required|string',
+            'device_name' => 'required|string',
+            'remember_device' => 'boolean'
+            'user_id' => 'required|exists:users,id',
+            'otp' => 'required|string',
+            'device_id' => 'required|string',
+            'device_name' => 'required|string',
+            'remember_device' => 'boolean'
         ]);
 
         if ($validator->fails()) {
@@ -60,22 +88,62 @@ class OTPController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Check OTP validity
-        if (!$user->otp || $user->otp !== $request->otp || $user->otp_expires_at < Carbon::now()) {
+        // Fetch latest OTP record
+        $otpRecord = OTP::where('user_id', $user->id)->where('otp', $request->otp)->latest()->first();
+
+        if (!$otpRecord || $otpRecord->expires_at < Carbon::now()) {
+        // Fetch latest OTP record
+        $otpRecord = OTP::where('user_id', $user->id)->where('otp', $request->otp)->latest()->first();
+
+        if (!$otpRecord || $otpRecord->expires_at < Carbon::now()) {
             return response()->json(['error' => 'Invalid or expired OTP'], 401);
         }
 
+        // Mark email as verified
+        if (!$user->email_verified_at) {
+            $user->update(['email_verified_at' => now()]);
+        }
+        // Mark email as verified
+        if (!$user->email_verified_at) {
+            $user->update(['email_verified_at' => now()]);
+        }
         // Clear OTP after successful verification
-        $user->update(['otp' => null, 'otp_expires_at' => null]);
+        $otpRecord->delete();
 
-        // Generate JWT token
+        // Store the device as trusted if "remember this device" is checked
+        if ($request->remember_device) {
+            TrustedDevice::updateOrCreate(
+                ['user_id' => $user->id, 'device_id' => $request->device_id],
+                ['device_name' => $request->device_name, 'last_used_at' => now()]
+            );
+        }
+            
+        // Generate JWT Token
+        $otpRecord->delete();
+
+        // Store the device as trusted if "remember this device" is checked
+        if ($request->remember_device) {
+            TrustedDevice::updateOrCreate(
+                ['user_id' => $user->id, 'device_id' => $request->device_id],
+                ['device_name' => $request->device_name, 'last_used_at' => now()]
+            );
+        }
+            
+        // Generate JWT Token
         $token = JWTAuth::fromUser($user);
+        $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
+        $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
-        return response()->json([
-            'message' => 'OTP Verified, Login Successful',
-            'user' => $user->makeHidden(['password']),
-            'token' => $token,
-        ], 200);
+        return response()->json(['message' => 'OTP Verified, Login Successful'])
+        ->cookie('auth_token', $token, 60, '/', null, false, true)
+        ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
+        return response()->json(['message' => 'OTP Verified, Login Successful'])
+        ->cookie('auth_token', $token, 60, '/', null, false, true)
+        ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
     }
+}
+
 
 }
+
+

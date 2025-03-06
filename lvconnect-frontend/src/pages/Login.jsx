@@ -2,16 +2,18 @@ import {useState} from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { LoginForm } from "@/components/login-form"
-import { GalleryVerticalEnd } from "lucide-react"
+import { getDeviceId } from "../utils/device";
 
 export default function Login() {
    
-    const { login, handleGoogleLogin, setLoading, loading} = useAuthContext();
-    
+    const { login, handleGoogleLogin, loading} = useAuthContext();
+    const navigate = useNavigate();
+
     const [credentials, setCredentials] = useState({
         email: "",
         password: "",
     });
+
 
     const [error, setError] = useState(null);
 
@@ -23,13 +25,27 @@ export default function Login() {
         e.preventDefault();
         setError(null);
 
-    
-        const response = await login(credentials); 
-        if (!response.success) {
-                setError(response.message); // Show error message if login fails
-            }
-       
+        const deviceId = await getDeviceId();
+        const deviceName = navigator.userAgent;
+
+        const response = await login(credentials, deviceId, deviceName); 
         
+        if (!response.success) {
+          if (response.otpRequired) {
+              navigate("/otp", {
+                  state: {
+                      userId: response.userId, // Send userId to OTP page
+                      deviceId,
+                      deviceName
+                  }
+              });
+          } else {
+              setError(response.message || "Login failed.");
+          }
+      } else {
+          navigate("/dashboard"); // Redirect to dashboard on successful login
+      }
+
     };
 
 

@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
 use App\Mail\UserCredentialsMail;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Cookie;
 use Mail;
 use Str;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -15,6 +14,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Models\TrustedDevice;
+use App\Models\Otp;
+
 class AuthController extends Controller
 {
     public function createUser(request $request)
@@ -63,31 +65,54 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         // Validate request
-        $credentials = $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'password' => 'required|string|min:8',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/^[A-Za-z0-9@#$%^&*()!]+$/', 
+            ],
+            'device_id' => 'required|string',
+            'device_name' => 'required|string'
         ]);
-    
-        try {
-            // Attempt authentication
-            if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Could not create token'], 500);
-        }
-    
-         // Generate Refresh Token
-        $refreshToken = JWTAuth::fromUser(Auth::user(), ['refresh' => true]);
 
-        return response()->json(['message' => 'Login successful'])
-            ->cookie('auth_token', $token, 60, '/', null, false, true)  // Access token (HttpOnly)
-            ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true); // Refresh token (HttpOnly)
-    } 
+         // Return validation errors
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Get the authenticated user
+        $user = User::where('email', $request->email)->first();
+
+        
+         // Check if device is already trusted
+        $trustedDevice = TrustedDevice::where('user_id', $user->id)
+        ->where('device_id', $request->device_id)
+        ->first();
+
+        if ($trustedDevice) {
+            // If device is trusted, log in immediately and generate JWT
+            $token = JWTAuth::fromUser($user);
+            $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
+
+            return response()->json(['message' => 'Login successful'])
+                ->cookie('auth_token', $token, 60, '/', null, false, true)
+                ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
+        }
+
+        // If device is NOT trusted, require OTP verification
+        return response()->json([
+            'otp_required' => true,
+            'user_id' => $user->id
+        ]);
+
+    }
+
     
    // Get Authenticated User
-   public function me(Request $request)
-{
+   public function me(Request $request) 
+   {
     try {
         // Get the token from the cookies
         $token = $request->cookie('auth_token');

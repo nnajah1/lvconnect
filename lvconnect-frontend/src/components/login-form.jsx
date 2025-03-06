@@ -9,12 +9,14 @@ export function LoginForm({
   handleChange,
   handleSubmit,
   loading,
-  handleGoogleLogin
+  handleGoogleLogin,
 
   
 }) {
   return (
-    (<form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit}>
+    (
+      <div>
+         <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-muted-foreground text-sm text-balance">
@@ -64,6 +66,9 @@ export function LoginForm({
           Login with Google
         </Button>
       </div>
-    </form>)
+    </form>
+    </div>
+
+   )
   );
 }

@@ -29,8 +29,8 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'google_id',
         'avatar',
-        'otp',
-        'otp_expires_at',
+        'email_verified_at',
+        'remember_token'
     ];
 
     /**
@@ -66,4 +66,16 @@ class User extends Authenticatable implements JWTSubject
             'permissions' => $this->getAllPermissions()->pluck('name')
         ];
     }
+
+    public function otps()
+    {
+        return $this->hasMany(Otp::class);
+    }
+
+    public function trustedDevices()
+    {
+        return $this->hasMany(TrustedDevice::class);
+    }
+
+
 }

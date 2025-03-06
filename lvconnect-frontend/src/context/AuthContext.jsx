@@ -15,6 +15,7 @@ let retryCount = 0; // Track retries
 export const ContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const fetchUser = async () => {
         setLoading(true);
@@ -23,6 +24,7 @@ export const ContextProvider = ({ children }) => {
             const response = await api.get("/me");
             retryCount = 0; // Reset retry count on success
             setUser(response.data.user);
+            setIsAuthenticated(true);
         } catch (error) {
             if (error.response?.status === 401 && retryCount < 1) { 
                 retryCount++;
@@ -33,6 +35,7 @@ export const ContextProvider = ({ children }) => {
                 }
             }
             setUser(null); 
+            setIsAuthenticated(false);
             setLoading(false);
         } finally {
             if (retryCount === 0) setLoading(false); // Prevent multiple loading states
@@ -69,11 +72,21 @@ export const ContextProvider = ({ children }) => {
         
         return false; // Failed to refresh
     };
-
+    
     // Handle login
-    const login = async (credentials) => {
+    const login = async (credentials, deviceId, deviceName) => {
         try {
-            const response = await api.post("/login", credentials);
+
+            const response = await api.post("/login", {...credentials, device_id: deviceId, device_name: deviceName} );
+
+            if (response.data.otp_required) {
+                return { 
+                    success: false, 
+                    otpRequired: true, 
+                    message: "OTP required" 
+                };
+            }
+
             if (response.status === 200) {
                 await refreshToken();
                 await fetchUser(); // Fetch the user after login
@@ -82,16 +95,53 @@ export const ContextProvider = ({ children }) => {
                 return { success: false, message: "Login Failed" };
             }
         } catch (error) {
-            return { success: false, message: "invalid credentials" };
+            return { success: false, message: "Invalid credentials" };
         }
     };
+
+    //  // Send OTP to user
+    // const sendOTP = async (userId, rememberMe) => {
+    //     try {
+    //         const response = await api.post("/send-otp", { user_id: userId, remember_me: rememberMe });
+
+    //         if (response.status === 200) {
+    //             return { success: true, message: "OTP sent successfully" };
+    //         }
+    //     } catch (error) {
+    //         return { success: false, message: "Failed to send OTP" };
+    //     }
+    // };
+
+    // Verify OTP
+    const verifyOTP = async (email, otp, deviceId, deviceName, rememberDevice) => {
+        try {
+            const response = await api.post("/verify-otp", {
+                email,
+                otp,
+                device_id: deviceId,
+                device_name: deviceName,
+                remember_device: rememberDevice, // Send remember flag
+            });
+    
+            if (response.status === 200) {
+                await refreshToken();
+                await fetchUser(); // Fetch user details after successful OTP verification
+                return { success: true };
+            } else {
+                return { success: false, message: "OTP Verification Failed" };
+            }
+        } catch (error) {
+            return { success: false, message: "Invalid or expired OTP" };
+        }
+    };
+
 
     // Handle logout (Clears cookie)
     const logout = async () => {
         try {
             await api.get("/logout", {}, );
             setUser(null);
-            console.log("Logged out successfully");
+            setIsAuthenticated(false);
         } catch (error) {
             console.error("Logout failed:", error);
         } 
@@ -126,7 +176,8 @@ export const ContextProvider = ({ children }) => {
             setLoading, 
             loading, 
             handleGoogleLogin,
-            fetchUser
+            fetchUser, 
+            verifyOTP
             }}>
             {children}
         </AuthContext.Provider>
