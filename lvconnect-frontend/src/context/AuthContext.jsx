@@ -10,24 +10,32 @@ const AuthContext = createContext({
     oAuthLogin: () => {},
 });
 
+let retryCount = 0; // Track retries
+
 export const ContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const fetchUser = async () => {
         setLoading(true);
+
         try {
-            const response = await api.get("/me",{withCredentials: true});
+            const response = await api.get("/me");
+            retryCount = 0; // Reset retry count on success
             setUser(response.data.user);
         } catch (error) {
-            setUser(null);
-            if (error.response?.status === 401) {
-                console.log("Unauthorized: Redirecting to login...");
-            } else {
-                console.error("Error fetching user:", error);
+            if (error.response?.status === 401 && retryCount < 1) { 
+                retryCount++;
+                const refreshed = await refreshToken();
+    
+                if (refreshed) {
+                    return fetchUser(); // Retry fetching user after refresh
+                }
             }
-        } finally {
+            setUser(null); 
             setLoading(false);
+        } finally {
+            if (retryCount === 0) setLoading(false); // Prevent multiple loading states
         }
     };
 
@@ -36,26 +44,57 @@ export const ContextProvider = ({ children }) => {
         fetchUser();
     }, []);
 
+    const refreshToken = async () => {
+        // try {
+        //     await api.post("/refresh", {});
+        //     console.log("Token refreshed successfully");
+        // } catch (error) {
+        //     console.error("Refresh token expired: Logging out...");
+        //     setUser(null);
+        // }
+        try {
+            const response = await api.post("/refresh");
+    
+            if (response.status === 200) {
+                return true; // Token refreshed
+            }
+        } catch (error) {
+            // If the refresh token is expired, force logout
+            if (error.response?.status === 401) {
+                setUser(null); // Logout user
+                setLoading(false);
+            }
+
+        }
+        
+        return false; // Failed to refresh
+    };
+
     // Handle login
     const login = async (credentials) => {
         try {
             const response = await api.post("/login", credentials);
-            await fetchUser(); 
-            return { success: true };
+            if (response.status === 200) {
+                await refreshToken();
+                await fetchUser(); // Fetch the user after login
+                return { success: true };
+            } else {
+                return { success: false, message: "Login Failed" };
+            }
         } catch (error) {
-            return { success: false, message: "Login Failed" };
+            return { success: false, message: "invalid credentials" };
         }
     };
 
     // Handle logout (Clears cookie)
     const logout = async () => {
         try {
-            await api.post("/logout");
+            await api.get("/logout", {}, );
+            setUser(null);
+            console.log("Logged out successfully");
         } catch (error) {
             console.error("Logout failed:", error);
-        } finally {
-            setUser(null);
-        }
+        } 
     };
 
     // Create user (Admin/Super Admin only)
@@ -68,14 +107,27 @@ export const ContextProvider = ({ children }) => {
         }
     };
 
-    // Google OAuth login (redirects to backend)
-    // const oAuthLogin = async () => {
-    //     window.location.href = `${baseURL}/login/google`;
-    // };
+    // Google OAuth login 
+    const handleGoogleLogin = async () => {
+        try {
+            window.location.href = "http://localhost:8000/api/login/google/redirect";
+        } catch (error) {
+            console.error("Google login failed:", error);
+        }
+    };
 
     
     return (
-        <AuthContext.Provider value={{ user, login, logout, createUser, setLoading, loading }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            login, 
+            logout, 
+            createUser, 
+            setLoading, 
+            loading, 
+            handleGoogleLogin,
+            fetchUser
+            }}>
             {children}
         </AuthContext.Provider>
     );

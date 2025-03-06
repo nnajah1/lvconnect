@@ -8,8 +8,10 @@ use App\Http\Controllers\OTPController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/refresh', [AuthController::class, 'refreshToken']);
+
 Route::get('/login/google/redirect', [OAuthController::class, 'redirectToGoogle']);
 Route::get('/login/google/callback', [OAuthController::class, 'handleGoogleCallback']);
+Route::post('/auth/google/token', [OAuthController::class, 'exchangeGoogleToken']);
 
 Route::middleware('auth.jwt')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
