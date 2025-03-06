@@ -20,7 +20,6 @@ class OTPController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
-            
             'purpose' => 'required|string|in:forgot_password,new_password,unrecognized_device', // Ensure valid purpose
         ]);
 
@@ -69,7 +68,11 @@ class OTPController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::find($request->user_id);
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
 
         // Fetch latest OTP record
         $otpRecord = OTP::where('user_id', $user->id)->where('otp', $request->otp)->latest()->first();
@@ -97,7 +100,7 @@ class OTPController extends Controller
         $token = JWTAuth::fromUser($user);
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
-        return response()->json(['message' => 'OTP Verified, Login Successful'])
+        return response()->json(['message' => 'OTP Verified, Login Successful'], 200)
         ->cookie('auth_token', $token, 60, '/', null, false, true)
         ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
     }

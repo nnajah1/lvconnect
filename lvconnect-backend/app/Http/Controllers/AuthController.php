@@ -6,6 +6,7 @@ use App\Mail\UserCredentialsMail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\App;
 use Mail;
 use Str;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -15,14 +16,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Models\TrustedDevice;
-use App\Models\Otp;
 
 class AuthController extends Controller
 {
     public function createUser(request $request)
     {
        
-        $user = JWTAuth::parseToken()->authenticate();
+        $user = JWTAuth::authenticate();
 
         // checks user if authorized
         if (!$user) {
@@ -101,10 +101,17 @@ class AuthController extends Controller
                 ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
         }
 
-        // If device is NOT trusted, require OTP verification
+        $OTPController = App::make(OTPController::class); 
+         //If device is NOT trusted, send OTP
+        $OTPController->sendOTP(new Request([
+            'email' => $user->email,
+            'purpose' => 'unrecognized_device'
+        ]));
+
         return response()->json([
+            'success' => false,
             'otp_required' => true,
-            'user_id' => $user->id
+            'user_id' => $user->id,
         ]);
 
     }
@@ -113,7 +120,7 @@ class AuthController extends Controller
    // Get Authenticated User
    public function me(Request $request) 
    {
-    try {
+        try {
         // Get the token from the cookies
         $token = $request->cookie('auth_token');
         

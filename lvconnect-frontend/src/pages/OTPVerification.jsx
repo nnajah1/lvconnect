@@ -1,10 +1,11 @@
 import { useAuthContext } from "../context/AuthContext";
 import { useState } from "react";
 import { getDeviceId } from "../utils/device";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 
 const OTPVerification = () => {
     const { verifyOTP } = useAuthContext();
+    const location = useLocation();
     const navigate = useNavigate();
     const [otp, setOtp] = useState("");
     const [error, setError] = useState(null);
@@ -16,7 +17,7 @@ const OTPVerification = () => {
     const handleVerifyOTP = async (e) => {
         e.preventDefault();
         setError(null);
-
+        
         if (!userId || !deviceId || !deviceName) {
             setError("Invalid request. Please try again.");
             return;

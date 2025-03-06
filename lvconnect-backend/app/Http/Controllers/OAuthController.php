@@ -29,7 +29,8 @@ class OAuthController extends Controller
                         ->first();
 
             if (!$user) {
-                return response()->json(['error' => 'Account not found. Please contact admin.'], 403);
+                return redirect("http://localhost:5173/login?error=Account+not+found");
+       
             }
 
             // If user exists but doesn't have a google_id, update it

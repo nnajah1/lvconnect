@@ -83,6 +83,7 @@ export const ContextProvider = ({ children }) => {
                 return { 
                     success: false, 
                     otpRequired: true, 
+                    userId: response.data.user_id,
                     message: "OTP required" 
                 };
             }
@@ -113,10 +114,10 @@ export const ContextProvider = ({ children }) => {
     // };
 
     // Verify OTP
-    const verifyOTP = async (email, otp, deviceId, deviceName, rememberDevice) => {
+    const verifyOTP = async (userId, otp, deviceId, deviceName, rememberDevice) => {
         try {
             const response = await api.post("/verify-otp", {
-                email,
+                user_id: userId,
                 otp,
                 device_id: deviceId,
                 device_name: deviceName,
@@ -150,7 +151,7 @@ export const ContextProvider = ({ children }) => {
     // Create user (Admin/Super Admin only)
     const createUser = async (userData) => {
         try {
-            const response = await api.post("/createUser", userData);
+            const response = await api.post("/create-user", userData);
             return response.data;
         } catch (error) {
             return { error: "Failed to create user." };
@@ -161,8 +162,9 @@ export const ContextProvider = ({ children }) => {
     const handleGoogleLogin = async () => {
         try {
             window.location.href = "http://localhost:8000/api/login/google/redirect";
+            
         } catch (error) {
-            console.error("Google login failed:", error);
+            return {message: "google login failed"}
         }
     };
 

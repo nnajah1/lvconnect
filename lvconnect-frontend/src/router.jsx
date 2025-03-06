@@ -3,6 +3,7 @@ import GuestLayout from "./components/GuestLayout";
 import CreateUser from "./pages/CreateUser";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import TrustedDevices from "./pages/TrustedDevices";
 
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import OAuthCallback from "./pages/OAuthCallback";
@@ -48,6 +49,10 @@ const router = createBrowserRouter ([
             { 
                 path: "/create-user", 
                 element: <CreateUser /> 
+            },
+            { 
+                path: "/trusted-devices", 
+                element: <TrustedDevices /> 
             },
         ],
     },

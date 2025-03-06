@@ -8,52 +8,31 @@ use Illuminate\Support\Facades\Auth;
 
 class TrustedDeviceController extends Controller
 {
-    // Store a new trusted device
-    public function store(Request $request)
-    {
-        $user = Auth::user(); // Get authenticated user
-        $deviceId = $request->device_id; // Get unique device identifier from frontend
-
-        // Check if the device is already trusted
-        if (!$user->trustedDevices()->where('device_id', $deviceId)->exists()) {
-            $user->trustedDevices()->create([
-                'device_id' => $deviceId,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->header('User-Agent'),
-            ]);
-        }
-
-        return response()->json(['message' => 'Device marked as trusted.']);
-    }
-
-    // Check if a device is trusted
-    public function isTrusted(Request $request)
-    {
-        $user = Auth::user();
-        $deviceId = $request->device_id;
-
-        $isTrusted = $user->trustedDevices()->where('device_id', $deviceId)->exists();
-
-        return response()->json(['trusted' => $isTrusted]);
-    }
 
     // List all trusted devices for a user
-    public function listTrustedDevices()
+    public function index()
     {
         $user = Auth::user();
-        $trustedDevices = $user->trustedDevices()->get();
+        $devices = TrustedDevice::where('user_id', $user->id)->get();
 
-        return response()->json(['trusted_devices' => $trustedDevices]);
+        return response()->json(['devices' => $devices]);
+    
     }
 
     // Remove a trusted device
-    public function removeTrustedDevice(Request $request)
+    public function destroy($deviceId)
     {
         $user = Auth::user();
-        $deviceId = $request->device_id;
+        $device = TrustedDevice::where('user_id', $user->id)
+                                ->where('device_id', $deviceId)
+                                ->first();
 
-        $user->trustedDevices()->where('device_id', $deviceId)->delete();
+        if (!$device) {
+            return response()->json(['error' => 'Device not found'], 404);
+        }
 
-        return response()->json(['message' => 'Device removed.']);
+        $device->delete();
+
+        return response()->json(['message' => 'Device removed successfully.']);
     }
 }
