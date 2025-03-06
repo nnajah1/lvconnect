@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Otp;
 use App\Models\TrustedDevice;
-use App\Models\Otp;
-use App\Models\TrustedDevice;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -51,11 +48,7 @@ class OTPController extends Controller
         // Store OTP in otps table with expiration
         Otp::create([
             'user_id' => $user->id,
-        // Store OTP in otps table with expiration
-        Otp::create([
-            'user_id' => $user->id,
             'otp' => $otpCode,
-            'expires_at' => Carbon::now()->addMinutes(2),
             'expires_at' => Carbon::now()->addMinutes(2),
         ]);
 
@@ -64,17 +57,13 @@ class OTPController extends Controller
 
         return response()->json(['message' => 'OTP sent to your email'], 200);
     }
+}
 
 
 
     public function verifyOTP(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|exists:users,id',
-            'otp' => 'required|string',
-            'device_id' => 'required|string',
-            'device_name' => 'required|string',
-            'remember_device' => 'boolean'
             'user_id' => 'required|exists:users,id',
             'otp' => 'required|string',
             'device_id' => 'required|string',
@@ -134,9 +123,6 @@ class OTPController extends Controller
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
-        return response()->json(['message' => 'OTP Verified, Login Successful'])
-        ->cookie('auth_token', $token, 60, '/', null, false, true)
-        ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
         return response()->json(['message' => 'OTP Verified, Login Successful'])
         ->cookie('auth_token', $token, 60, '/', null, false, true)
         ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
