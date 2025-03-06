@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\OTPNotification;
 
 class OTPController extends Controller
 {
@@ -16,6 +17,7 @@ class OTPController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
+            'purpose' => 'required|string|in:forgot_password,new_password,unrecognized_device', // Ensure valid purpose
         ]);
 
         if ($validator->fails()) {
@@ -37,13 +39,12 @@ class OTPController extends Controller
             'otp_expires_at' => Carbon::now()->addMinutes(2),
         ]);
 
-        // Send OTP via email
-        Mail::raw("Your OTP Code is: $otpCode. It expires in 2 minutes.", function ($message) use ($user) {
-            $message->to($user->email)->subject('Your OTP Code');
-        });
+        // Send OTP via notification (dynamic purpose)
+        $user->notify(new OTPNotification($otpCode, $request->purpose));
 
         return response()->json(['message' => 'OTP sent to your email'], 200);
     }
+
 
 
     public function verifyOTP(Request $request)

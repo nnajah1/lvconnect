@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\OTPNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -45,6 +46,8 @@ class ChangePasswordController extends Controller
             'otp' => null, // Clear OTP after successful password change
             'otp_expires_at' => null,
         ]);
+
+        $user->notify(new OTPNotification(null, 'new_password'));
 
         return response()->json(['message' => 'Password successfully changed.'], 200);
     }
