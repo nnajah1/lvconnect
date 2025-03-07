@@ -6,16 +6,12 @@ export default function DefaultLayout() {
     const {user, loading, logout } = useAuthContext();
 
     if (loading) {
-        return <p>Loading...</p>;
+        return <p>Loading...</p>;  // Show loading until authentication check is complete
     }
 
-    if(!user) {
-        // set loading to false
-       return <Navigate to='/login'/>
+    if (!user) {
+        return <Navigate to="/login" replace />;
     }
-
-
-
     return (
         <div id="defaultLayout">
             <div className="content">

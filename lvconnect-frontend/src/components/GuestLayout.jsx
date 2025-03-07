@@ -4,7 +4,7 @@ import { Navigate, Outlet} from "react-router-dom";
 export default function GuestLayout() {
      const {user} = useAuthContext();
         if(user) {
-           return <Navigate to='/dashboard'/>
+           return <Navigate to='/dashboard' replace />
         }
         return (
             <div >

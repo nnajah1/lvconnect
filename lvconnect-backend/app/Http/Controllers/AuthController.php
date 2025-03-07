@@ -84,7 +84,10 @@ class AuthController extends Controller
 
         // Get the authenticated user
         $user = User::where('email', $request->email)->first();
-
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            // Return an error if email or password does not match
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
         
          // Check if device is already trusted
         $trustedDevice = TrustedDevice::where('user_id', $user->id)
@@ -104,7 +107,7 @@ class AuthController extends Controller
         $OTPController = App::make(OTPController::class); 
          //If device is NOT trusted, send OTP
         $OTPController->sendOTP(new Request([
-            'email' => $user->email,
+            'user_id' => $user->id,
             'purpose' => 'unrecognized_device'
         ]));
 

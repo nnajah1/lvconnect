@@ -15,7 +15,6 @@ let retryCount = 0; // Track retries
 export const ContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const fetchUser = async () => {
         setLoading(true);
@@ -24,7 +23,6 @@ export const ContextProvider = ({ children }) => {
             const response = await api.get("/me");
             retryCount = 0; // Reset retry count on success
             setUser(response.data.user);
-            setIsAuthenticated(true);
         } catch (error) {
             if (error.response?.status === 401 && retryCount < 1) { 
                 retryCount++;
@@ -35,7 +33,6 @@ export const ContextProvider = ({ children }) => {
                 }
             }
             setUser(null); 
-            setIsAuthenticated(false);
             setLoading(false);
         } finally {
             if (retryCount === 0) setLoading(false); // Prevent multiple loading states
@@ -101,17 +98,20 @@ export const ContextProvider = ({ children }) => {
     };
 
     //  // Send OTP to user
-    // const sendOTP = async (userId, rememberMe) => {
-    //     try {
-    //         const response = await api.post("/send-otp", { user_id: userId, remember_me: rememberMe });
+    const sendOTP = async (userId, purpose) => {
+        try {
+            const response = await api.post("/send-otp", { user_id: userId, purpose });
 
-    //         if (response.status === 200) {
-    //             return { success: true, message: "OTP sent successfully" };
-    //         }
-    //     } catch (error) {
-    //         return { success: false, message: "Failed to send OTP" };
-    //     }
-    // };
+            if (response.status === 200) {
+                return { success: true, message: "OTP sent successfully" };
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 429) {
+                return { success: false, message: "Please wait before requesting a new OTP" };
+            }
+            return { success: false, message: "Failed to send OTP" };
+        }
+    };
 
     // Verify OTP
     const verifyOTP = async (userId, otp, deviceId, deviceName, rememberDevice) => {
@@ -142,7 +142,6 @@ export const ContextProvider = ({ children }) => {
         try {
             await api.get("/logout", {}, );
             setUser(null);
-            setIsAuthenticated(false);
         } catch (error) {
             console.error("Logout failed:", error);
         } 
@@ -179,7 +178,9 @@ export const ContextProvider = ({ children }) => {
             loading, 
             handleGoogleLogin,
             fetchUser, 
-            verifyOTP
+            verifyOTP,
+            sendOTP,
+
             }}>
             {children}
         </AuthContext.Provider>

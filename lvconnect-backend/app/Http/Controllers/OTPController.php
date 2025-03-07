@@ -19,7 +19,7 @@ class OTPController extends Controller
     public function sendOTP(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
+            'user_id' => 'required|exists:users,id',
             'purpose' => 'required|string|in:forgot_password,new_password,unrecognized_device', // Ensure valid purpose
         ]);
 
@@ -27,12 +27,12 @@ class OTPController extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::find($request->user_id);
 
         // Check if an OTP was recently requested
         $existingOTP = Otp::where('user_id', $user->id)->latest()->first();
 
-        if ($existingOTP && $existingOTP->expires_at->subMinutes(2)->gt(Carbon::now())) {
+        if ($existingOTP && $existingOTP->created_at->addMinutes(2)->gt(Carbon::now())) {
             return response()->json(['error' => 'Please wait before requesting a new OTP'], 429);
         }
 
