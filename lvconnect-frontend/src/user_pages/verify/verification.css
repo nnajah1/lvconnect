@@ -1,0 +1,56 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+/* Container */
+.verification-container {
+    @apply relative w-full h-screen flex items-center justify-center;
+  }
+  
+  /* Box */
+  .verification-box {
+    @apply relative bg-white/94 p-8 rounded-2xl shadow-lg w-[90%] max-w-[620px] h-[450px] flex flex-col justify-center items-center;
+  }
+  
+  /* Title & Subtitle */
+  .verification-title {
+    @apply text-lg font-semibold mb-2;
+  }
+  
+  .verification-subtitle {
+    @apply text-sm text-gray-600 mb-4 text-center font-semibold;
+  }
+  
+  /* OTP Input */
+  .otp-input-container {
+    @apply flex justify-center space-x-2 mb-2;
+  }
+  
+  .otp-input {
+    @apply w-11 h-13 m-2.5 text-center text-lg border rounded-lg focus:outline-none border-gray-300;
+  }
+  
+  .focused {
+    @apply border-black;
+  }
+  
+  .expired {
+    @apply bg-gray-100 cursor-not-allowed;
+  }
+  
+  /* Resend OTP */
+  .resend-container {
+    @apply justify-end pr-24 text-sm text-gray-600 w-full flex mb-2;
+  }
+  
+  .resend-timer {
+    @apply text-red-500 font-semibold;
+  }
+  
+  .resend-button {
+    @apply text-blue-500 font-semibold hover:underline;
+  }
+  
+  /* Verify Button */
+  .verify-button {
+    @apply w-80;
+  }
