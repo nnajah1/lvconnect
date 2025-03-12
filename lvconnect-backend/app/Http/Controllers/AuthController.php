@@ -24,12 +24,12 @@ class AuthController extends Controller
        
         $user = JWTAuth::authenticate();
 
-        // checks user if authorized
+        // Checks user if authorized
         if (!$user) {
                 return response()->json(['error'=> 'not authorized'], 404);
             }
 
-        // define allowed roles
+        // Define allowed roles
         $allowedRoles = $user->hasRole('superadmin') 
         ? ['student', 'admin', 'superadmin'] 
         : ['student'];
@@ -44,9 +44,10 @@ class AuthController extends Controller
             return response()->json(['errors'=>$validator->errors(), 422]);
         }
 
-          // Generate a random password
+        // Generate a random password
         $randomPassword = Str::random(10);
 
+        //create new user
         $newUser = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -54,8 +55,10 @@ class AuthController extends Controller
 
         ]);
 
+        // Assign role to user
         $newUser->assignRole($request->role);
 
+        // Send credentials to user
         Mail::to($newUser->email)->send(new UserCredentialsMail($newUser, $randomPassword));
 
         return response()->json(['message'=> 'User created successfully',  
@@ -73,8 +76,7 @@ class AuthController extends Controller
                 'min:8',
                 'regex:/^[A-Za-z0-9@#$%^&*()!]+$/', 
             ],
-            'device_id' => 'required|string',
-            'device_name' => 'required|string'
+            'remember_device' => 'sometimes|boolean',
         ]);
 
          // Return validation errors
@@ -94,28 +96,29 @@ class AuthController extends Controller
         ->where('device_id', $request->device_id)
         ->first();
 
-        if ($trustedDevice) {
-            // If device is trusted, log in immediately and generate JWT
-            $token = JWTAuth::fromUser($user);
-            $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
-
-            return response()->json(['message' => 'Login successful'])
-                ->cookie('auth_token', $token, 60, '/', null, false, true)
-                ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
+        if (!$trustedDevice) {
+            $OTPController = App::make(OTPController::class); 
+            //If device is NOT trusted, send OTP
+           $OTPController->sendOTP(new Request([
+               'user_id' => $user->id,
+               'purpose' => 'unrecognized_device'
+           ]));
+   
+           return response()->json([
+               'success' => false,
+               'otp_required' => true,
+               'user_id' => encrypt($user->id),
+               'must_change_password' => $user->must_change_password
+           ]);
         }
 
-        $OTPController = App::make(OTPController::class); 
-         //If device is NOT trusted, send OTP
-        $OTPController->sendOTP(new Request([
-            'user_id' => $user->id,
-            'purpose' => 'unrecognized_device'
-        ]));
+         // If device is trusted or no OTP or no password change needed, login immediately and generate JWT
+         $token = JWTAuth::fromUser($user);
+         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
-        return response()->json([
-            'success' => false,
-            'otp_required' => true,
-            'user_id' => $user->id,
-        ]);
+         return response()->json(['message' => 'Login successful'])
+             ->cookie('auth_token', $token, 60, '/', null, false, true)
+             ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
 
     }
 
@@ -175,7 +178,7 @@ class AuthController extends Controller
 
    }
 
-   //handle refresh token
+   // Handle refresh token
    public function refreshToken(Request $request)
 {
     try {

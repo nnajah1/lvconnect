@@ -18,15 +18,15 @@ class OAuthController extends Controller
     }
 
     // Handle Google callback and authentication
-    public function handleGoogleCallback()
+    public function handleGoogleCallback(Request $request)
     {
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
             // Check if user exists using google_id or email
-            $user = User::where('google_id', $googleUser->getId())
-                        ->orWhere('email', $googleUser->getEmail())
-                        ->first();
+            $user = User::where('email', $googleUser->getEmail())
+            ->orWhere('google_id', $googleUser->getId())
+            ->first();
 
             if (!$user) {
                 return redirect("http://localhost:5173/login?error=Account+not+found");
@@ -41,6 +41,7 @@ class OAuthController extends Controller
             // Generate a temporary authorization code (or token)
         $tempCode = Str::random(40);
         Cache::put("oauth_code_{$tempCode}", $user->id, 60); // Store code for 60s
+
 
         // Redirect to frontend with the temporary code
         return redirect("http://localhost:5173/google-auth-success?code={$tempCode}");
@@ -72,14 +73,28 @@ class OAuthController extends Controller
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
+
+            // Check if "Remember Device" is enabled from frontend
+            if ($request->input('remember_device')) {
+                $request->validate(['device_id' => 'required|string']);
     
+                // Save or update the trusted device record
+                $user->trustedDevices()->updateOrCreate(
+                    ['device_id' =>  $request->device_id],
+                    [
+                        'device_name' => $request->header('User-Agent'),
+                        'last_used_at' => now(),
+                    ]
+                );
+            }
             // Generate Access Token
             $token = JWTAuth::fromUser($user);
     
             // Generate Refresh Token
             $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
     
-            return response()->json(['message' => 'Google login successful'])
+            return response()->json(['message' => 'Google login successful', 'must_change_password' => $user->must_change_password,
+            'user_id' => encrypt($user->id),])
                 ->cookie('auth_token', $token, 60, '/', null, false, true)  // Access token (HttpOnly)
                 ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true); // Refresh token (HttpOnly)
     
@@ -90,3 +105,4 @@ class OAuthController extends Controller
   
 
 }
+

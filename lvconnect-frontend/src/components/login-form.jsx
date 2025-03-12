@@ -11,6 +11,8 @@ export function LoginForm({
   buttonLoading,
   handleGoogleLogin,
   error,
+  rememberDevice,
+  setRememberDevice,
   
 }) {
   return (
@@ -67,6 +69,15 @@ export function LoginForm({
             </svg>
             Login with Google
           </Button>
+
+            <Label>
+            <Input type="checkbox" checked={rememberDevice}onChange={() => {
+            const newValue = !rememberDevice;
+            setRememberDevice(newValue);
+            localStorage.setItem("remember_device", newValue.toString());
+        }} />
+              Remember This Device
+          </Label>
         </div>
       </form>
     </div>

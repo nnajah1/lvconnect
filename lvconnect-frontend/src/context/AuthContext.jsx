@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import api from "../axios";
 import { createContext, useState, useContext, useEffect } from "react";
 
@@ -15,7 +16,9 @@ let retryCount = 0; // Track retries
 export const ContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-
+    const [timer, setTimer] = useState(120);
+   
+    // function to fetch current user
     const fetchUser = async () => {
         setLoading(true);
 
@@ -39,19 +42,12 @@ export const ContextProvider = ({ children }) => {
         }
     };
 
-    // Run fetchUser only once when the component mounts
+    // Run fetchUser
     useEffect(() => {
         fetchUser();
     }, []);
 
     const refreshToken = async () => {
-        // try {
-        //     await api.post("/refresh", {});
-        //     console.log("Token refreshed successfully");
-        // } catch (error) {
-        //     console.error("Refresh token expired: Logging out...");
-        //     setUser(null);
-        // }
         try {
             const response = await api.post("/refresh");
     
@@ -71,17 +67,17 @@ export const ContextProvider = ({ children }) => {
     };
     
     // Handle login
-    const login = async (credentials, deviceId, deviceName) => {
+    const login = async (credentials, deviceId, rememberDevice  ) => {
         try {
 
-            const response = await api.post("/login", {...credentials, device_id: deviceId, device_name: deviceName} );
+            const response = await api.post("/login", {...credentials, device_id: deviceId, remember_device: rememberDevice } );
 
             if (response.data.otp_required) {
                 return { 
                     success: false, 
                     otpRequired: true, 
                     userId: response.data.user_id,
-                    message: "OTP required" 
+                    message: "OTP required",
                 };
             }
 
@@ -114,25 +110,28 @@ export const ContextProvider = ({ children }) => {
     };
 
     // Verify OTP
-    const verifyOTP = async (userId, otp, deviceId, deviceName, rememberDevice) => {
+    const verifyOTP = async (userId, otp, deviceId, rememberDevice) => {
         try {
             const response = await api.post("/verify-otp", {
                 user_id: userId,
                 otp,
                 device_id: deviceId,
-                device_name: deviceName,
-                remember_device: rememberDevice, // Send remember flag
+                remember_device: rememberDevice,
+              
             });
-    
-            if (response.status === 200) {
-                await refreshToken();
-                await fetchUser(); // Fetch user details after successful OTP verification
-                return { success: true };
-            } else {
-                return { success: false, message: "OTP Verification Failed" };
+            
+            if (response.data.must_change_password) {
+                return { success: true, mustChangePassword: true, userId }; // Redirect to change password
             }
+
+            await refreshToken();
+            await fetchUser(); // Fetch user details after successful OTP verification
+           
+
+            return { success: true };
+           
         } catch (error) {
-            return { success: false, message: "Invalid or expired OTP" };
+            return { success: false, message: error.response?.data?.message || "OTP Verification Failed" };
         }
     };
 
@@ -180,6 +179,9 @@ export const ContextProvider = ({ children }) => {
             fetchUser, 
             verifyOTP,
             sendOTP,
+            setTimer,
+            timer,
+            refreshToken,
 
             }}>
             {children}

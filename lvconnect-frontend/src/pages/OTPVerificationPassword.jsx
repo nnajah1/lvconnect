@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import preventBackNavigation from "../utils/preventBackNavigation";
-import { initializeDeviceId } from "../utils/device";
 
 import {
     InputOTP,
@@ -12,7 +11,7 @@ import {
   } from "../components/ui/input-otp";
 
 const OTPVerification = () => {
-    preventBackNavigation(true);
+   
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -22,7 +21,7 @@ const OTPVerification = () => {
     const [isResendDisabled, setIsResendDisabled] = useState(true);
 
     // Retrieve userId, deviceId, and deviceName from the location state
-    const { userId, } = location.state || {};
+    const { userId, deviceId, deviceName } = location.state || {};
     
     // Redirect to login if accessed directly
     useEffect(() => {
@@ -33,7 +32,7 @@ const OTPVerification = () => {
         }
     }, [userId, user, navigate]); 
 
-   
+    preventBackNavigation(true);
 
     useEffect(() => {
         const startTime = localStorage.getItem("otpStartTime");
@@ -67,7 +66,8 @@ const OTPVerification = () => {
     const handleVerifyOTP = async (e) => {
         e.preventDefault();
         setError(null);
-        if (!userId ) {
+        
+        if (!userId || !deviceId || !deviceName) {
             setError("Invalid request. Please try again.");
             return;
         }
@@ -76,9 +76,8 @@ const OTPVerification = () => {
             return;
         }
     
-        
-        const deviceId = await initializeDeviceId();
-        const response = await verifyOTP(location.state.userId, otp, deviceId, location.state.rememberDevice);
+
+        const response = await verifyOTP(location.state.userId, otp, deviceId, deviceName);
 
         if (response.success) {
             //Redirect to Change Password if password must change

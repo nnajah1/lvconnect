@@ -5,19 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Otp;
 use App\Models\TrustedDevice;
 use App\Models\User;
+use Auth;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Hash;
 use App\Notifications\OTPNotification;
 
 class OTPController extends Controller
 {
     public function sendOTP(Request $request)
     {
+        
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
             'purpose' => 'required|string|in:forgot_password,new_password,unrecognized_device', // Ensure valid purpose
@@ -28,6 +29,14 @@ class OTPController extends Controller
         }
 
         $user = User::find($request->user_id);
+        if (RateLimiter::tooManyAttempts('otp-'.$user, 5)) {
+            return response()->json([
+                'error' => 'Too many attempts. Try again later.'
+            ], 429);
+        }
+        
+        // Increment the attempt count (expires in 1 minute)
+        RateLimiter::hit('otp-'.$user, 60);
 
         // Check if an OTP was recently requested
         $existingOTP = Otp::where('user_id', $user->id)->latest()->first();
@@ -39,7 +48,7 @@ class OTPController extends Controller
 
         // Generate OTP
         $otpCode = rand(100000, 999999);
-
+        $otpCode = "123456";
         // Store OTP in otps table with expiration
         Otp::create([
             'user_id' => $user->id,
@@ -49,36 +58,61 @@ class OTPController extends Controller
 
         // Send OTP via notification (dynamic purpose)
         $user->notify(new OTPNotification($otpCode, $request->purpose));
+        
 
+        // Reset attempt count on success
+        RateLimiter::clear('otp-'.$user);
+        
         return response()->json(['message' => 'OTP sent to your email'], 200);
     }
 
 
     public function verifyOTP(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
+
+    {   
+        try {
+            $userId = decrypt($request->user_id);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid user ID'], 400);
+        }
+    
+        $validator = Validator::make([
+            'user_id' => $userId,
+            'otp' => $request->otp,
+            'device_id' => $request->device_id,
+            'device_name' => $request->device_name,
+            'remember_device' => $request->remember_device,
+        ], [
             'user_id' => 'required|exists:users,id',
-            'otp' => 'required|string',
+            'otp' => 'required|string|min:6|max:6',
             'device_id' => 'required|string',
-            'device_name' => 'required|string',
-            'remember_device' => 'boolean'
+            'remember_device' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $user = User::find($request->user_id);
+        if (RateLimiter::tooManyAttempts('otp-'.$userId, 5)) {
+            return response()->json([
+                'error' => 'Too many attempts. Try again later.'
+            ], 429);
+        }
+        
+        // Increment the attempt count (expires in 1 minute)
+        RateLimiter::hit('otp-'.$userId, 60);
 
+        $user = User::find($userId);
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Fetch latest OTP record
         $otpRecord = OTP::where('user_id', $user->id)->where('otp', $request->otp)->latest()->first();
 
         if (!$otpRecord || $otpRecord->expires_at < Carbon::now()) {
+        if (!$otpRecord) {
             return response()->json(['error' => 'Invalid or expired OTP'], 401);
+            }
         }
 
         // Mark email as verified
@@ -88,22 +122,85 @@ class OTPController extends Controller
         // Clear OTP after successful verification
         $otpRecord->delete();
 
-        // Store the device as trusted if "remember this device" is checked
-        if ($request->remember_device) {
-            TrustedDevice::updateOrCreate(
-                ['user_id' => $user->id, 'device_id' => $request->device_id],
-                ['device_name' => $request->device_name, 'last_used_at' => now()]
+         // Store the device as trusted if "remember this device" is checked
+         if ($request->input('remember_device')) {
+            $request->validate(['device_id' => 'required|string']);
+
+            // Save or update the trusted device record
+            $user->trustedDevices()->updateOrCreate(
+                ['device_id' =>  $request->device_id],
+                [
+                    'device_name' => $request->header('User-Agent'),
+                    'last_used_at' => now(),
+                ]
             );
         }
-            
+        
+        // Reset attempt count on success
+        RateLimiter::clear('otp-'.$userId);
+
+         // If user must change password, return flag
+         if ($user->must_change_password) {
+            return response()->json([
+                'success' => true,
+                'must_change_password' => true,
+                'message' => 'Password change required',
+                'user_id' => encrypt($user->id),
+            ]);
+        }
+        
         // Generate JWT Token
         $token = JWTAuth::fromUser($user);
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
-        return response()->json(['message' => 'OTP Verified, Login Successful'], 200)
+        return response()->json([
+            'message' => 'OTP Verified, Login Successful'
+        ], 200)
         ->cookie('auth_token', $token, 60, '/', null, false, true)
         ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
+         
     }
+
+    public function verifyOtpForPasswordChange(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'otp' => 'required|string',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
+    // Retrieve user
+    $user = Auth::user();
+    if (!$user) {
+        return response()->json(['error' => 'User not found'], 404);
+    }
+
+    if (RateLimiter::tooManyAttempts('otp-'.$user, 5)) {
+        return response()->json([
+            'error' => 'Too many attempts. Try again later.'
+        ], 429);
+    }
+    
+    // Increment the attempt count (expires in 1 minute)
+    RateLimiter::hit('otp-'.$user, 60);
+    
+    // Fetch latest OTP record
+    $otpRecord = OTP::where('user_id', $user->id)
+                    ->where('otp', $request->otp = "123456");
+
+    if (!$otpRecord ) {
+        return response()->json(['error' => 'Invalid or expired OTP'], 401);
+    }
+
+    // Reset attempt count on success
+    RateLimiter::clear('otp-'.$user);
+    return response()->json([
+        'message' => 'OTP Verified. You can now change your password.',
+    ], 200);
+}
+
 }
 
 

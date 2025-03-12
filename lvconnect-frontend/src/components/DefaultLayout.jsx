@@ -1,8 +1,12 @@
 import { useAuthContext } from "../context/AuthContext";
-import { Outlet, Link, Navigate } from "react-router-dom";
-
+import { Outlet, Navigate } from "react-router-dom";
+import preventBackNavigation from "../utils/preventBackNavigation";
+import OTPVerification from "@/pages/OTPVerification";
+import MustChangePassword from "@/pages/MustChangePassword";
 
 export default function DefaultLayout() {
+    preventBackNavigation(OTPVerification || MustChangePassword);
+
     const {user, loading, logout } = useAuthContext();
 
     if (loading) {

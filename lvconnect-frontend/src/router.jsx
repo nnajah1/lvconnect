@@ -6,7 +6,8 @@ import Login from "./pages/Login";
 import TrustedDevices from "./pages/TrustedDevices";
 import OAuthCallback from "./pages/OAuthCallback";
 import OTPVerification from "./pages/OTPVerification";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ChangePassword from "./pages/ChangePassword";
+import MustChangePassword from "./pages/MustChangePassword";
 
 const router = createBrowserRouter ([
     { path: '/', element: <Navigate to="/login" /> },
@@ -14,13 +15,10 @@ const router = createBrowserRouter ([
     { path: '/google-auth-success', element: <OAuthCallback /> },
 
     {
-        path: '/otp',
-        element: <OTPVerification />,
+        path: '/otp', element: <OTPVerification />,
     },
-    
 
-    // { path: "/otp", element: <OTPVerification /> },
-
+   
     {
         path: '/login',
         element: <GuestLayout />,
@@ -33,6 +31,8 @@ const router = createBrowserRouter ([
         ],
     },
 
+    { path: '/change-password', element: <MustChangePassword /> },
+    
     {
         path: '/',
         element:  <DefaultLayout />,
@@ -40,6 +40,9 @@ const router = createBrowserRouter ([
             { path: "dashboard", element: <Dashboard /> },
             { path: "create-user", element: <CreateUser /> },
             { path: "trusted-devices", element: <TrustedDevices /> },
+            { path: 'change-current-password', element: <ChangePassword /> },
+           
+
         ],
     }
     

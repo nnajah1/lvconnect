@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\TrustedDevice;
 use Illuminate\Support\Facades\Auth;
@@ -37,33 +38,18 @@ class TrustedDeviceController extends Controller
 
 
     // Add a new device to the list of trusted devices
-    public function store(Request $request)
+    public function storeDevice(Request $request)
     {
        try {
             
-            $user = JWTAuth::authenticate();
-            if (!$user) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
-
+            $user = User::find($request->user_id);
+           
             $deviceId = $request->input('deviceId');
             $deviceName = $request->input('deviceName');
 
-            if (!$deviceId || !$deviceName) {
-                return response()->json(['error' => 'Device ID and name are required'], 400);
-            }
-
-            // Check if the device is already trusted
-            $existingDevice = TrustedDevice::where('user_id', $user->id)
-                                           ->where('device_name', $deviceName)
-                                           ->first();
-
-            if ($existingDevice) {
-                return response()->json(['error' => 'Device is already trusted'], 409);
-            }
 
             // Add the new device
-            TrustedDevice::create([
+            TrustedDevice::updateOrCreate([
                 'user_id' => $user->id,
                 'device_id' => $deviceId,
                 'device_name' => $deviceName,
@@ -75,36 +61,20 @@ class TrustedDeviceController extends Controller
         }
     }
 
-    // Check if a device already exists for the current user
+    // Check if device is trusted
     public function checkDevice(Request $request)
-    {
-        try {
-            
-            $user = JWTAuth::authenticate();
-            if (!$user) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
+{
+    // Prioritize searching by deviceId
+    $device = TrustedDevice::where('device_id', $request->device_id)->first();
 
-            $deviceName = $request->input('deviceName');
-
-            if (!$deviceName) {
-                return response()->json(['error' => 'Device name is required'], 400);
-            }
-
-            $device = TrustedDevice::where('user_id', $user->id)
-                                   ->where('device_name', $deviceName)
-                                   ->first();
-
-            if (!$device) {
-                return response()->json(['error' => 'Device not found'], 404);
-            }
-
-            return response()->json(['deviceId' => $device->device_id]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Could not check device: ' . $e->getMessage()], 500);
-        }
+    // If not found, try to match by device_name (User-Agent)
+    if (!$device) {
+        $device = TrustedDevice::where('device_name', $request->header('User-Agent'))->first();
     }
-    
+
+    return response()->json(['deviceId' => $device?->device_id]);
+}
+
 
     // Remove a trusted device
     public function destroy($deviceId)

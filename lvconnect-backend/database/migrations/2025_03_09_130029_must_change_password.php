@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('trusted_devices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('device_id')->unique();
+            $table->string('device_id'); // No unique constraint here
             $table->string('device_name')->nullable();
             $table->timestamp('last_used_at')->useCurrent();
             $table->timestamps();
-
-            $table->unique(['user_id', 'device_id']); // Ensure no duplicate entries
-
+        
+            $table->unique(['user_id', 'device_id']); // Ensure no duplicate entries per user
+        
         });
     }
 
