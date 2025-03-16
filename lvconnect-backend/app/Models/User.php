@@ -6,8 +6,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -17,10 +19,19 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
+     use HasRoles;
+     protected $guard_name = 'api';
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'google_id',
+        'avatar',
+        'email_verified_at',
+        'remember_token',
+        'must_change_password'
     ];
 
     /**
@@ -45,4 +56,27 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function getJWTIdentifier() {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims() {
+        return [
+            'roles' => $this->getRoleNames(),
+            'permissions' => $this->getAllPermissions()->pluck('name')
+        ];
+    }
+
+    public function otps()
+    {
+        return $this->hasMany(Otp::class);
+    }
+
+    public function trustedDevices()
+    {
+        return $this->hasMany(TrustedDevice::class);
+    }
+
+
 }
