@@ -1,7 +1,7 @@
 import { useState } from "react";
 // import { useNavigate } from "react-router-dom"; //need to install first to navigate 'npm install react-router-dom'
 import LVConnect from "../../components/lv-connect";
-import Imagebackground from "../../components/background";
+import Imagebackground from "../../components/ui/background";
 import illustration from "../../assets/illustration.jpg";
 import Button from "../../components/button";
 import { FcGoogle } from "react-icons/fc";
@@ -93,8 +93,8 @@ function Login() {
               <input
                 type="email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={credentials.email}
+                onChange={handleChange}
                 className={`input-field ${isInvalid ? "border-red-500" : "border-gray-300"}`}
                 placeholder="Enter your email address"
               />
@@ -108,8 +108,8 @@ function Login() {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={credentials.password}
+                onChange={handleChange}
                 className={`input-field ${isInvalid ? "border-red-500" : "border-gray-300"}`}
                 placeholder="Enter your password"
               />

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import api from "../axios"; 
+import api from "@/axios"; 
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuthContext } from "../context/AuthContext";
-import preventBackNavigation from "../utils/preventBackNavigation";
+import { useAuthContext } from "@/context/AuthContext";
+import preventBackNavigation from "@/utils/preventBackNavigation";
 import { useEffect } from "react";
 
 const MustChangePassword = () => {

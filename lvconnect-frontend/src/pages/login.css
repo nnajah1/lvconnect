@@ -26,23 +26,23 @@
 }
 
 .input-group {
-  @apply relative;
+  @apply relative ;
 }
 
 .input-icon {
-  @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500;
+  @apply absolute left-3 top-6 transform -translate-y-1/2 text-gray-500 ;
 }
 
 .input-field {
-  @apply w-full h-[46px] pl-10 pr-4 border bg-white rounded-md text-sm font-medium focus:outline-none focus:ring-0 focus:border-black;
+  @apply w-full h-[46px] pl-8 pr-4 border bg-white rounded-md text-sm font-medium focus:outline-none focus:ring-0 focus:border-black;
 }
 
 .input-icon-right {
-  @apply absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500;
+  @apply absolute right-3 top-6 transform -translate-y-1/2 text-gray-500;
 }
 
 .forgot-password {
-  @apply text-gray-600 text-sm hover:underline;
+  @apply text-gray-600 text-sm hover:underline ml-auto -mt-4;
 }
 
 .or-divider {
@@ -58,7 +58,7 @@
 }
 
 .google-signin-btn {
-  @apply w-full h-12 border border-gray-400 text-gray-500 bg-white rounded-md flex items-center justify-center text-sm font-medium;
+  @apply w-full h-12 border border-gray-400 text-gray-500 bg-white rounded-md flex items-center justify-center text-sm font-medium cursor-pointer;
 }
 
 .google-icon {
@@ -66,9 +66,9 @@
 }
 
 .remember-me {
-  @apply w-full my-3 flex items-center;
+  @apply w-full my-3 flex items-center gap-2 pt-4 text-base;
 }
 
 .terms-text {
-  @apply text-center text-base text-black mt-5;
+  @apply text-center text-sm text-black ;
 }

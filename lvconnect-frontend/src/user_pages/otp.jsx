@@ -105,9 +105,8 @@ const Onetimepassword = () => {
               inputMode="numeric"
               pattern="[0-9]*"
               maxLength="1"
-              className={`w-11 h-13 m-2.5 text-center text-lg border rounded-lg focus:outline-none ${
-                focusedIndex === index ? "border-black" : "border-gray-300"
-              } ${resendVisible ? "bg-gray-100 cursor-not-allowed" : ""}`}
+              className={`w-11 h-13 m-2.5 text-center text-lg border rounded-lg focus:outline-none ${focusedIndex === index ? "border-black" : "border-gray-300"
+                } ${resendVisible ? "bg-gray-100 cursor-not-allowed" : ""}`}
               value={digit}
               onChange={(e) => handleOtpChange(index, e.target.value)}
               onFocus={() => setFocusedIndex(index)}
@@ -138,9 +137,8 @@ const Onetimepassword = () => {
 
         <button
           onClick={handleVerify}
-          className={`w-80 py-2 rounded-lg font-semibold ${
-            isOtpComplete ? "bg-blue-500 text-white hover:bg-blue-600" : "bg-[#85bbd4] text-white opacity-65 cursor-not-allowed"
-          }`}
+          className={`w-80 py-2 rounded-lg font-semibold ${isOtpComplete ? "bg-blue-500 text-white hover:bg-blue-600" : "bg-[#85bbd4] text-white opacity-65 cursor-not-allowed"
+            }`}
           disabled={!isOtpComplete}
         >
           Verify

@@ -1,13 +1,15 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";import DefaultLayout from "./components/DefaultLayout";
-import GuestLayout from "./components/GuestLayout";
-import CreateUser from "./pages/CreateUser";
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
-import TrustedDevices from "./pages/TrustedDevices";
-import OAuthCallback from "./pages/OAuthCallback";
-import OTPVerification from "./pages/OTPVerification";
-import ChangePassword from "./pages/ChangePassword";
-import MustChangePassword from "./pages/MustChangePassword";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import DefaultLayout from "@/components/DefaultLayout";
+import GuestLayout from "@/components/GuestLayout";
+import CreateUser from "@/pages/main/CreateUser";
+import Dashboard from "@/pages/Dashboard";
+import Login from "@/pages/authentication/Login";
+import TrustedDevices from "@/pages/main/TrustedDevices";
+import OAuthCallback from "@/pages/authentication/OAuthCallback";
+import OTPVerification from "@/pages/authentication/OTPVerification";
+import ChangePassword from "@/pages/main/ChangePassword";
+import MustChangePassword from "@/pages/authentication/MustChangePassword";
+import ForgotPassword from "./pages/authentication/ForgotPassword";
 
 const router = createBrowserRouter ([
     { path: '/', element: <Navigate to="/login" /> },
@@ -17,7 +19,6 @@ const router = createBrowserRouter ([
     {
         path: '/otp', element: <OTPVerification />,
     },
-
    
     {
         path: '/login',
@@ -30,6 +31,11 @@ const router = createBrowserRouter ([
            
         ],
     },
+
+    {
+        path: '/forgot-password', element: <ForgotPassword />,
+    },
+
 
     { path: '/change-password', element: <MustChangePassword /> },
     

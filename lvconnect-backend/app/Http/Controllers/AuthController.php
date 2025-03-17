@@ -21,18 +21,18 @@ class AuthController extends Controller
 {
     public function createUser(request $request)
     {
-       
+
         $user = JWTAuth::authenticate();
 
         // Checks user if authorized
         if (!$user) {
-                return response()->json(['error'=> 'not authorized'], 404);
-            }
+            return response()->json(['error' => 'not authorized'], 404);
+        }
 
         // Define allowed roles
-        $allowedRoles = $user->hasRole('superadmin') 
-        ? ['student', 'admin', 'superadmin'] 
-        : ['student'];
+        $allowedRoles = $user->hasRole('superadmin')
+            ? ['student', 'admin', 'superadmin']
+            : ['student'];
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -40,8 +40,8 @@ class AuthController extends Controller
             'role' => ['required', Rule::in($allowedRoles)], // Only allow valid roles
         ]);
 
-        if($validator->fails()){
-            return response()->json(['errors'=>$validator->errors(), 422]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors(), 422]);
         }
 
         // Generate a random password
@@ -61,10 +61,11 @@ class AuthController extends Controller
         // Send credentials to user
         Mail::to($newUser->email)->send(new UserCredentialsMail($newUser, $randomPassword));
 
-        return response()->json(['message'=> 'User created successfully',  
-    ], 201);
+        return response()->json([
+            'message' => 'User created successfully',
+        ], 201);
     }
-    
+
     public function login(Request $request)
     {
         // Validate request
@@ -74,12 +75,13 @@ class AuthController extends Controller
                 'required',
                 'string',
                 'min:8',
-                'regex:/^[A-Za-z0-9@#$%^&*()!]+$/', 
+                'regex:/^[A-Za-z0-9@#$%^&*()!]+$/',
             ],
+            'device_id' => 'nullable|string',
             'remember_device' => 'sometimes|boolean',
         ]);
 
-         // Return validation errors
+        // Return validation errors
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
@@ -90,107 +92,112 @@ class AuthController extends Controller
             // Return an error if email or password does not match
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
-        
-         // Check if device is already trusted
+
+
+        // Hash device ID for security
+        $hashedDeviceId = hash('sha256', $request->device_id);
+
+        // Check if device is trusted
         $trustedDevice = TrustedDevice::where('user_id', $user->id)
-        ->where('device_id', $request->device_id)
-        ->first();
+            ->where('device_id', $hashedDeviceId)
+            ->first();
+
 
         if (!$trustedDevice) {
-            $OTPController = App::make(OTPController::class); 
+            $OTPController = App::make(OTPController::class);
             //If device is NOT trusted, send OTP
-           $OTPController->sendOTP(new Request([
-               'user_id' => $user->id,
-               'purpose' => 'unrecognized_device'
-           ]));
-   
-           return response()->json([
-               'success' => false,
-               'otp_required' => true,
-               'user_id' => encrypt($user->id),
-               'must_change_password' => $user->must_change_password
-           ]);
+            $OTPController->sendOTP(new Request([
+                'user_id' => $user->id,
+                'purpose' => 'unrecognized_device'
+            ]));
+
+            return response()->json([
+                'success' => false,
+                'otp_required' => true,
+                'user_id' => encrypt($user->id),
+                'must_change_password' => $user->must_change_password
+            ]);
         }
 
-         // If device is trusted or no OTP or no password change needed, login immediately and generate JWT
-         $token = JWTAuth::fromUser($user);
-         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
+        // If device is trusted or no OTP or no password change needed, login immediately and generate JWT
+        $token = JWTAuth::fromUser($user);
+        $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
-         return response()->json(['message' => 'Login successful'])
-             ->cookie('auth_token', $token, 60, '/', null, false, true)
-             ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
+        return response()->json(['message' => 'Login successful'])
+            ->cookie('auth_token', $token, 60, '/', null, false, true)
+            ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
 
     }
 
-    
-   // Get Authenticated User
-   public function me(Request $request) 
-   {
+
+    // Get Authenticated User
+    public function me(Request $request)
+    {
         try {
-        // Get the token from the cookies
-        $token = $request->cookie('auth_token');
-        
-        if (!$token) {
-            return response()->json(['error' => 'Token not found'], 401);  // 401 Unauthorized
+            // Get the token from the cookies
+            $token = $request->cookie('auth_token');
+
+            if (!$token) {
+                return response()->json(['error' => 'Token not found'], 401);  // 401 Unauthorized
+            }
+
+            // Set the token to JWTAuth
+            JWTAuth::setToken($token);
+
+            // Get the authenticated user
+            $user = JWTAuth::authenticate(); // based on the token
+
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+
+            // Load roles from Spatie
+            $user->load('roles');
+            // Return the user data
+            return response()->json(['user' => $user], 200);  // 200 OK
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json(['error' => 'Token expired'], 401);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json(['error' => 'Invalid token'], 401);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Could not retrieve user data'], 500);
         }
 
-        // Set the token to JWTAuth
-        JWTAuth::setToken($token);
+    }
 
-        // Get the authenticated user
-        $user = JWTAuth::authenticate(); // based on the token
+    // Logout
+    public function logout(Request $request)
+    {
+        try {
+            // Invalidate the auth token
+            $token = $request->cookie('auth_token'); // Get token from cookie
+            if ($token) {
+                // Invalidate the token 
+                JWTAuth::setToken($token)->invalidate();
+            }
 
-        if (!$user) {
-            return response()->json(['error' => 'User not found'], 404);
+            return response()->json(['message' => 'Logged out successfully'])
+                ->cookie('auth_token', '', -1, '/', null, false, true)  // Remove auth token
+                ->cookie('refresh_token', '', -1, '/', null, false, true); // Remove refresh token
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Failed to log out'], 500);
         }
 
-         // Load roles from Spatie
-         $user->load('roles');
-        // Return the user data
-        return response()->json(['user' => $user], 200);  // 200 OK
-    } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-        return response()->json(['error' => 'Token expired'], 401);
-    } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-        return response()->json(['error' => 'Invalid token'], 401);
-    } catch (JWTException $e) {
-        return response()->json(['error' => 'Could not retrieve user data'], 500);
     }
 
-}
+    // Handle refresh token
+    public function refreshToken(Request $request)
+    {
+        try {
+            JWTAuth::setToken($request->cookie('refresh_token'));
+            $newToken = JWTAuth::refresh();
 
-   // Logout
-   public function logout(Request $request)
-   {
-    try {
-        // Invalidate the auth token
-        $token = $request->cookie('auth_token'); // Get token from cookie
-        if ($token) {
-            // Invalidate the token 
-            JWTAuth::setToken($token)->invalidate();
+            return response()->json(['message' => 'Token refreshed'])
+                ->cookie('auth_token', $newToken, 60, '/', null, false, true);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'Refresh token expired'], 401);
         }
-
-        return response()->json(['message' => 'Logged out successfully'])
-            ->cookie('auth_token', '', -1, '/', null, false, true)  // Remove auth token
-            ->cookie('refresh_token', '', -1, '/', null, false, true); // Remove refresh token
-    } catch (JWTException $e) {
-        return response()->json(['error' => 'Failed to log out'], 500);
     }
-
-   }
-
-   // Handle refresh token
-   public function refreshToken(Request $request)
-{
-    try {
-        JWTAuth::setToken($request->cookie('refresh_token'));
-        $newToken = JWTAuth::refresh();
-
-        return response()->json(['message' => 'Token refreshed'])
-            ->cookie('auth_token', $newToken, 60, '/', null, false, true);
-    } catch (JWTException $e) {
-        return response()->json(['error' => 'Refresh token expired'], 401);
-    }
-}
 
 
 }

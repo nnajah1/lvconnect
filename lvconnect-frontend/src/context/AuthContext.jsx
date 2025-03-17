@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import api from "../axios";
 import { createContext, useState, useContext, useEffect } from "react";
+import { initializeDeviceId } from "@/utils/device";
 
 const AuthContext = createContext({
     user: null,
@@ -17,7 +18,18 @@ export const ContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [timer, setTimer] = useState(120);
-   
+    const [isResendDisabled, setIsResendDisabled] = useState(true);
+    const [deviceId, setDeviceId] = useState(null);
+
+    useEffect(() => {
+        const loadDeviceId = async () => {
+            const fingerprintId = await initializeDeviceId();
+            setDeviceId(fingerprintId);
+        };
+        loadDeviceId();
+    }, []);
+
+
     // function to fetch current user
     const fetchUser = async () => {
         setLoading(true);
@@ -67,10 +79,11 @@ export const ContextProvider = ({ children }) => {
     };
     
     // Handle login
-    const login = async (credentials, deviceId, rememberDevice  ) => {
+    const login = async (credentials, rememberDevice) => {
+               
         try {
 
-            const response = await api.post("/login", {...credentials, device_id: deviceId, remember_device: rememberDevice } );
+            const response = await api.post("/login", {...credentials,    device_id: deviceId, remember_device: rememberDevice } );
 
             if (response.data.otp_required) {
                 return { 
@@ -110,13 +123,14 @@ export const ContextProvider = ({ children }) => {
     };
 
     // Verify OTP
-    const verifyOTP = async (userId, otp, deviceId, rememberDevice) => {
+    const verifyOTP = async (userId, otp, rememberDevice) => {
+       
         try {
             const response = await api.post("/verify-otp", {
                 user_id: userId,
                 otp,
                 device_id: deviceId,
-                remember_device: rememberDevice,
+                remember_device: localStorage.getItem("remember_device") === "true",
               
             });
             
@@ -182,6 +196,9 @@ export const ContextProvider = ({ children }) => {
             setTimer,
             timer,
             refreshToken,
+            isResendDisabled,
+            setIsResendDisabled,
+            deviceId 
 
             }}>
             {children}

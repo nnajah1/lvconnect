@@ -1,19 +1,19 @@
 import React, { useState } from "react";
 // import { useNavigate } from "react-router-dom"; 
-import LVConnect from "../components/lv-connect";
-import Button from "../components/button";
+import LVConnect from "@/components/ui/lv-connect";
+import Button from "@/components/ui/button";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
   // const navigate = useNavigate(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setSuccess(null);
     setError(null);
 
     try {
@@ -28,11 +28,11 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("");
+        setSuccess("");
            // Navigate to reset password page after successful email submission
         // navigate("/reset-password"); 
       } else {
-        setError(data.message || "");
+        setError(data.success || "");
       }
     } catch (err) {
       setError("");
@@ -64,7 +64,7 @@ const ForgotPassword = () => {
           <p className="text-xs text-gray-500 mt-2">
             A password reset link will be sent to the email address you provided.
           </p>
-          {message && <p className="text-green-600 text-sm mt-2">{message}</p>}
+          {success && <p className="text-green-600 text-sm mt-2">{success}</p>}
           {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
           <Button type="submit" className="mt-15" fullWidth disabled={loading}>

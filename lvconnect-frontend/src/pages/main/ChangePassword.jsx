@@ -1,6 +1,6 @@
 import  { useLocation, useNavigate }  from  "react-router-dom";
 import { useEffect, useState } from "react";
-import api from "../axios"; 
+import api from "../../axios"; 
 import { useAuthContext } from "@/context/AuthContext";
 
 const ChangePassword = () => {

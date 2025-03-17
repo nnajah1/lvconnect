@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TrustedDevice;
 use Illuminate\Http\Request; // For handling HTTP requests
 use Illuminate\Support\Facades\Cache;
 use Laravel\Socialite\Facades\Socialite;
@@ -25,12 +26,12 @@ class OAuthController extends Controller
 
             // Check if user exists using google_id or email
             $user = User::where('email', $googleUser->getEmail())
-            ->orWhere('google_id', $googleUser->getId())
-            ->first();
+                ->orWhere('google_id', $googleUser->getId())
+                ->first();
 
             if (!$user) {
                 return redirect("http://localhost:5173/login?error=Account+not+found");
-       
+
             }
 
             // If user exists but doesn't have a google_id, update it
@@ -39,12 +40,12 @@ class OAuthController extends Controller
             }
 
             // Generate a temporary authorization code (or token)
-        $tempCode = Str::random(40);
-        Cache::put("oauth_code_{$tempCode}", $user->id, 60); // Store code for 60s
+            $tempCode = Str::random(40);
+            Cache::put("oauth_code_{$tempCode}", $user->id, 60); // Store code for 60s
 
 
-        // Redirect to frontend with the temporary code
-        return redirect("http://localhost:5173/google-auth-success?code={$tempCode}");
+            // Redirect to frontend with the temporary code
+            return redirect("http://localhost:5173/google-auth-success?code={$tempCode}");
 
         } catch (\Exception $e) {
             return redirect('http://localhost:5173/login?error=google_failed');
@@ -62,47 +63,55 @@ class OAuthController extends Controller
         try {
             // Retrieve user ID from cache using OAuth code
             $userId = Cache::pull("oauth_code_{$code}");
-    
+
             if (!$userId) {
                 return response()->json(['error' => 'Invalid or expired OAuth code'], 400);
             }
-    
+
             // Find the user in the database
             $user = User::find($userId);
-    
+
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
 
-            // Check if "Remember Device" is enabled from frontend
-            if ($request->input('remember_device')) {
-                $request->validate(['device_id' => 'required|string']);
-    
-                // Save or update the trusted device record
-                $user->trustedDevices()->updateOrCreate(
-                    ['device_id' =>  $request->device_id],
-                    [
-                        'device_name' => $request->header('User-Agent'),
-                        'last_used_at' => now(),
-                    ]
-                );
+            $hashedDeviceId = hash('sha256', $request->device_id);
+            $trustedDevice = TrustedDevice::where('user_id', $user->id)
+                ->where('device_id', $hashedDeviceId)
+                ->first();
+
+            if (!$trustedDevice) {
+                // Same OTP process as normal login
+                app(OTPController::class)->sendOTP(new Request([
+                    'user_id' => $user->id,
+                    'purpose' => 'unrecognized_device'
+                ]));
+
+                return response()->json([
+                    'success' => false,
+                    'otp_required' => true,
+                    'user_id' => encrypt($user->id)
+                ]);
             }
             // Generate Access Token
             $token = JWTAuth::fromUser($user);
-    
+
             // Generate Refresh Token
             $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
-    
-            return response()->json(['message' => 'Google login successful', 'must_change_password' => $user->must_change_password,
-            'user_id' => encrypt($user->id),])
+
+            return response()->json([
+                'message' => 'Google login successful',
+                'must_change_password' => $user->must_change_password,
+                'user_id' => encrypt($user->id),
+            ])
                 ->cookie('auth_token', $token, 60, '/', null, false, true)  // Access token (HttpOnly)
                 ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true); // Refresh token (HttpOnly)
-    
+
         } catch (\Exception $e) {
             return response()->json(['error' => 'Google login failed'], 500);
         }
     }
-  
+
 
 }
 
