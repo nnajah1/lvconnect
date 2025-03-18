@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class SchoolUpdateController extends Controller
 {
@@ -158,7 +159,10 @@ class SchoolUpdateController extends Controller
 
         try {
            
-            $schoolupdate->update(['status' => SchoolUpdate::STATUS_REJECTED]);
+            $schoolupdate->update([
+                'status' => SchoolUpdate::STATUS_REJECTED,
+                'rejected_at' => Carbon::now(),
+        ]);
 
             return response()->json(['message' => 'Post rejected']);
         } catch (AuthorizationException $e) {

@@ -4,15 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SchoolUpdate extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by'];
+    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at'];
 
     protected $casts = [
         'revision_fields' => 'array', // Automatically cast JSON to array
+        'rejected_at' => 'datetime', //Cast rejected_at to a Carbon instance
     ];
     
 
