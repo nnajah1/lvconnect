@@ -97,16 +97,7 @@ class ChangePasswordController extends Controller
             'must_change_password' => false,
         ]);
      
-
-        // Generate New JWT Token
-        $token = JWTAuth::fromUser($user);
-        $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Password changed successfully',
-        ])->cookie('auth_token', $token, 60, '/', null, false, true)
-        ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
+        return response()->json(['message' => 'Password successfully changed.'], 200);
     }
     
     

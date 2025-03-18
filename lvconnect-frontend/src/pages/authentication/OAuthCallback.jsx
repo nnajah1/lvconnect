@@ -1,71 +1,75 @@
-import { useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { useAuthContext } from "../context/AuthContext";
-import { initializeDeviceId } from "@/utils/device";
-import api from "../../axios";
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import { useAuthContext } from "@/context/AuthContext";
 
 const OAuthCallback = () => {
-    const [searchParams] = useSearchParams();
+    const { exchangeGoogleToken, deviceId } = useAuthContext();
     const navigate = useNavigate();
-    const { fetchUser, refreshToken, setOtpRequired, setUserId } = useAuthContext();
+    const location = useLocation();
+    const [loading, setLoading] = useState(true);
+    const [rememberDevice, setRememberDevice] = useState(
+        localStorage.getItem("remember_device") === "true"
+    );
 
     useEffect(() => {
-        const exchangeCodeForToken = async () => {
-            const code = searchParams.get("code");
+        const handleOAuthLogin = async () => {
+            if (loading) return; // Prevent multiple executions
+            setLoading(true);
+
+            const queryParams = new URLSearchParams(location.search);
+            const code = queryParams.get("code");
 
             if (!code) {
-                navigate("/login"); // Redirect if no code
+                navigate("/login?error=missing_oauth_code");
                 return;
             }
 
-            const rememberDevice = localStorage.getItem("remember_device") === "true";
-            const deviceId = await initializeDeviceId();
-
             try {
-                const response = await api.post("/auth/google/token", {
-                    code,
-                    remember_device: rememberDevice,
-                    device_id: deviceId
-                });
+                const response = await exchangeGoogleToken(code);
+                console.log("Google Login Response:", response);
 
-                const { otp_required, user_id, must_change_password } = response.data;
+                if (!response.success) {
+                    
+                    if (response.otpRequired) {
+                        console.log("Redirecting to OTP page...");
 
-                // Check if password change is required BEFORE calling fetchUser()
-                if (must_change_password) {
-                    navigate("/change-password", { state: { userId: user_id }, replace: true });
-                    return;
-                }
+                        // Store remember device preference
+                        if (response.rememberDevice) {
+                            localStorage.setItem("remember_device", "true");
+                        } else {
+                            localStorage.removeItem("remember_device");
+                        }
 
-                if (otp_required) {
-                    // If OTP is required, store user_id and navigate to OTP page
-                    setOtpRequired(true);
-                    setUserId(user_id);
-                    navigate("/verify-otp", { state: { userId: user_id } });
-                    return;
-                }
-
-                // Save rememberDevice preference
-                if (rememberDevice) {
-                    localStorage.setItem("remember_device", "true");
+                        navigate("/otp", { 
+                            state: { 
+                                userId: response.userId, 
+                                rememberDevice: rememberDevice, 
+                                isOAuth: true 
+                            } 
+                        });
+                    } else if (response.mustChangePassword) {
+                        console.log("Redirecting to password reset...");
+                        navigate("/change-password", { 
+                            state: { userId: response.userId } 
+                        });
+                    } else {
+                        console.error("OAuth Token Exchange Failed:", response.message);
+                        navigate(`/login?error=${response.message}`);
+                    }
                 } else {
-                    localStorage.removeItem("remember_device");
+                    console.log("Successful Login - Redirecting to Dashboard...");
+                    navigate("/dashboard");
                 }
-
-                // Fetch authenticated user details
-                await fetchUser();
-                await refreshToken();
-
-                navigate("/dashboard"); // Redirect to dashboard
             } catch (error) {
-                console.error("Google login failed:", error);
-                navigate("/login?error=google_failed");
+                console.error("OAuth Callback Error:", error);
+                navigate("/login?error=oauth_exception");
             }
         };
+        setLoading(false);
+        handleOAuthLogin();
+    }, [location.search, navigate, exchangeGoogleToken,]);
 
-        exchangeCodeForToken();
-    }, [searchParams, navigate, fetchUser, refreshToken, setOtpRequired, setUserId]);
-
-    return <p>Authenticating...</p>;
+    return <p>authenticating...</p>;
 };
 
 export default OAuthCallback;

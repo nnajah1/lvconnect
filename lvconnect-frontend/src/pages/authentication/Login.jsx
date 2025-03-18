@@ -15,7 +15,7 @@ import "../login.css";
 
 export default function Login() {
 
-  const { login, handleGoogleLogin, setTimer, setIsResendDisabled, } = useAuthContext();
+  const { login, handleGoogleLogin, setTimer, setIsResendDisabled } = useAuthContext();
   const navigate = useNavigate();
 
   const [credentials, setCredentials] = useState({
@@ -33,8 +33,8 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showPassword, setShowPassword] = useState(false);
-
   const [rememberDevice, setRememberDevice] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,12 +56,19 @@ export default function Login() {
 
           state: {
             userId: response.userId, // Send userId to OTP page
-            rememberDevice 
+            rememberDevice
           }
         });
-      } else {
+      } else if (response.mustChangePassword) {
+        navigate("/change-password", {
+          state: { userId: response.userId }
+        });
+      }
+      
+      else {
         setError(response.message || "Login failed.");
       }
+  
     } else {
       navigate("/dashboard"); // Redirect to dashboard on successful login
     }
@@ -155,7 +162,7 @@ export default function Login() {
               onChange={() => {
                 const newValue = !rememberDevice;
                 setRememberDevice(newValue);
-                localStorage.setItem("remember_device", JSON.stringify(newValue)); // ✅ Store as a boolean
+                localStorage.setItem("remember_device", JSON.stringify(newValue)); // Store as a boolean
               }}
               className="w-4 h-4 cursor-pointer"
             />

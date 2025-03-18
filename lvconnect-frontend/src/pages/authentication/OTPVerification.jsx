@@ -15,8 +15,6 @@ import {
     InputOTPSlot,
 } from "../../components/ui/input-otp";
 
-import { initializeDeviceId } from "@/utils/device";
-
 const OTPVerification = () => {
     preventBackNavigation(true);
 
@@ -29,14 +27,17 @@ const OTPVerification = () => {
     // Retrieve userId, deviceId, and deviceName from the location state
     const { userId, } = location.state || {};
 
+    // Check if OAuth user
+    const isOAuth = location.state?.isOAuth || false;
+
     // Redirect to login if accessed directly
     useEffect(() => {
-        if ( !user && !userId) {
+        if (!user && !userId) {
             navigate("/login", { replace: true });
         } else if (user) {
             navigate("/dashboard", { replace: true });
         }
-    }, [userId, user, navigate]); 
+    }, [userId, user, navigate]);
 
 
 
@@ -80,20 +81,24 @@ const OTPVerification = () => {
             setError("invalid OTP. Please Try again.");
             return;
         }
+        try {
 
-        const response = await verifyOTP(location.state.userId, otp, location.state.rememberDevice );
+            const response = await verifyOTP(location.state.userId, otp, location.state.rememberDevice, isOAuth);
 
-        if (response.success) {
-            //Redirect to Change Password if password must change
-            if (response.mustChangePassword) {
-                navigate("/change-password", { state: { userId: response.userId }, replace: true });
+            if (response.success) {
+                //Redirect to Change Password if password must change
+                if (response.mustChangePassword) {
+                    navigate("/change-password", { state: { userId: response.userId }, replace: true });
+                } else {
+                    navigate("/dashboard", { replace: true });
+                }
             } else {
-                navigate("/dashboard", { replace: true });
+                setError(response.message);
             }
-        } else {
-            setError(response.message);
+        } catch (error) {
+            setError("OTP verification failed");
         }
-    };
+    }
 
     const handleResendOTP = async () => {
         try {
@@ -104,7 +109,7 @@ const OTPVerification = () => {
                 setTimer(5); // Restart the timer (assuming 120 seconds)
                 localStorage.setItem("otpStartTime", Date.now()); // Save new start time
                 setIsResendDisabled(true);
-                
+
             } else {
                 throw new Error(response.message || "Failed to resend OTP. Please try again.");
             }
@@ -151,7 +156,7 @@ const OTPVerification = () => {
 
                     <div className=" text-sm text-gray-600 w-full flex justify-end mb-2 pr-4">
                         {isResendDisabled ? (
-                           <span>
+                            <span>
                                 Resend OTP in <span className="text-red-500 font-semibold">{formatTime(timer)}</span>
                             </span>
                         ) : (
