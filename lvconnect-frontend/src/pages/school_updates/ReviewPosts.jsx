@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchPosts } from "../../axios";
-import PostItem from "../../components/school_updates/PostItem";
+import { fetchPosts } from "@/axios";
+import PostItem from "@/components/school_updates/PostItem";
 
 const ReviewPosts = () => {
   const [posts, setPosts] = useState([]);

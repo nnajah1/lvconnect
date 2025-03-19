@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchPost, updatePost } from "../../axios";
-import { useAuthContext } from "../context/AuthContext";
+import { fetchPosts, updatePost } from "@/axios";
+import { useAuthContext } from "@/context/AuthContext";
 
 const EditPost = () => {
   const { id } = useParams();
@@ -11,7 +11,7 @@ const EditPost = () => {
   const [post, setPost] = useState({ title: "", content: "" });
 
   useEffect(() => {
-    fetchPost(id).then((data) => {
+    fetchPosts(id).then((data) => {
       if (data.status !== "draft") {
         alert("You cannot edit a submitted post.");
         navigate("/posts");

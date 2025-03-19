@@ -1,5 +1,5 @@
-import { approvePost, requestRevision, submitForApproval, publishPost, deletePost } from "../api/posts";
-import { useAuthContext } from "../context/AuthContext";
+import { approvePost, sendForRevision, submitForApproval, publishPost, deletePost } from "@/axios";
+import { useAuthContext } from "@/context/AuthContext";
 
 const PostItem = ({ post }) => {
   const { user } = useAuthContext();
@@ -23,7 +23,7 @@ const PostItem = ({ post }) => {
       {user.role === "scadmin" && post.status === "pending" && (
         <>
           <button onClick={() => approvePost(post.id)}>Approve</button>
-          <button onClick={() => requestRevision(post.id)}>Request Revision</button>
+          <button onClick={() => sendForRevision(post.id)}>Request Revision</button>
         </>
       )}
 

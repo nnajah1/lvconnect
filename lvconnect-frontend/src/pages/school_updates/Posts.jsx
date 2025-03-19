@@ -1,26 +1,30 @@
+"use client";
 import { useEffect, useState } from "react";
-import { fetchPosts } from "../../axios";
-import { useAuthContext } from "../context/AuthContext";
-import PostItem from "../../components/school_updates/PostItem";
+import DataTable from "@/components/school_updates/data-table";
+import axios from "axios";
 
-const Posts = () => {
-  const { user } = useAuthContext();
+export default function Posts() {
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPosts().then(setPosts);
+    axios.get("/api/posts") // Adjust this to your Laravel API route
+      .then((response) => {
+        setPosts(response.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching posts:", error);
+        setLoading(false);
+      });
   }, []);
+
+  if (loading) return <p>Loading posts...</p>;
 
   return (
     <div>
-      <h1>Posts</h1>
-      {posts.length === 0 ? (
-        <p>No posts available.</p>
-      ) : (
-        posts.map((post) => <PostItem key={post.id} post={post} />)
-      )}
+      <h2 className="text-2xl font-semibold mb-4">X Admin - Manage Posts</h2>
+      <DataTable data={posts} />
     </div>
   );
-};
-
-export default Posts;
+}

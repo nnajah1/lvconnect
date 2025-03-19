@@ -15,6 +15,9 @@ import EditPost from "./pages/school_updates/EditPost";
 import ReviewPosts from "./pages/school_updates/ReviewPosts";
 import PublishPost from "./pages/school_updates/PublishPost";
 import ReviewDetails from "./pages/school_updates/ReviewDetails";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+
 
 
 const router = createBrowserRouter ([
@@ -38,6 +41,8 @@ const router = createBrowserRouter ([
             { path: 'change-current-password', element: <ChangePassword /> },
 
             //Comms Path
+            { path:"posts", element:<ProtectedRoute requiredRole="comms"><CreatePost /></ProtectedRoute> },
+
             { path:"posts/create", element:<ProtectedRoute requiredRole="comms"><CreatePost /></ProtectedRoute> },
             {  path:"posts/edit/:id", element:<ProtectedRoute requiredRole="comms"><EditPost /></ProtectedRoute> },
             { path:"posts/publish", element:<ProtectedRoute requiredRole="comms"><PublishPost /></ProtectedRoute> },

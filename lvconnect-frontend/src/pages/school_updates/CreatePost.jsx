@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createPost } from "../../axios";
+import { createPost } from "@/axios";
 import { useNavigate } from "react-router-dom";
 
 const CreatePost = () => {

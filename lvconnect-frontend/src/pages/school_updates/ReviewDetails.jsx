@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchPostById, approvePost, sendForRevision } from "../../axios";
+import { fetchPostById, approvePost, sendForRevision } from "@/axios";
 
 const ReviewDetails = () => {
   const { id } = useParams();

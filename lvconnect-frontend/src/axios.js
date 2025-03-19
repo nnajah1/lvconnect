@@ -37,6 +37,7 @@ export const submitForApproval = (id) => api.post(`/posts/${id}/submit`);
 export const approvePost = async (id) => {
   await axios.post(`/posts/${id}/status`, { status: "approved" });
 };
+export const publishPost = (id) => api.post(`/posts/${id}/status`, { status: "published" });
 export const rejectPost = (id) => api.post(`/posts/${id}/status`, { status: "rejected" });
 export const sendForRevision = async (id, revisionFields) => {
   await axios.post(`/posts/${id}/status`, {
