@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class SchoolUpdateController extends Controller
 {
@@ -201,18 +202,56 @@ class SchoolUpdateController extends Controller
         }
     }
 
-    public function publish(SchoolUpdate $schoolupdate)
+    public function publish(SchoolUpdate $schoolupdate, Request $request)
     {   
         Gate::authorize('publish', $schoolupdate);
 
+        $request->validate([
+            'post_to_facebook' => 'boolean',
+        ]);
+
         try {
-
-            $schoolupdate->update(['status' => SchoolUpdate::STATUS_PUBLISHED]);
-
-            return response()->json(['message' => 'Post published successfully']);
+            $postToFacebook = $request->post_to_facebook;
+    
+            // Update post status to published
+            $schoolupdate->update([
+                'status' => SchoolUpdate::STATUS_PUBLISHED,
+                'post_to_facebook' => $postToFacebook,
+            ]);
+    
+            // Check if we should post to Facebook
+            if ($postToFacebook) {
+                $pageId = env('FACEBOOK_PAGE_ID');
+                $accessToken = env('FACEBOOK_ACCESS_TOKEN');
+    
+                $response = Http::post("https://graph.facebook.com/v18.0/{$pageId}/feed", [
+                    'message' => $schoolupdate->title . "\n\n" . $schoolupdate->content,
+                    'access_token' => $accessToken,
+                ]);
+    
+                if ($response->successful()) {
+                    // Store Facebook post ID in database
+                    $facebookPostId = $response->json()['id'];
+                    $schoolupdate->update(['facebook_post_id' => $facebookPostId]);
+    
+                    return response()->json([
+                        'message' => 'Post published and shared on Facebook!',
+                        'facebook_post_id' => $facebookPostId,
+                    ], 200);
+                } else {
+                    Log::error('Facebook Post Failed', ['error' => $response->json()]);
+                    return response()->json([
+                        'message' => 'Post published, but failed to share on Facebook',
+                        'error' => $response->json(),
+                    ], 400);
+                }
+            }
+    
+            return response()->json(['message' => 'Post published successfully!'], 200);
         } catch (AuthorizationException $e) {
             return response()->json(['error' => 'Unauthorized'], 403);
         } catch (\Exception $e) {
+            Log::error('Failed to publish post', ['exception' => $e->getMessage()]);
             return response()->json(['error' => 'Failed to publish post'], 500);
         }
     }
