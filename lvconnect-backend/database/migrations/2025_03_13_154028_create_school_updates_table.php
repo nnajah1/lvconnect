@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->string('image_url')->nullable();
-            $table->string('status')->default('draft'); // draft, pending, approved, rejected, for_revision
+            $table->string('status')->default('draft'); // draft, pending, approved, rejected, for_revision, published
             $table->json('revision_fields')->nullable();
             $table->text('revision_remarks')->nullable();
             $table->boolean('post_to_facebook')->default(false);

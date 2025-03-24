@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolUpdate;
+use App\Notifications\PostApprovedNotification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
+use Carbon\Carbon;
+
 
 class SchoolUpdateController extends Controller
 {
@@ -90,16 +93,31 @@ class SchoolUpdateController extends Controller
     {   
         Gate::authorize('update', $schoolupdate);
 
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required',
-            ]);
+        // Only allow updates if the status is "draft"
+        if ($schoolupdate->status !== SchoolUpdate::STATUS_DRAFT) {
+            return response()->json(['error' => 'Only draft posts can be edited'], 403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required',
+            'type' => 'required|in:announcement,event',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
         try {
-            
+            $imageUrl = $schoolupdate->image_url;
+
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('SchoolUpdates', 'public');
+                $imageUrl = Storage::url($imagePath);
+            }
+
             $schoolupdate->update([
                 'title' => $request->title,
                 'content' => $request->content,
+                'type' => $request->type,
+                'image_url' => $imageUrl,
             ]);
 
             return response()->json(['message' => 'Post updated successfully']);
@@ -109,6 +127,7 @@ class SchoolUpdateController extends Controller
             return response()->json(['error' => 'Failed to update post'], 500);
         }
     }
+
 
     /**
      * Submit school update post for approval (Communications Officer)
@@ -137,19 +156,28 @@ class SchoolUpdateController extends Controller
         Gate::authorize('approve', $schoolupdate);
 
         try {
-
+            // Update post status to approved
             $schoolupdate->update([
                 'status' => SchoolUpdate::STATUS_APPROVED,
                 'approved_by' => auth()->id(),
+                'rejected_at' => null,
             ]);
-
-            return response()->json(['message' => 'Post approved successfully']);
+    
+            // Notify the Communications Officer
+            $commsOfficer = $schoolupdate->author;
+    
+            if ($commsOfficer) {
+                $commsOfficer->notify(new PostApprovedNotification($schoolupdate));
+            }
+    
+            return response()->json(['message' => 'Post approved successfully. Notification sent to the system and email.']);
         } catch (AuthorizationException $e) {
             return response()->json(['error' => 'Unauthorized'], 403);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to approve Post'], 500);
-        }
+        }    
     }
+
 
     /**
      * Reject school update post (School Admin)
