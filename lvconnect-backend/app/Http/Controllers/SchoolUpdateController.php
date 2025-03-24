@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
+use Carbon\Carbon;
 
 class SchoolUpdateController extends Controller
 {
