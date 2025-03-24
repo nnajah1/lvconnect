@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('school_updates', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('created_by'); // comms officer
             $table->unsignedBigInteger('approved_by')->nullable(); // school admin
@@ -25,6 +25,7 @@ return new class extends Migration
             $table->boolean('post_to_facebook')->default(false);
             $table->string('facebook_post_id')->nullable();
             $table->timestamp('rejected_at')->nullable();
+            $table->boolean('is_urgent')->default(false);
             $table->timestamps();
         
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');

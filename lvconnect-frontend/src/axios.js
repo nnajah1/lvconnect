@@ -20,8 +20,8 @@ const api = axios.create({
 //     }
 // );
 
-export const fetchPosts = async (status) => {
-  const response = await axios.get(`/posts?status=${status}`);
+export const fetchPosts = async () => {
+  const response = await api.get("/posts");
   return response.data;
 };
 export const fetchPostById = async (id) => {

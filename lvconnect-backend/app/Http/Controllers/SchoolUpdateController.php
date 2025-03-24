@@ -10,10 +10,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Notification;
-use Carbon\Carbon;
-
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class SchoolUpdateController extends Controller
 {
@@ -23,14 +20,14 @@ class SchoolUpdateController extends Controller
     public function index(Request $request)
     {
         
-        $user = auth()->user();
+        $user = JWTAuth::authenticate();
         
         if ($user->hasRole('student')) {
                 return SchoolUpdate::where('status', 'published')->get();
         }
         
         if ($user->hasRole('comms')) {
-                return SchoolUpdate::where('user_id', $user->id)->get();
+                return SchoolUpdate::where('id', $user->id)->get();
         }
         
         if ($user->hasRole('scadmin')) {
@@ -58,6 +55,7 @@ class SchoolUpdateController extends Controller
             'type' => 'required|in:announcement,event',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'file' => 'nullable|mimes:pdf,docx|max:5120',
+            'is_urgent' => 'sometimes|boolean',
         ]);
        
         try {
@@ -74,6 +72,7 @@ class SchoolUpdateController extends Controller
                 'content' => $request->content,
                 'type' => $request->type,
                 'image_url' => $imageUrl, 
+                'is_urgent' => $request->is_urgent ?? false,
                 'created_by' => auth()->id(),
                 'status' => SchoolUpdate::STATUS_DRAFT, // Default status is "Draft"
             ]);
