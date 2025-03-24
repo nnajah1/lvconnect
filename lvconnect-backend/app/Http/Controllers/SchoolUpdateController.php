@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolUpdate;
+use App\Notifications\PostApprovedNotification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
+use Carbon\Carbon;
+
 
 class SchoolUpdateController extends Controller
 {
@@ -88,16 +93,31 @@ class SchoolUpdateController extends Controller
     {   
         Gate::authorize('update', $schoolupdate);
 
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required',
-            ]);
+        // Only allow updates if the status is "draft"
+        if ($schoolupdate->status !== SchoolUpdate::STATUS_DRAFT) {
+            return response()->json(['error' => 'Only draft posts can be edited'], 403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required',
+            'type' => 'required|in:announcement,event',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
         try {
-            
+            $imageUrl = $schoolupdate->image_url;
+
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('SchoolUpdates', 'public');
+                $imageUrl = Storage::url($imagePath);
+            }
+
             $schoolupdate->update([
                 'title' => $request->title,
                 'content' => $request->content,
+                'type' => $request->type,
+                'image_url' => $imageUrl,
             ]);
 
             return response()->json(['message' => 'Post updated successfully']);
@@ -107,6 +127,7 @@ class SchoolUpdateController extends Controller
             return response()->json(['error' => 'Failed to update post'], 500);
         }
     }
+
 
     /**
      * Submit school update post for approval (Communications Officer)
@@ -135,19 +156,28 @@ class SchoolUpdateController extends Controller
         Gate::authorize('approve', $schoolupdate);
 
         try {
-
+            // Update post status to approved
             $schoolupdate->update([
                 'status' => SchoolUpdate::STATUS_APPROVED,
                 'approved_by' => auth()->id(),
+                'rejected_at' => null,
             ]);
-
-            return response()->json(['message' => 'Post approved successfully']);
+    
+            // Notify the Communications Officer
+            $commsOfficer = $schoolupdate->author;
+    
+            if ($commsOfficer) {
+                $commsOfficer->notify(new PostApprovedNotification($schoolupdate));
+            }
+    
+            return response()->json(['message' => 'Post approved successfully. Notification sent to the system and email.']);
         } catch (AuthorizationException $e) {
             return response()->json(['error' => 'Unauthorized'], 403);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to approve Post'], 500);
-        }
+        }    
     }
+
 
     /**
      * Reject school update post (School Admin)
@@ -158,7 +188,10 @@ class SchoolUpdateController extends Controller
 
         try {
            
-            $schoolupdate->update(['status' => SchoolUpdate::STATUS_REJECTED]);
+            $schoolupdate->update([
+                'status' => SchoolUpdate::STATUS_REJECTED,
+                'rejected_at' => Carbon::now(),
+        ]);
 
             return response()->json(['message' => 'Post rejected']);
         } catch (AuthorizationException $e) {
@@ -197,18 +230,56 @@ class SchoolUpdateController extends Controller
         }
     }
 
-    public function publish(SchoolUpdate $schoolupdate)
+    public function publish(SchoolUpdate $schoolupdate, Request $request)
     {   
         Gate::authorize('publish', $schoolupdate);
 
+        $request->validate([
+            'post_to_facebook' => 'boolean',
+        ]);
+
         try {
-
-            $schoolupdate->update(['status' => SchoolUpdate::STATUS_PUBLISHED]);
-
-            return response()->json(['message' => 'Post published successfully']);
+            $postToFacebook = $request->post_to_facebook;
+    
+            // Update post status to published
+            $schoolupdate->update([
+                'status' => SchoolUpdate::STATUS_PUBLISHED,
+                'post_to_facebook' => $postToFacebook,
+            ]);
+    
+            // Check if we should post to Facebook
+            if ($postToFacebook) {
+                $pageId = env('FACEBOOK_PAGE_ID');
+                $accessToken = env('FACEBOOK_ACCESS_TOKEN');
+    
+                $response = Http::post("https://graph.facebook.com/v18.0/{$pageId}/feed", [
+                    'message' => $schoolupdate->title . "\n\n" . $schoolupdate->content,
+                    'access_token' => $accessToken,
+                ]);
+    
+                if ($response->successful()) {
+                    // Store Facebook post ID in database
+                    $facebookPostId = $response->json()['id'];
+                    $schoolupdate->update(['facebook_post_id' => $facebookPostId]);
+    
+                    return response()->json([
+                        'message' => 'Post published and shared on Facebook!',
+                        'facebook_post_id' => $facebookPostId,
+                    ], 200);
+                } else {
+                    Log::error('Facebook Post Failed', ['error' => $response->json()]);
+                    return response()->json([
+                        'message' => 'Post published, but failed to share on Facebook',
+                        'error' => $response->json(),
+                    ], 400);
+                }
+            }
+    
+            return response()->json(['message' => 'Post published successfully!'], 200);
         } catch (AuthorizationException $e) {
             return response()->json(['error' => 'Unauthorized'], 403);
         } catch (\Exception $e) {
+            Log::error('Failed to publish post', ['exception' => $e->getMessage()]);
             return response()->json(['error' => 'Failed to publish post'], 500);
         }
     }
