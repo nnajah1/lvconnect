@@ -1,0 +1,145 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+
+/* Container for tooltips */
+.tooltip-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  @media (min-width: 640px) {
+    .tooltip-container {
+      flex-direction: row;
+      gap: 24px;
+    }
+  }
+  
+  /* Individual tooltip items */
+  .tooltip-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  
+  /* Tooltip label (text before the switch) */
+  .tooltip-label {
+    color: #1a2b50;
+    font-weight: 500;
+  }
+  
+  /* Tooltip icon wrapper */
+  .tooltip-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .tooltip-icon {
+    color: #1a2b50;
+    cursor: pointer;
+  }
+  
+  /* Tooltip content (hidden by default) */
+  .tooltip-content {
+    position: absolute;
+    top: 100%;
+    margin-top: 4px;
+    background-color: #1f3463;
+    color: white;
+    font-size: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  
+  .tooltip-icon-wrapper:hover .tooltip-content {
+    opacity: 1;
+  }
+  
+  /* Tooltip Positions */
+  .tooltip-left-admin {
+    left: -240px;
+  }
+  
+  .tooltip-left-event {
+    left: -180px;
+  }
+  
+  .tooltip-center {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* Tooltip Arrow */
+  .tooltip-arrow {
+    position: absolute;
+    top: 0;
+    transform: translateY(-6px);
+    border-width: 4px;
+    border-style: solid;
+    border-color: transparent transparent #1f3463 transparent;
+  }
+  
+  /* Arrow Positions */
+  .arrow-left-admin {
+    left: 243px;
+  }
+  
+  .arrow-left-event {
+    left: 184px;
+  }
+  
+  /* Default arrow position for Notification */
+  .arrow-default {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* Switch Styles */
+  .switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .switch input {
+    position: absolute;
+    opacity: 0;
+  }
+  
+  .switch-toggle {
+    width: 36px;
+    height: 20px;
+    background-color: gray;
+    border-radius: 10px;
+    position: relative;
+    transition: background-color 0.3s;
+  }
+  
+  .switch-toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+  }
+  
+  .switch input:checked + .switch-toggle {
+    background-color: #1a2b50;
+  }
+  
+  .switch input:checked + .switch-toggle::after {
+    transform: translateX(16px);
+  }
+  

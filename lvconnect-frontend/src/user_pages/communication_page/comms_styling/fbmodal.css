@@ -1,0 +1,83 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+/* FBMODAL */
+.fbmodal-overlay {
+    @apply fixed inset-0 flex justify-center items-center bg-black/30 backdrop-blur-sm z-50 p-4;
+}
+
+.fbmodal-container {
+    @apply bg-white w-full max-w-lg md:max-w-xl lg:max-w-2xl p-6 rounded-lg shadow-lg text-center relative flex flex-col;
+}
+
+.fbmodal-close-button {
+    @apply absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-lg;
+}
+
+.fbmodal-warning-icon {
+    @apply text-[#F59E0B] mx-auto text-3xl mb-4;
+}
+
+.fbmodal-title {
+    @apply text-lg font-semibold text-gray-900;
+}
+
+.fbmodal-description, .fbmodal-facebook-notice {
+    @apply text-gray-600 mt-3 text-sm;
+}
+
+.fbmodal-facebook-info {
+    @apply mt-3 flex items-center justify-center space-x-2 text-[#1877F2] font-medium;
+}
+
+.fbmodal-facebook-icon {
+    @apply text-xl;
+}
+
+.fbmodal-divider {
+    @apply border-t border-gray-300 my-4;
+}
+
+.fbmodal-admin-approval-toggle {
+    @apply flex items-center justify-start space-x-2 ml-2;
+}
+
+.fbmodal-toggle-button {
+    @apply relative w-8 h-4 flex items-center rounded-full transition;
+}
+
+.fbmodal-toggle-button.enabled {
+    @apply bg-[#1F3463];
+}
+
+.fbmodal-toggle-button.disabled {
+    @apply bg-gray-300;
+}
+
+.fbmodal-toggle-indicator {
+    @apply h-3 w-3 bg-white rounded-full shadow-md transform transition;
+}
+
+.fbmodal-toggle-indicator.enabled {
+    @apply translate-x-4;
+}
+
+.fbmodal-toggle-indicator.disabled {
+    @apply translate-x-0;
+}
+
+.fbmodal-toggle-label {
+    @apply text-gray-800 text-sm font-medium;
+}
+
+.fbmodal-actions {
+    @apply mt-6 flex justify-end space-x-3;
+}
+
+.fbmodal-cancel-button {
+    @apply px-4 py-2 border border-gray-400 text-gray-700 rounded-md hover:bg-gray-100 transition;
+}
+
+.fbmodal-continue-button {
+    @apply px-5 py-2 bg-[#2CA4DD] text-white rounded-md flex items-center space-x-2 hover:bg-[#1e90d9] transition;
+}
