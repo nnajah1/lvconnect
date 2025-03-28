@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\TrustedDevice;
+use App\Notifications\OTPNotification;
 use Illuminate\Http\Request; // For handling HTTP requests
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Str;
@@ -31,7 +34,6 @@ class OAuthController extends Controller
 
             if (!$user) {
                 return redirect("http://localhost:5173/login?error=Account+not+found");
-
             }
 
             // If user exists but doesn't have a google_id, update it
@@ -39,50 +41,57 @@ class OAuthController extends Controller
                 $user->update(['google_id' => $googleUser->getId()]);
             }
 
-            // Generate a temporary authorization code (or token)
-            $tempCode = Str::random(40);
-            Cache::put("oauth_code_{$tempCode}", $user->id, 60); // Store code for 60s
-
+            $tempCode = bin2hex(random_bytes(20)); // Generate temporary auth code
+            Cache::put("oauth_code_{$tempCode}", [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'created_at' => now()
+            ], 300); // Store for 2 minutes
 
             // Redirect to frontend with the temporary code
             return redirect("http://localhost:5173/google-auth-success?code={$tempCode}");
 
         } catch (\Exception $e) {
+            Log::error("Google OAuth Callback Error", ['message' => $e->getMessage()]);
             return redirect('http://localhost:5173/login?error=google_failed');
         }
     }
 
+    // Exchange Google OAuth Code for JWT Token
     public function exchangeGoogleToken(Request $request)
     {
-        // Validate request
-        $code = $request->input('code');
-        if (!$code) {
-            return response()->json(['message' => 'Authorization code is required'], 400);
-        }
+        $request->validate([
+            'code' => 'required|string',
+            'device_id' => 'nullable|string',
+            'remember_device' => 'nullable|boolean',
+        ]);
+
 
         try {
-            // Retrieve user ID from cache using OAuth code
-            $userId = Cache::pull("oauth_code_{$code}");
+            $tempCode = $request->input('code');
+            $userData = Cache::pull("oauth_code_{$tempCode}");
 
-            if (!$userId) {
+            if (!$userData) {
+                Log::warning("OAuth Code Not Found or Expired", ['tempCode' => $tempCode]);
                 return response()->json(['error' => 'Invalid or expired OAuth code'], 400);
             }
 
-            // Find the user in the database
-            $user = User::find($userId);
-
+            // Fetch user from database
+            $user = User::find($userData['user_id']);
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
 
+            // Hash device ID and check if it's trusted
             $hashedDeviceId = hash('sha256', $request->device_id);
+
             $trustedDevice = TrustedDevice::where('user_id', $user->id)
                 ->where('device_id', $hashedDeviceId)
                 ->first();
 
             if (!$trustedDevice) {
-                // Same OTP process as normal login
-                app(OTPController::class)->sendOTP(new Request([
+                $OTPController = App::make(OTPController::class);
+                $OTPController->sendOTP(new Request([
                     'user_id' => $user->id,
                     'purpose' => 'unrecognized_device'
                 ]));
@@ -90,13 +99,12 @@ class OAuthController extends Controller
                 return response()->json([
                     'success' => false,
                     'otp_required' => true,
-                    'user_id' => encrypt($user->id)
+                    'user_id' => encrypt($user->id),
                 ]);
             }
-            // Generate Access Token
-            $token = JWTAuth::fromUser($user);
 
-            // Generate Refresh Token
+            // If device is trusted, generate JWT token
+            $token = JWTAuth::fromUser($user);
             $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
             return response()->json([
@@ -104,14 +112,13 @@ class OAuthController extends Controller
                 'must_change_password' => $user->must_change_password,
                 'user_id' => encrypt($user->id),
             ])
-                ->cookie('auth_token', $token, 60, '/', null, false, true)  // Access token (HttpOnly)
-                ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true); // Refresh token (HttpOnly)
+                ->cookie('auth_token', $token, 60, '/', null, false, true)
+                ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Google login failed'], 500);
+            \Log::error("Google login failed", ['exception' => $e->getMessage()]);
+            return response()->json(['error' => 'Google login failed', 'details' => $e->getMessage()], 500);
         }
     }
 
-
 }
-

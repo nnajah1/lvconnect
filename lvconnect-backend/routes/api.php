@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\OAuthController;
+use App\Http\Controllers\SchoolUpdateController;
 use App\Http\Controllers\TrustedDeviceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +32,5 @@ Route::middleware('auth.jwt')->group(function () {
     Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
     Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
     Route::post('/change-password', [ChangePasswordController::class, 'ChangePassword']);
+    Route::get('/posts', [SchoolUpdateController::class, 'index']);
 });

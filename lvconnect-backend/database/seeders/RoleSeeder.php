@@ -12,8 +12,28 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+
         Role::create(['name' => 'superadmin', 'guard_name' => 'api']);
         Role::create(['name' => 'admin', 'guard_name' => 'api']);
+        $comms = Role::create(['name' => 'comms', 'guard_name' => 'api']);
+        $scadmin = Role::create(['name' => 'scadmin', 'guard_name' => 'api']);
         Role::create(['name' => 'student', 'guard_name' => 'api']);
+
+        // Assign permissions
+        $comms->givePermissionTo(
+            ['create post', 
+            'update post', 
+            'submit for approval',
+            'delete post', 
+            'publish post'
+        
+            ]);
+
+        $scadmin->givePermissionTo(
+            ['approve post',
+            'request revision',
+            'reject post',
+            ]);
     }
 }
+

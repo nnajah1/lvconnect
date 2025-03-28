@@ -78,7 +78,7 @@ class AuthController extends Controller
                 'regex:/^[A-Za-z0-9@#$%^&*()!]+$/',
             ],
             'device_id' => 'nullable|string',
-            'remember_device' => 'sometimes|boolean',
+            'remember_device' => 'nullable|boolean',
         ]);
 
         // Return validation errors
@@ -115,7 +115,6 @@ class AuthController extends Controller
                 'success' => false,
                 'otp_required' => true,
                 'user_id' => encrypt($user->id),
-                'must_change_password' => $user->must_change_password
             ]);
         }
 
@@ -123,7 +122,11 @@ class AuthController extends Controller
         $token = JWTAuth::fromUser($user);
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
-        return response()->json(['message' => 'Login successful'])
+        return response()->json([
+            'message' => 'Login successful', 
+            'must_change_password' => $user->must_change_password,
+            'user_id' => encrypt($user->id),
+            ])
             ->cookie('auth_token', $token, 60, '/', null, false, true)
             ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
 
