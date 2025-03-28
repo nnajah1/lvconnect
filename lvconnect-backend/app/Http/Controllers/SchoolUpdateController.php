@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolUpdate;
+use App\Models\User;
+use App\Notifications\UrgentPostNotification;
 use App\Notifications\PostApprovedNotification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -44,49 +46,60 @@ class SchoolUpdateController extends Controller
     /**
      * Create a new school update post (Communications Officer only)
      */
-    public function store(Request $request, SchoolUpdate $schoolupdate)
+    public function store(Request $request)
     {
-        
         // Ensure only 'comms' can create a post
-    if (!auth()->user()->hasRole('comms')) {
-        return response()->json(['error' => 'Unauthorized'], 403);
-    }
-
+        if (!auth()->user()->hasRole('comms')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+    
+        // Validate request data
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required',
             'type' => 'required|in:announcement,event',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'file' => 'nullable|mimes:pdf,docx|max:5120',
             'is_urgent' => 'sometimes|boolean',
         ]);
-       
+    
         try {
-
-            $imageUrl = null;
-
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('SchoolUpdates', 'public'); // Save in storage/app/public/SchoolUpdates
-                $imageUrl = Storage::url($imagePath); // Generate public URL
-            }
-
-            $schoolupdate = SchoolUpdate::create([
+            // Handle image upload
+            $imagePath = $request->hasFile('image') 
+                ? $request->file('image')->store('SchoolUpdates', 'public') 
+                : null;
+    
+            // Create the post
+            $schoolUpdate = SchoolUpdate::create([
                 'title' => $request->title,
                 'content' => $request->content,
                 'type' => $request->type,
-                'image_url' => $imageUrl, 
-                'is_urgent' => $request->is_urgent ?? false,
+                'image_url' => $imagePath ? Storage::url($imagePath) : null,
+                'is_urgent' => $request->boolean('is_urgent'),
                 'created_by' => auth()->id(),
-                'status' => SchoolUpdate::STATUS_DRAFT, // Default status is "Draft"
+                'status' => $request->boolean('is_urgent') 
+                    ? SchoolUpdate::STATUS_PUBLISHED //if urgent, automatically published
+                    : SchoolUpdate::STATUS_DRAFT,
             ]);
-
-            return response()->json(['message' => 'Post created successfully','Post' => $schoolupdate], 201);
+    
+            // If the post is urgent, notify all students
+            if ($schoolUpdate->is_urgent) {
+                User::role('student')->cursor()->each(fn($student) => 
+                    $student->notify(new UrgentPostNotification($schoolUpdate))
+                );
+            }
+    
+            return response()->json([
+                'message' => 'Post created successfully',
+                'post' => $schoolUpdate
+            ], 201);
+    
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to create Post'], 500);
         }
     }
+    
 
     /**
      * Update an existing school update post (Communications Officer only)
@@ -232,6 +245,9 @@ class SchoolUpdateController extends Controller
         }
     }
 
+    /**
+     * Publish a post to Facebook Page
+     */
     public function publish(SchoolUpdate $schoolupdate, Request $request)
     {   
         Gate::authorize('publish', $schoolupdate);

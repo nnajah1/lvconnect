@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\SchoolUpdateController;
@@ -34,3 +35,5 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/change-password', [ChangePasswordController::class, 'ChangePassword']);
     Route::get('/posts', [SchoolUpdateController::class, 'index']);
 });
+
+Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);
