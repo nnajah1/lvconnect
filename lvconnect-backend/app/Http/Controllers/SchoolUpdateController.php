@@ -60,6 +60,7 @@ class SchoolUpdateController extends Controller
             'type' => 'required|in:announcement,event',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_urgent' => 'sometimes|boolean',
+            'post_to_facebook' => 'somtimes|boolean',
         ]);
     
         try {
@@ -79,6 +80,7 @@ class SchoolUpdateController extends Controller
                 'status' => $request->boolean('is_urgent') 
                     ? SchoolUpdate::STATUS_PUBLISHED //if urgent, automatically published
                     : SchoolUpdate::STATUS_DRAFT,
+                'post_to_facebook' => $request->boolean('post_to_facebook'),
             ]);
     
             // If the post is urgent, notify all students
@@ -249,7 +251,7 @@ class SchoolUpdateController extends Controller
      * Publish a post to Facebook Page
      */
     public function publish(SchoolUpdate $schoolupdate, Request $request)
-    {   
+    {
         Gate::authorize('publish', $schoolupdate);
 
         $request->validate([
@@ -258,28 +260,27 @@ class SchoolUpdateController extends Controller
 
         try {
             $postToFacebook = $request->post_to_facebook;
-    
+
             // Update post status to published
             $schoolupdate->update([
                 'status' => SchoolUpdate::STATUS_PUBLISHED,
                 'post_to_facebook' => $postToFacebook,
             ]);
-    
+
             // Check if we should post to Facebook
             if ($postToFacebook) {
                 $pageId = env('FACEBOOK_PAGE_ID');
                 $accessToken = env('FACEBOOK_ACCESS_TOKEN');
-    
+
                 $response = Http::post("https://graph.facebook.com/v18.0/{$pageId}/feed", [
                     'message' => $schoolupdate->title . "\n\n" . $schoolupdate->content,
                     'access_token' => $accessToken,
                 ]);
-    
+
                 if ($response->successful()) {
-                    // Store Facebook post ID in database
                     $facebookPostId = $response->json()['id'];
                     $schoolupdate->update(['facebook_post_id' => $facebookPostId]);
-    
+
                     return response()->json([
                         'message' => 'Post published and shared on Facebook!',
                         'facebook_post_id' => $facebookPostId,
@@ -292,7 +293,7 @@ class SchoolUpdateController extends Controller
                     ], 400);
                 }
             }
-    
+
             return response()->json(['message' => 'Post published successfully!'], 200);
         } catch (AuthorizationException $e) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -301,6 +302,7 @@ class SchoolUpdateController extends Controller
             return response()->json(['error' => 'Failed to publish post'], 500);
         }
     }
+
 
     public function destroy(SchoolUpdate $schoolUpdate)
     {
