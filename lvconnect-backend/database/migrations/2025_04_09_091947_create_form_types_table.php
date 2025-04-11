@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by'); //PSAS admin
             $table->string('description');
             $table->boolean('has_pdf');
+            $table->boolean('is_visible')->default(true); //toggle
             $table->timestamps();
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');

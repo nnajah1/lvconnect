@@ -19,8 +19,10 @@ class SchoolFormsController extends Controller
         $user = JWTAuth::authenticate();
 
         if ($user->hasRole('student')) {
-            return FormType::with('formFields')->get();
-        }
+            return FormType::with('formFields')
+                ->where('is_visible', true)
+                ->get();
+        }        
 
         if ($user->hasRole('psas')) {
             return FormType::with('formFields')->where('created_by', $user->id)->get();
@@ -64,6 +66,29 @@ class SchoolFormsController extends Controller
 
         return response()->json(['message' => 'Form uploaded successfully', 'form' => $formType], 201);
     }
+
+    /**
+     * Visibility for toggle
+     */
+    public function toggleVisibility(Request $request, $id)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $form = FormType::findOrFail($id);
+
+        $form->is_visible = !$form->is_visible;
+        $form->save();
+
+        return response()->json([
+            'message' => 'Visibility updated successfully.',
+            'is_visible' => $form->is_visible
+        ]);
+    }
+
 
     /**
      * Display the specified resource.
