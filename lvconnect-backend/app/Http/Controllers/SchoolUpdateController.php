@@ -81,11 +81,9 @@ class SchoolUpdateController extends Controller
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_urgent' => 'sometimes|boolean',
-            // 'start_date' => 'required_if:type,event|date',
-            // 'end_date' => 'required_if:type,event|date|after_or_equal:start_date',
-            // 'about' => 'required_if:type,event|string',
-            // 'color' => 'required_if:type,event|string',
             'status' => 'required|in:draft,pending',
+            'post_to_facebook' => 'somtimes|boolean',
+
         ]);
 
 
@@ -118,13 +116,12 @@ class SchoolUpdateController extends Controller
                 'content' => $content,
                 'type' => $request->type,
                 'image_url' => $imageUrls ? json_encode($imageUrls) : null,
-                'is_urgent' => $request->boolean('is_urgent'),
                 'created_by' => auth()->id(),
                 'status' => $request->status,
-                // 'start_date' => $request->start_date,
-                // 'end_date' => $request->end_date,
-                // 'about' => $request->about,
-                // 'color' => $request->color,
+                'is_urgent' => $request->boolean('is_urgent') 
+                    ? SchoolUpdate::STATUS_PUBLISHED //if urgent, automatically published
+                    : SchoolUpdate::STATUS_DRAFT,
+                'post_to_facebook' => $request->boolean('post_to_facebook'),
             ]);
 
             return response()->json([
@@ -392,14 +389,6 @@ class SchoolUpdateController extends Controller
                 'post_to_facebook' => $postToFacebook,
             ]);
 
-            // Send urgent notifications only if the post is urgent
-            if ($schoolupdate->is_urgent) {
-                User::role('student')->cursor()->each(
-                    fn($student) =>
-                    $student->notify(new UrgentPostNotification($schoolupdate))
-                );
-            }
-
             // Check if we should post to Facebook
             if ($postToFacebook) {
                 $pageId = env('FACEBOOK_PAGE_ID');
@@ -424,8 +413,12 @@ class SchoolUpdateController extends Controller
                     $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $fbPostData);
                 }
 
+                // $response = Http::post("https://graph.facebook.com/v18.0/{$pageId}/feed", [
+                //     'message' => $schoolupdate->title . "\n\n" . $schoolupdate->content,
+                //     'access_token' => $accessToken,
+                // ]);
+
                 if ($response->successful()) {
-                    // Store Facebook post ID in database
                     $facebookPostId = $response->json()['id'];
                     $schoolupdate->update(['facebook_post_id' => $facebookPostId]);
 
