@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "@/axios"; 
+import api from "@/services/axios"; 
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
 import preventBackNavigation from "@/utils/preventBackNavigation";
@@ -18,7 +18,7 @@ const MustChangePassword = () => {
         if ( !user && !userId) {
             navigate("/login", { replace: true });
         } else if (user) {
-            navigate("/dashboard", { replace: true });
+            navigate("/", { replace: true });
         }
     }, [userId, user, navigate]); 
         
@@ -70,7 +70,7 @@ const MustChangePassword = () => {
                
                 await refreshToken();
                 await fetchUser();
-                navigate("/dashboard", { replace: true }); 
+                navigate("/", { replace: true }); 
                 setSuccess("Password changed successfully");
             }
         } catch (error) {

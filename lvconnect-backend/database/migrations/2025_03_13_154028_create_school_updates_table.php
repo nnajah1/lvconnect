@@ -25,6 +25,8 @@ return new class extends Migration
             $table->boolean('post_to_facebook')->default(false);
             $table->string('facebook_post_id')->nullable();
             $table->timestamp('rejected_at')->nullable();
+            $table->timestamp('published_at')->nullable();
+            $table->timestamp('archived_at')->nullable();
             $table->boolean('is_urgent')->default(false);
             $table->timestamps();
         

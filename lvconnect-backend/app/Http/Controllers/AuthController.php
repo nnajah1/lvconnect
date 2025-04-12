@@ -154,10 +154,18 @@ class AuthController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
 
-            // Load roles from Spatie
-            $user->load('roles');
-            // Return the user data
-            return response()->json(['user' => $user], 200);  // 200 OK
+                // Load roles from Spatie
+                $user->load('roles');
+
+                //get permissions
+                $permissions = $user->getAllPermissions()->pluck('name');
+
+                // Return the user data
+                return response()->json([
+                    'user' => $user,
+                    'permissions' => $permissions,
+                    
+            ], 200);  // 200 OK
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return response()->json(['error' => 'Token expired'], 401);
         } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {

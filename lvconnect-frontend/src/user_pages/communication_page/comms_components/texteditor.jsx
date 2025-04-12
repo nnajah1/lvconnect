@@ -1,27 +1,69 @@
-import React from "react";
-import ReactQuill from "react-quill-new";
-import "react-quill-new/dist/quill.snow.css";
+import { useEffect, useRef, useState } from "react";
+import Quill from "quill";
+import "quill/dist/quill.snow.css";
 
-const TextEditor = ({ content, setContent }) => {
-  return (
-    <div className="bg-white border rounded-md h-[240px] flex flex-col">
-      <ReactQuill
-        value={content}
-        onChange={setContent}
-        placeholder="Write here..."
-        className="w-full flex-1"
-        modules={{
-          toolbar: [
-            [{ font: [] }, { size: [] }],
-            ["bold", "italic", "underline", "strike"],
-            [{ color: [] }, { background: [] }],
-            [{ list: "ordered" }, { list: "bullet" }],
-            [{ align: [] }],
-            ["link", "image"],
-            ["clean"],
-          ],
-        }}
-        formats={[
+const TextEditor = ({ content, setContent, images, setImages }) => {
+  const editorRef = useRef(null); // for DOM mounting
+  const quillRef = useRef(null); // for Quill instance
+
+  const handleImageUpload = () => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64Image = reader.result;
+          const quill = quillRef.current;
+          const range = quill.getSelection();
+
+          if (range) {
+            quill.insertEmbed(range.index, "image", base64Image, "user");
+
+            // Add class to inserted image
+            setTimeout(() => {
+              const insertedImage = quill.root.querySelector(
+                `img[src="${base64Image}"]`
+              );
+              if (insertedImage) {
+                insertedImage.classList.add("custom-image");
+              }
+            }, 0);
+          }
+
+          setImages((prev) => [...prev, file]);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+  };
+
+  useEffect(() => {
+    if (editorRef.current && !quillRef.current) {
+      quillRef.current = new Quill(editorRef.current, {
+        theme: "snow",
+        modules: {
+          toolbar: {
+            container: [
+              [{ font: [] }, { size: [] }],
+              ["bold", "italic", "underline", "strike"],
+              [{ color: [] }, { background: [] }],
+              [{ list: "ordered" }, { list: "bullet" }],
+              [{ align: [] }],
+              ["link", "image"],
+              ["clean"],
+            ],
+            handlers: {
+              image: handleImageUpload,
+            },
+          },
+          clipboard: { matchVisual: false },
+        },
+        formats: [
           "font",
           "size",
           "bold",
@@ -31,44 +73,57 @@ const TextEditor = ({ content, setContent }) => {
           "color",
           "background",
           "list",
-          "bullet",
+          "align",
           "link",
           "image",
-        ]}
+        ],
+      });
+
+      quillRef.current.root.innerHTML = content;
+
+      quillRef.current.on("text-change", () => {
+        setContent(quillRef.current.root.innerHTML);
+      });
+    }
+  }, []);
+
+  return (
+    <div className="bg-white border rounded-md flex flex-col">
+      <div
+        ref={editorRef}
+        className="w-full flex-1 min-h-[300px] max-h-[300px] overflow-y-auto"
       />
 
+      <style>{`
+        .ql-container {
+          min-height: 300px !important;
+          max-height: 300px !important;
+          overflow-y: auto !important;
+          border: none !important;
+          word-wrap: break-word !important;
+        }
 
-<style>
-          {`
-          
-            .ql-container {
-              min-height: 350px !important; /* Set a minimum height */
-              max-height: 350px !important; /* Limit max height */
-              overflow-y: auto !important; /* Enable scrolling */
-              border: none !important;
-              word-wrap: break-word !important; /* Prevent text overflow */
-}
+        .ql-editor {
+          max-height: 280px !important;
+          overflow-y: auto !important;
+          white-space: normal !important;
+          word-wrap: break-word !important;
+        }
 
-              .ql-editor {
-                max-height: 180px !important;
-                overflow-y: auto !important;
-                white-space: normal !important; /* Ensure text wraps properly */
-                word-wrap: break-word !important;
-              }
-                .ql-toolbar {
-                            position: sticky;
-                            top: 0;
-                            background: white;
-                            z-index: 10;
-                          }
+        .ql-toolbar {
+          position: sticky;
+          bottom: 0;
+          background: white;
+          z-index: 10;
+        }
 
-            
-          `}
-        </style>
+        .custom-image {
+          max-width: 300px;
+          height: auto;
+          object-fit: contain;
+        }
+      `}</style>
     </div>
-
-
-
   );
 };
 

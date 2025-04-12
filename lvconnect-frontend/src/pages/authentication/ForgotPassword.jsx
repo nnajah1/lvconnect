@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 // import { useNavigate } from "react-router-dom"; 
 import LVConnect from "@/components/ui/lv-connect";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");

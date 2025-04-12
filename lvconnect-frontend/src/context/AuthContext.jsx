@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import api from "../axios";
+import api from "../services/axios";
 import { createContext, useState, useContext, useEffect } from "react";
 import { initializeDeviceId } from "@/utils/device";
 

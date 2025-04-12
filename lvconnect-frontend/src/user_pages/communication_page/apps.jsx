@@ -2,7 +2,7 @@ import { useState } from "react";
 import logo from "../../assets/lv-logo.png";
 import { HiHome, HiOutlineHome, HiClipboardDocumentList, HiOutlineClipboardDocumentList, HiArchiveBox  } from "react-icons/hi2";
 import { RxTextAlignJustify } from "react-icons/rx";
-import Updates from "../communication_page/updates";
+import Updates from "./updates";
 import { IoCalendar, IoCalendarOutline  } from "react-icons/io5";
 import { HiOutlineArchive } from "react-icons/hi";
 

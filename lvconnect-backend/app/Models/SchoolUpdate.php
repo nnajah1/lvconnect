@@ -9,11 +9,14 @@ class SchoolUpdate extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at'];
+    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'is_urgent', 'facebook_post_id', 'post_to_facebook',];
 
     protected $casts = [
         'revision_fields' => 'array', // Automatically cast JSON to array
         'rejected_at' => 'datetime', //Cast rejected_at to a Carbon instance
+        'published_at' => 'datetime',
+        'archived_at' => 'datetime',
+        'post_to_facebook' => 'boolean',
     ];
     
 
@@ -25,6 +28,7 @@ class SchoolUpdate extends Model
     const STATUS_REJECTED = 'rejected';
     const STATUS_REVISION = 'revision';
     const STATUS_PUBLISHED = 'published';
+    const STATUS_ARCHIVED = 'archived';
 
     public function author()
     {

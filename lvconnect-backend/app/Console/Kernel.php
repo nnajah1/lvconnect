@@ -19,6 +19,11 @@ class Kernel extends ConsoleKernel
                 ->where('rejected_at', '<', Carbon::now()->subDays(3))
                 ->delete();
         })->daily(); // Runs once per day
+        $schedule->call(function () {
+            SchoolUpdate::where('status', SchoolUpdate::STATUS_ARCHIVED)
+                ->where('archived_at', '<=', now()->subDays(7))
+                ->delete();
+        })->daily();
     }
 
     /**

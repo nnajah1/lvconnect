@@ -58,7 +58,7 @@ const OAuthCallback = () => {
                     }
                 } else {
                     console.log("Successful Login - Redirecting to Dashboard...");
-                    navigate("/dashboard");
+                    navigate("/");
                 }
             } catch (error) {
                 console.error("OAuth Callback Error:", error);

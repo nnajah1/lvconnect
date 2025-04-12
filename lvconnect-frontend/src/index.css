@@ -1,4 +1,8 @@
 @import "tailwindcss";
+@config "../tailwind.config.js";
+
+/* ---break---*/
+@custom-variant dark (&:is(.dark *));
 
 * {
     box-sizing: border-box;
@@ -177,7 +181,6 @@ table > tbody > tr > td {
 
 /* Login/Signup form */
 
-
 #defaultLayout {
     display: flex;
 }
@@ -230,6 +233,22 @@ table > tbody > tr > td {
     -webkit-animation-name: fadeInDown;
     animation-name: fadeInDown;
 }
+
+/* Select dropdown styles */
+.select-dropdown {
+    border: 1px solid #2CA4DD;
+    padding: 0.4rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    background-color: #2CA4DD;
+    color: white;
+  }
+  
+  /* Option styles */
+  .select-option {
+    color: black;
+    background-color: white;
+  }
 
 @keyframes fadeInDown {
     0% {

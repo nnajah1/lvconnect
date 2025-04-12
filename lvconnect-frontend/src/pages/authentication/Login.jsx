@@ -5,12 +5,12 @@ import { useAuthContext } from "../../context/AuthContext";
 import LVConnect from "@/components/ui/lv-connect";
 import Imagebackground from "@/components/ui/background";
 import illustration from "@/assets/illustration.jpg";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { FaUser } from "react-icons/fa6";
 import { IoLockClosed } from "react-icons/io5";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import "../login.css";
+import "@/styles/login.css";
 
 
 export default function Login() {
@@ -70,7 +70,7 @@ export default function Login() {
       }
   
     } else {
-      navigate("/dashboard"); // Redirect to dashboard on successful login
+      navigate("/"); 
     }
     setIsSubmitting(false);
     setButtonLoading(false);

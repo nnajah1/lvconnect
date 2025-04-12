@@ -1,7 +1,7 @@
 import { useAuthContext } from "../../context/AuthContext";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Button from "../../components/ui/button";
+import { Button } from "../../components/ui/button";
 import preventBackNavigation from "../../utils/preventBackNavigation";
 
 
@@ -35,7 +35,7 @@ const OTPVerification = () => {
         if (!user && !userId) {
             navigate("/login", { replace: true });
         } else if (user) {
-            navigate("/dashboard", { replace: true });
+            navigate("/", { replace: true });
         }
     }, [userId, user, navigate]);
 
@@ -90,7 +90,7 @@ const OTPVerification = () => {
                 if (response.mustChangePassword) {
                     navigate("/change-password", { state: { userId: response.userId }, replace: true });
                 } else {
-                    navigate("/dashboard", { replace: true });
+                    navigate("/", { replace: true });
                 }
             } else {
                 setError(response.message);

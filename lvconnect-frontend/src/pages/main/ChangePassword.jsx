@@ -1,6 +1,6 @@
 import  { useLocation, useNavigate }  from  "react-router-dom";
 import { useEffect, useState } from "react";
-import api from "../../axios"; 
+import api from "../../services/axios"; 
 import { useAuthContext } from "@/context/AuthContext";
 
 const ChangePassword = () => {
@@ -150,7 +150,7 @@ const ChangePassword = () => {
 
             if (response.status === 200) {
                 setSuccess("Password changed successfully.");
-                navigate("/dashboard"); // Redirect after changing password
+                navigate("/"); // Redirect after changing password
             } else {
                 setError("Failed to change password.");
             }

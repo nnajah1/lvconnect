@@ -34,6 +34,20 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
     Route::post('/change-password', [ChangePasswordController::class, 'ChangePassword']);
     Route::get('/posts', [SchoolUpdateController::class, 'index']);
+    Route::get('/posts/{id}', [SchoolUpdateController::class, 'show']);
+    Route::post('/posts', [SchoolUpdateController::class, 'store']);
+    Route::put('/posts/{post}', [SchoolUpdateController::class, 'update']);
+    Route::post('/posts/{post}/submit', [SchoolUpdateController::class, 'submitForApproval']);
+    Route::post('/posts/{post}/approve', [SchoolUpdateController::class, 'approve']);
+    Route::post('/posts/{post}/reject', [SchoolUpdateController::class, 'reject']);
+    Route::post('/posts/{post}/revision', [SchoolUpdateController::class, 'requestRevision']);
+    Route::post('/posts/{post}/publish', [SchoolUpdateController::class, 'publish']);
+    Route::post('/posts/{post}/archive', [SchoolUpdateController::class, 'archive']);
+    Route::post('/posts/{post}/restore', [SchoolUpdateController::class, 'restore']);
+    Route::get('/posts/archive', [SchoolUpdateController::class, 'archivedPosts']);
+    Route::post('/upload-images', [SchoolUpdateController::class, 'uploadImages']);
+    Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
+    Route::delete('/posts/{post}', [SchoolUpdateController::class, 'destroy']);
 });
 
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);
