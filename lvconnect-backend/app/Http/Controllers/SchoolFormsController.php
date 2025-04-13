@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormSubmission;
+use App\Models\FormSubmissionData;
 use App\Models\FormType;
 use App\Models\FormField;
 use Illuminate\Http\Request;
@@ -22,7 +24,7 @@ class SchoolFormsController extends Controller
             return FormType::with('formFields')
                 ->where('is_visible', true)
                 ->get();
-        }        
+        }
 
         if ($user->hasRole('psas')) {
             return FormType::with('formFields')->where('created_by', $user->id)->get();
@@ -34,6 +36,8 @@ class SchoolFormsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+    // Create new form
     public function store(Request $request)
     {
         $user = JWTAuth::authenticate();
@@ -45,7 +49,9 @@ class SchoolFormsController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'content' => 'nullable|string',
             'pdf' => 'required|file|mimes:pdf',
+            'is_visible' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -59,13 +65,58 @@ class SchoolFormsController extends Controller
         $formType = FormType::create([
             'title' => $request->title,
             'description' => $request->description,
+            'content' => $request->content,
             'pdf_path' => $pdfPath,
             'has_pdf' => true,
+            'is_visible' => $request->is_visible ?? true,
             'created_by' => $user->id,
         ]);
 
         return response()->json(['message' => 'Form uploaded successfully', 'form' => $formType], 201);
     }
+
+    //Store form fields 
+    public function storeFields(Request $request, $formTypeId)
+    {
+        $validator = Validator::make($request->all(), [
+            'fields' => 'required|array',
+            'fields.*.label' => 'required|string',
+            'fields.*.type' => 'required|string',
+            'fields.*.name' => 'required|string',
+            'fields.*.required' => 'boolean',
+            'fields.*.x' => 'nullable|numeric',
+            'fields.*.y' => 'nullable|numeric',
+            'fields.*.width' => 'nullable|numeric',
+            'fields.*.height' => 'nullable|numeric',
+            'fields.*.options' => 'nullable|array',
+            'fields.*.page' => 'nullable|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        foreach ($request->fields as $field) {
+            FormField::create([
+                'form_type_id' => $formTypeId,
+                'field_data' => [
+                    'label' => $field['label'],
+                    'type' => $field['type'],
+                    'name' => $field['name'],
+                    'options' => $field['options'] ?? [],
+                ],
+                'x' => $field['x'] ?? 0,
+                'y' => $field['y'] ?? 0,
+                'width' => $field['width'] ?? 100,
+                'height' => $field['height'] ?? 40,
+                'required' => $field['required'] ?? false,
+                'page' => $field['page'] ?? 1,
+            ]);
+        }
+
+        return response()->json(['message' => 'Fields saved successfully.']);
+    }
+
 
     /**
      * Visibility for toggle
@@ -89,6 +140,40 @@ class SchoolFormsController extends Controller
         ]);
     }
 
+    //Submit form data
+    public function submitForm(Request $request, $formTypeId)
+    {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|integer',
+            'answers' => 'required|array',
+            'answers.*.field_id' => 'required|integer',
+            'answers.*.field_name' => 'required|string',
+            'answers.*.answer_data' => 'nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $submission = FormSubmission::create([
+            'form_type_id' => $formTypeId,
+            'student_id' => $request->student_id,
+            'status' => 'submitted',
+            'submitted_at' => now(),
+        ]);
+
+        foreach ($request->answers as $answer) {
+            FormSubmissionData::create([
+                'form_submission_id' => $submission->id,
+                'form_field_id' => $answer['field_id'],
+                'field_name' => $answer['field_name'],
+                'answer_data' => json_encode($answer['answer_data']),
+                'is_verified' => false,
+            ]);
+        }
+
+        return response()->json(['message' => 'Form submitted successfully.']);
+    }
 
     /**
      * Display the specified resource.
@@ -115,7 +200,9 @@ class SchoolFormsController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|string',
+            'content' => 'nullable|string',
             'pdf' => 'sometimes|file|mimes:pdf',
+            'is_visible' => 'boolean',
         ]);
 
         if ($validator->fails()) {
@@ -131,6 +218,8 @@ class SchoolFormsController extends Controller
 
         $form->title = $request->title ?? $form->title;
         $form->description = $request->description ?? $form->description;
+        $form->content = $request->content ?? $form->content;
+        $form->is_visible = $request->is_visible ?? $form->is_visible;
         $form->save();
 
         return response()->json(['message' => 'Form updated successfully', 'form' => $form]);
