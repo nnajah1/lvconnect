@@ -37,7 +37,7 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
                 description="Fill out the form below to create a new post."
                 showTitle={false}
                 showDescription={false}
-                className="max-w-[60rem]! max-h-[40rem]! bg-[#EAF2FD]! overflow-auto!">
+                className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
 
                 {isLoading ? (

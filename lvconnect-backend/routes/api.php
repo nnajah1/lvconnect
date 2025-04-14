@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SchoolFormsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\OAuthController;
@@ -15,7 +16,7 @@ Route::post('/refresh', [AuthController::class, 'refreshToken']);
 
 Route::post('/send-otp', [OTPController::class, 'sendOTP']);
 Route::post('/verify-otp', [OTPController::class, 'verifyOTP']);
-    
+
 Route::post('/must-change-password', [ChangePasswordController::class, 'mustChangePassword']);
 
 Route::post('/trusted-device', [TrustedDeviceController::class, 'storeDevice']); // Store a trusted device
@@ -48,6 +49,15 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/upload-images', [SchoolUpdateController::class, 'uploadImages']);
     Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
     Route::delete('/posts/{post}', [SchoolUpdateController::class, 'destroy']);
+
+
+    Route::post('/forms', [SchoolFormsController::class, 'store']);
+    Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
+
+
+    Route::get('forms/visible', [SchoolFormsController::class, 'getVisibleForms']);
+    Route::get('/forms/{id}', [SchoolFormsController::class, 'show']);
+    Route::post('forms/{id}/submit', [SchoolFormsController::class, 'submission']);
 });
 
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);

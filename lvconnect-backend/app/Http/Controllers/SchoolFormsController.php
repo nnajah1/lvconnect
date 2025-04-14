@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Intervention\Image\Facades\image;
 
 class SchoolFormsController extends Controller
 {
@@ -48,26 +49,36 @@ class SchoolFormsController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'pdf' => 'required|file|mimes:pdf',
+            'pdf' => 'nullable|file|mimes:pdf',
             'is_visible' => 'boolean',
+            
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Store PDF
-        $pdfPath = $request->file('pdf')->store('pdf_forms', 'public');
-
+        $pdfPath = null;
+        $hasPdf = false;
+        
+        try {
+            if ($request->hasFile('pdf')) {
+                $pdfPath = $request->file('pdf')->store('pdf_forms', 'public');
+                $hasPdf = true;
+            }
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'PDF upload failed', 'error' => $e->getMessage()], 500);
+        }
+        
         // Create FormType record
         $formType = FormType::create([
             'title' => $request->title,
             'description' => $request->description,
             'content' => $request->content,
             'pdf_path' => $pdfPath,
-            'has_pdf' => true,
+            'has_pdf' => $hasPdf,
             'is_visible' => $request->is_visible ?? true,
             'created_by' => $user->id,
         ]);
@@ -141,7 +152,7 @@ class SchoolFormsController extends Controller
     }
 
     //Submit form data
-    public function submitForm(Request $request, $formTypeId)
+    public function submission(Request $request, $formTypeId)
     {
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|integer',
@@ -153,6 +164,13 @@ class SchoolFormsController extends Controller
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Retrieve the form
+        $formType = FormType::find($formTypeId);
+
+        if (!$formType) {
+            return response()->json(['message' => 'Form not found'], 404);
         }
 
         $submission = FormSubmission::create([
@@ -175,13 +193,50 @@ class SchoolFormsController extends Controller
         return response()->json(['message' => 'Form submitted successfully.']);
     }
 
+    // For student
+    public function uploadImage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $image = Image::make($request->file('image'));
+
+        if ($image->width() !== 192 || $image->height() !== 192) {
+            return response()->json(['error' => 'Image must be exactly 2x2 inches (192x192 pixels at 96 DPI).'], 422);
+        }
+
+        $path = $request->file('image')->store('2x2_images', 'public');
+
+        return response()->json(['message' => 'Image uploaded', 'path' => $path]);
+    }
+
+
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        $form = FormType::with('formFields')->findOrFail($id);
-        return response()->json($form);
+        // Retrieve the form and its fields
+        $formType = FormType::with('fields')->find($id);
+
+        if (!$formType) {
+            return response()->json(['message' => 'Form not found'], 404);
+        }
+
+        return response()->json($formType);
+    }
+
+    public function getVisibleForms()
+    {
+        // Retrieve all forms where is_visible is true
+        $forms = FormType::where('is_visible', true)->get();
+
+        return response()->json($forms);
     }
 
     /**

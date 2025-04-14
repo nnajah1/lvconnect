@@ -19,7 +19,7 @@ export const roleMenus = {
     { name: "Dashboard", path: "/school-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
     { name: "Review Posts", path: "school-admin/posts/review", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
   ],
-  psasadmin: [
+  psas: [
     { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
     { name: "Survey", path: "psas-admin/survey", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
     { name: "School Forms", path: "psas-admin/forms", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },

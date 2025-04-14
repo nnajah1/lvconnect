@@ -1,34 +1,11 @@
 import api from "@/services/axios"
 
 //forms creation
-// export const createForm = async (formData) => {
-//     return api.post(API_URL, formData);
-//   };
 
-export const createForm = async (formData) => {
+export const createForm = (formData) => api.post('/forms', formData);
 
-  try {
-    const response = await api.post('/api/forms', formData);
-    return response.data;
-
-  } catch (error) {
-    throw error.response?.data || "Failed to create form.";
-  };
-};
-
-export const addFields = async (formTypeId, fieldsPayload) => {
-
-  try {
-    const response = await api.post(`/api/forms/${formTypeId}/fields`, {
-      fields: fieldsPayload,
-    });
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || "Failed to add fields.";
-  }
-};
-
-
+export const saveFormFields = (formId, fields) =>
+  api.post(`/forms/${formId}/fields`, { fields });
 
 export const updateForm = async (id, formData) => {
   return api.put(`${API_URL}/${id}`, formData);

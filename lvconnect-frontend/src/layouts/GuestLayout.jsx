@@ -9,15 +9,22 @@ export default function GuestLayout() {
     }
     if (user) {
         const isStudent = user.roles?.some(role => role.name === 'student');
-
-        // Redirect based on role
         if (isStudent) {
             return <Navigate to="/dashboard" replace />;
         } else {
-            return <Navigate to="/admin" replace />;
+            if (user.roles?.some(role => role.name === 'comms')) {
+                return <Navigate to="/comms-admin" replace />;
+            } else if (user.roles?.some(role => role.name === 'scadmin')) {
+                return <Navigate to="/school-admin" replace />;
+            } else if (user.roles?.some(role => role.name === 'psas')) {
+                return <Navigate to="/psas-admin" replace />;
+            } else {
+                // Fallback if no known admin role
+                return <Navigate to="/unauthorized" replace />;
+            }
         }
     }
-    
+
     return (
         <div >
 

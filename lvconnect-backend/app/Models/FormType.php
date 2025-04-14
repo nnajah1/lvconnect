@@ -16,6 +16,7 @@ class FormType extends Model
         'has_pdf',
         'created_by',
         'is_visible',
+        'content',
     ];
 
     /**

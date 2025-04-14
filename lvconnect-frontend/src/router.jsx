@@ -24,6 +24,10 @@ import Updates from "./user_pages/communication_page/updates";
 import Sidebar from "./user_pages/communication_page/apps";
 import PsasDashboard from "./pages/admins/psas/AdminDashboard";
 import Forms from "./pages/admins/psas/Forms";
+import UserFormView from "./pages/student/UserSchoolForm";
+import UserForm from "./components/school_forms/userSchoolForm";
+import FormView from "./components/school_forms/userSchoolForm";
+import VisibleForms from "./pages/student/UserSchoolForm";
 
 
 
@@ -91,7 +95,7 @@ const router = createBrowserRouter([
             },
             {
                 path: "psas-admin",
-                element: <ProtectedRoute allowedRoles={["psasadmin"]} />,
+                element: <ProtectedRoute allowedRoles={["psas"]} />,
                 children: [
                     { index: true, element: <PsasDashboard /> },
                     { path: "forms", element: <Forms /> },
@@ -111,8 +115,8 @@ const router = createBrowserRouter([
         ],
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
-    { path: "/trial", element: <Updates /> },
-    { path: "/app", element: <Sidebar /> }
+    { path: "/trial", element: <FormView /> },
+    { path: "/app", element: <VisibleForms /> }
 
 
 
