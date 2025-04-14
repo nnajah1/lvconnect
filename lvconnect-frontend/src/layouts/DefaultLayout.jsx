@@ -1,6 +1,6 @@
 import { useAuthContext } from "../context/AuthContext";
 import { Outlet, Navigate } from "react-router-dom";
-import preventBackNavigation from "../utils/preventBackNavigation";
+import preventBackNavigation from "@/utils/preventBackNavigation";
 import OTPVerification from "@/pages/authentication/OTPVerification";
 import MustChangePassword from "@/pages/authentication/MustChangePassword";
 import Sidebar from "./sidebar";

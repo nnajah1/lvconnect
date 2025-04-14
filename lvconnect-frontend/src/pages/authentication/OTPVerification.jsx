@@ -2,7 +2,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../../components/ui/button";
-import preventBackNavigation from "../../utils/preventBackNavigation";
+import preventBackNavigation from "@/utils/preventBackNavigation";
 
 
 import LVConnect from "@/components/ui/lv-connect";

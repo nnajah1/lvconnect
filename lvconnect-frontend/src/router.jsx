@@ -9,24 +9,14 @@ import OTPVerification from "@/pages/authentication/OTPVerification";
 import ChangePassword from "@/pages/main/ChangePassword";
 import MustChangePassword from "@/pages/authentication/MustChangePassword";
 import ForgotPassword from "./pages/authentication/ForgotPassword";
-
 import Posts from "./pages/admins/comms/Posts";
-import CreatePost from "./pages/admins/comms/CreatePost";
-import EditPost from "./pages/admins/comms/EditPost";
-import ReviewPosts from "./pages/admins/comms/ReviewPosts";
-import PublishPost from "./pages/admins/comms/PublishPost";
-import ReviewDetails from "./pages/admins/comms/ReviewDetails";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import UserDashboard from "@/pages/student/UserDashboard";
 import AdminDashboard from "./pages/admins/AdminDashboard";
 import ArchivePosts from "./pages/admins/comms/ArchivePosts";
-import Updates from "./user_pages/communication_page/updates";
-import Sidebar from "./user_pages/communication_page/apps";
 import PsasDashboard from "./pages/admins/psas/AdminDashboard";
 import Forms from "./pages/admins/psas/Forms";
-import UserFormView from "./pages/student/UserSchoolForm";
-import UserForm from "./components/school_forms/userSchoolForm";
-import FormView from "./components/school_forms/userSchoolForm";
+import FormView from "./components/school_forms/userSubmitForm";
 import VisibleForms from "./pages/student/UserSchoolForm";
 
 
@@ -102,15 +92,6 @@ const router = createBrowserRouter([
                     { path: "archive", element: <ArchivePosts /> },
                 ],
             },
-
-
-            { path: "posts/create", element: <ProtectedRoute allowedRoles={["comms"]}><CreatePost /></ProtectedRoute> },
-            { path: "posts/edit/:id", element: <ProtectedRoute allowedRoles={["comms"]}><EditPost /></ProtectedRoute> },
-            { path: "posts/publish", element: <ProtectedRoute allowedRoles={["comms"]}><PublishPost /></ProtectedRoute> },
-
-            //School Admin Path
-            { path: "posts/review", element: <ProtectedRoute allowedRoles={["scadmin"]}><ReviewPosts /></ProtectedRoute> },
-            { path: "posts/review/:id", element: <ProtectedRoute allowedRoles={["scadmin"]}><ReviewDetails /></ProtectedRoute> },
 
         ],
     },

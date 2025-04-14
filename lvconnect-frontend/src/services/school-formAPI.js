@@ -11,9 +11,10 @@ export const updateForm = async (id, formData) => {
   return api.put(`${API_URL}/${id}`, formData);
 };
 
-export const getForm = async (id) => {
-  return api.get(`${API_URL}/${id}`);
+export const getForms = async () => {
+  return api.get('/forms');
 };
+
 
 export const deleteForm = async (id) => {
   return api.delete(`${API_URL}/${id}`);
