@@ -5,6 +5,7 @@ namespace App\Console;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Models\SchoolUpdate;
+use App\Models\FormSubmission;
 use Carbon\Carbon;
 
 class Kernel extends ConsoleKernel
@@ -22,6 +23,13 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             SchoolUpdate::where('status', SchoolUpdate::STATUS_ARCHIVED)
                 ->where('archived_at', '<=', now()->subDays(7))
+                ->delete();
+        })->daily();
+
+        // Cleanup for rejected form submissions
+        $schedule->call(function () {
+            FormSubmission::where('status', 'rejected')
+                ->where('updated_at', '<', Carbon::now()->subDays(3))
                 ->delete();
         })->daily();
     }

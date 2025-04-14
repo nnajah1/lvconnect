@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Intervention\Image\Facades\image;
+use Intervention\Image\Facades\Image;
 
 class SchoolFormsController extends Controller
 {
@@ -151,47 +151,86 @@ class SchoolFormsController extends Controller
         ]);
     }
 
-    //Submit form data
-    public function submission(Request $request, $formTypeId)
+    /**
+     * Submit form for student.
+     */
+    public function submitForm(Request $request, $formTypeId)
     {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('student')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $formType = FormType::with('formFields')->findOrFail($formTypeId);
+
+        // Validate dynamic fields
+        $rules = [];
+        foreach ($formType->formFields as $field) {
+            $rules["fields.{$field->id}"] = $field->is_required ? 'required|string' : 'nullable|string';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Create form submission
+        $submission = FormSubmission::create([
+            'form_type_id' => $formTypeId,
+            'user_id' => $user->id,
+            'status' => 'pending', // 👈 this is where the 'pending' status is set
+        ]);
+
+        // Store submitted field data
+        foreach ($request->fields as $fieldId => $value) {
+            FormSubmissionData::create([
+                'form_submission_id' => $submission->id,
+                'form_field_id' => $fieldId,
+                'value' => $value,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Form submitted successfully and is now pending review.',
+            'submission_id' => $submission->id,
+        ], 201);
+    }
+
+
+    /**
+     * Approved or Rejected for admin
+     */
+    public function reviewSubmission(Request $request, $id)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $submission = FormSubmission::findOrFail($id);
+
         $validator = Validator::make($request->all(), [
-            'student_id' => 'required|integer',
-            'answers' => 'required|array',
-            'answers.*.field_id' => 'required|integer',
-            'answers.*.field_name' => 'required|string',
-            'answers.*.answer_data' => 'nullable',
+            'status' => 'required|in:approved,rejected',
+            'admin_remarks' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Retrieve the form
-        $formType = FormType::find($formTypeId);
+        $submission->status = $request->status;
+        $submission->admin_remarks = $request->admin_remarks ?? null;
+        $submission->save();
 
-        if (!$formType) {
-            return response()->json(['message' => 'Form not found'], 404);
-        }
-
-        $submission = FormSubmission::create([
-            'form_type_id' => $formTypeId,
-            'student_id' => $request->student_id,
-            'status' => 'submitted',
-            'submitted_at' => now(),
+        return response()->json([
+            'message' => 'Form submission reviewed successfully.',
+            'submission' => $submission,
         ]);
-
-        foreach ($request->answers as $answer) {
-            FormSubmissionData::create([
-                'form_submission_id' => $submission->id,
-                'form_field_id' => $answer['field_id'],
-                'field_name' => $answer['field_name'],
-                'answer_data' => json_encode($answer['answer_data']),
-                'is_verified' => false,
-            ]);
-        }
-
-        return response()->json(['message' => 'Form submitted successfully.']);
     }
+
 
     // For student
     public function uploadImage(Request $request)
