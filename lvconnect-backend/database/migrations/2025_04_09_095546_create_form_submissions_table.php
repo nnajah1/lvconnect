@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('status', ['draft', 'pending', 'approved', 'rejected']);
             $table->timestamp('submitted_at');
             $table->string('admin_remarks');
+            $table->timestamp('rejected_at');
             $table->timestamps();
 
             $table->foreign('form_type_id')->references('id')->on('form_types')->onDelete('cascade');

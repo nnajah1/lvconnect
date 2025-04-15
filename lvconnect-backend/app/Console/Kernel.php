@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
         // Cleanup for rejected form submissions
         $schedule->call(function () {
             FormSubmission::where('status', 'rejected')
-                ->where('updated_at', '<', Carbon::now()->subDays(3))
+                ->where('rejected_at', '<', Carbon::now()->subDays(3))
                 ->delete();
         })->daily();
     }

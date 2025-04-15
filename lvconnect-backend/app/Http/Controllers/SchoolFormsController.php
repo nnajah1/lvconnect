@@ -223,6 +223,13 @@ class SchoolFormsController extends Controller
 
         $submission->status = $request->status;
         $submission->admin_remarks = $request->admin_remarks ?? null;
+
+        if ($request->status === 'rejected') {
+            $submission->rejected_at = now();
+        } else {
+            $submission->rejected_at = null;
+        }
+
         $submission->save();
 
         return response()->json([
