@@ -11,7 +11,7 @@ class FormSubmission extends Model
 
     protected $fillable = [
         'form_type_id',
-        'student_id',
+        'submitted_by',
         'status',
         'submitted_at',
         'admin_remarks',
@@ -34,7 +34,7 @@ class FormSubmission extends Model
      */
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class, 'submitted_by');
     }
 
     /**

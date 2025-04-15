@@ -69,12 +69,12 @@ const VisibleForms = ({ userRole }) => {
             {
               label: "Form Templates",
               value: "Form Template",
-              content:  <DataTable columns={templateColumns} data={schoolForms} context="UserFormsTemplate" />
+              content:  <DataTable columns={templateColumns} data={schoolForms} />
             },
             {
               label: "Submitted Forms",
               value: "submitted form",
-              content: <DataTable columns={submittedColumns} data={schoolForms} context="UserFormsSubmitted" />
+              content: <DataTable columns={submittedColumns} data={schoolForms} />
             },
           ]}
         />

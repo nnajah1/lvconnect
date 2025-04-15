@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { getForms } from "@/services/school-formAPI";
+import { getForms, getSubmittedForms } from "@/services/school-formAPI";
 import { formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema } from "@/tableSchemas/schoolForm";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateFormModal from "@/pages/admins/psas/CreateForm";
@@ -11,6 +11,7 @@ import DynamicTabs from "@/components/dynamic/dynamicTabs";
 
 const Forms = ({ userRole }) => {
   const [schoolForms, setSchoolForms] = useState([]);
+  const [submittedForms, setSubmittedForms] = useState([]);
   // const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
@@ -20,16 +21,16 @@ const Forms = ({ userRole }) => {
     userRole,
     schema: schoolFormTemplateSchema,
     actions: formActions,
-    actionConditions: formActionConditions
-
+    actionConditions: formActionConditions,
+    context: "formsTemplate"
   });
 
   const submittedColumns = getColumns({
     userRole,
     schema: schoolFormSubmittedSchema,
     actions: formActions,
-    actionConditions: formActionConditions
-
+    actionConditions: formActionConditions,
+    context: "formsSubmited"
   });
 
   useEffect(() => {
@@ -41,8 +42,17 @@ const Forms = ({ userRole }) => {
         setError('Error fetching forms');
       }
     };
+    const fetchSubmitted = async () => {
+      try {
+        const res = await getSubmittedForms();
+        setSubmittedForms(res.data);
+      } catch (err) {
+        setError("Error fetching submitted forms");
+      }
+    };
 
     fetchForms();
+    fetchSubmitted();
   }, []);
   // if (loading) {
   //   return <p>Loading...</p>;
@@ -87,12 +97,12 @@ const Forms = ({ userRole }) => {
           {
             label: "Form Templates",
             value: "form Template",
-            content:  <DataTable columns={templateColumns} data={schoolForms} context="Forms" />
+            content:  <DataTable columns={templateColumns} data={schoolForms} />
           },
           {
             label: "Submitted Forms",
             value: "submitted form",
-            content: <DataTable columns={submittedColumns} data={schoolForms} context="Forms" />
+            content: <DataTable columns={submittedColumns} data={submittedForms} />
           },
         ]}
       />

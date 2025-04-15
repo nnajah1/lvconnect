@@ -1,9 +1,14 @@
 export const schoolFormTemplateSchema = {
     id: { header: "#", display: true },
     title: { header: "Form", display: true },
-    status: { header: "Status", display: true },
-    created_at: { header: "Date Created", display: true, format: "date" },
-    updated_at: { header: "Last Modified", display: true, format: "date" },
+    is_visible: {
+        header: "Status",
+        sortable: false,
+        display: true,
+        customCell: (value) => (value ? "Published" : "Hidden")
+    },
+    created_at: { header: "Date Created", display: true, format: "date", sortable: true, },
+    updated_at: { header: "Last Modified", display: true, format: "date",sortable: true, },
 };
 
 export const schoolFormSubmittedSchema = {
@@ -28,7 +33,6 @@ export const formActions = {
 
 // Sample action conditions
 export const formActionConditions = {
-    View: () => true,
-    update: (item, userRole) => userRole === "psas" && item.status === "draft",
-   
+    view: (item, context, userRole) => userRole === "psas" && context === "formsSubmitted",
+    update: (item, context, userRole) => userRole === "psas"  && context === "formsTemplate",
 };

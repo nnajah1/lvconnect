@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('form_submissions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('form_type_id');
-            $table->unsignedBigInteger('student_id');
+            $table->unsignedBigInteger('submitted_by');
             $table->enum('status', ['draft', 'pending', 'approved', 'rejected']);
             $table->timestamp('submitted_at');
             $table->string('admin_remarks');
-            $table->timestamp('rejected_at');
+            $table->timestamp('rejected_at')->nullable();
             $table->timestamps();
 
             $table->foreign('form_type_id')->references('id')->on('form_types')->onDelete('cascade');
-            $table->foreign('student_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('submitted_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

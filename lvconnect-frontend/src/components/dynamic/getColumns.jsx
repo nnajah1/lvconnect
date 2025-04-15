@@ -8,7 +8,6 @@ export const getColumns = ({
     context,
     actions = {},
     actionConditions = {},
-    customRenderers = {},
     sorting, // Sorting state from parent component
     setSorting, // Function to update sorting state
 
@@ -21,6 +20,7 @@ export const getColumns = ({
             accessorKey: key,
             header: ({ column }) => {
                 if (config.header === "Actions") return config.header;
+                if (!config.sortable) return config.header;
 
                 const isSorted = column.getIsSorted();
 
@@ -49,10 +49,10 @@ export const getColumns = ({
                     return row.index + 1;
                 }
 
-                // Use custom renderer if provided
-                if (customRenderers[key]) {
-                    return customRenderers[key](value, row.original);
-                }
+                // Use custom cell
+                if (config.customCell) {
+                    return config.customCell(value, row.original);
+                  }
 
                 // Default formatting
                 if (config.format === "date") {
@@ -76,7 +76,7 @@ export const getColumns = ({
             const applicableActions = Object.entries(actions)
                 .filter(([actionName]) => {
                     const condition = actionConditions[actionName];
-                    return condition ? condition(item, userRole, context) : true;
+                    return condition ? condition(item, userRole, context) : false;
                 })
                 .map(([actionName, { fn, variant}]) => (
                     <Button

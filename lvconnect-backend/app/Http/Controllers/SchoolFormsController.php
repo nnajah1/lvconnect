@@ -33,6 +33,19 @@ class SchoolFormsController extends Controller
 
         return response()->json(['message' => 'Unauthorized'], 403);
     }
+    public function submissions(Request $request)
+    {
+        $user = JWTAuth::authenticate();
+
+        if ($user->hasRole('psas')) {
+            return FormSubmission::with('submissionData')
+            ->where('submitted_by', $user->id) 
+            ->get();
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -223,13 +236,6 @@ class SchoolFormsController extends Controller
 
         $submission->status = $request->status;
         $submission->admin_remarks = $request->admin_remarks ?? null;
-
-        if ($request->status === 'rejected') {
-            $submission->rejected_at = now();
-        } else {
-            $submission->rejected_at = null;
-        }
-
         $submission->save();
 
         return response()->json([

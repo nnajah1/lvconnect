@@ -56,6 +56,7 @@ Route::middleware('auth.jwt')->group(function () {
 
 
     Route::get('forms', [SchoolFormsController::class, 'index']);
+    Route::get('forms/submissions', [SchoolFormsController::class, 'submissions']);
     Route::get('/forms/{id}', [SchoolFormsController::class, 'show']);
     Route::post('forms/{id}/submit', [SchoolFormsController::class, 'submission']);
 });

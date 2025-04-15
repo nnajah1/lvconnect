@@ -15,6 +15,10 @@ export const getForms = async () => {
   return api.get('/forms');
 };
 
+export const getSubmittedForms = async () => {
+  return api.get('/forms/submissions');
+};
+
 
 export const deleteForm = async (id) => {
   return api.delete(`${API_URL}/${id}`);
