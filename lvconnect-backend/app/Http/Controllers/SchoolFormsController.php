@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageManager;
 
 class SchoolFormsController extends Controller
 {
@@ -53,7 +53,7 @@ class SchoolFormsController extends Controller
             'content' => 'nullable|string',
             'pdf' => 'nullable|file|mimes:pdf',
             'is_visible' => 'boolean',
-            
+
         ]);
 
         if ($validator->fails()) {
@@ -62,7 +62,7 @@ class SchoolFormsController extends Controller
 
         $pdfPath = null;
         $hasPdf = false;
-        
+
         try {
             if ($request->hasFile('pdf')) {
                 $pdfPath = $request->file('pdf')->store('pdf_forms', 'public');
@@ -71,7 +71,7 @@ class SchoolFormsController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'PDF upload failed', 'error' => $e->getMessage()], 500);
         }
-        
+
         // Create FormType record
         $formType = FormType::create([
             'title' => $request->title,
@@ -240,27 +240,27 @@ class SchoolFormsController extends Controller
 
 
     // For student
-    public function uploadImage(Request $request)
+    public function upload2x2Image(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|dimensions:width=600,height=600|max:2048', // 2x2 inches at 300 DPI
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $image = Image::make($request->file('image'));
+        // Handle and resize image with Intervention Image
+        $image = $request->file('photo');
+        $manager = ImageManager::gd(); // or use ->imagick() if using Imagick
 
-        if ($image->width() !== 192 || $image->height() !== 192) {
-            return response()->json(['error' => 'Image must be exactly 2x2 inches (192x192 pixels at 96 DPI).'], 422);
-        }
+        $processed = $manager->read($image)->resize(600, 600); // Resize to 2x2 inch at 300 DPI
+        $filename = uniqid('2x2_') . '.' . $image->getClientOriginalExtension();
+        $path = storage_path('app/public/2x2/' . $filename);
+        $processed->save($path);
 
-        $path = $request->file('image')->store('2x2_images', 'public');
-
-        return response()->json(['message' => 'Image uploaded', 'path' => $path]);
+        return response()->json(['message' => 'Image uploaded successfully', 'path' => 'storage/2x2/' . $filename]);
     }
-
 
     /**
      * Display the specified resource.
@@ -275,14 +275,6 @@ class SchoolFormsController extends Controller
         }
 
         return response()->json($formType);
-    }
-
-    public function getVisibleForms()
-    {
-        // Retrieve all forms where is_visible is true
-        $forms = FormType::where('is_visible', true)->get();
-
-        return response()->json($forms);
     }
 
     /**

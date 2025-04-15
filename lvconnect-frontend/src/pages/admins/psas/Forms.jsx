@@ -1,10 +1,10 @@
-"use client"; // Mark as a Client Component
+"use client"; 
 
 import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { getPosts } from "@/services/axios";
-import { formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema } from "@/utils/schoolForm";
+import { getForms } from "@/services/school-formAPI";
+import { formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema } from "@/tableSchemas/schoolForm";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
@@ -33,13 +33,17 @@ const Forms = ({ userRole }) => {
   });
 
   useEffect(() => {
-    const loadForms = async () => {
-      const data = await getForms();
-      setSchoolForms(data);
+    const fetchForms = async () => {
+      try {
+        const response = await getForms();
+        setSchoolForms(response.data);
+      } catch (err) {
+        setError('Error fetching forms');
+      }
     };
-    loadForms();
-  }, []);
 
+    fetchForms();
+  }, []);
   // if (loading) {
   //   return <p>Loading...</p>;
   // }

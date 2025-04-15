@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { getPosts } from "@/services/axios";
-import { actionConditions, actions, schoolUpdateSchema } from "@/utils/schoolUpdate";
+import { actionConditions, actions, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate" ;
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreatePostModal from "@/pages/admins/comms/CreatePost";
 import ViewPostModal from "./ViewPost";

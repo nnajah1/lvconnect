@@ -50,12 +50,12 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
     Route::delete('/posts/{post}', [SchoolUpdateController::class, 'destroy']);
 
-
+    
     Route::post('/forms', [SchoolFormsController::class, 'store']);
     Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
 
 
-    Route::get('forms/visible', [SchoolFormsController::class, 'getVisibleForms']);
+    Route::get('forms', [SchoolFormsController::class, 'index']);
     Route::get('/forms/{id}', [SchoolFormsController::class, 'show']);
     Route::post('forms/{id}/submit', [SchoolFormsController::class, 'submission']);
 });

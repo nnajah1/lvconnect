@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { getArchivePosts } from "@/services/axios";
-import { archiveSchema } from "@/utils/schoolUpdate";
+import { archiveSchema } from "@/tableSchemas/schoolUpdate";
 
 
 const ArchivePosts = ({ userRole }) => {
