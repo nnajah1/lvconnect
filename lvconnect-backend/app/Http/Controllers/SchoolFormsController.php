@@ -193,7 +193,7 @@ class SchoolFormsController extends Controller
         $submission = FormSubmission::create([
             'form_type_id' => $formTypeId,
             'user_id' => $user->id,
-            'status' => 'pending', // 👈 this is where the 'pending' status is set
+            'status' => 'pending', 
         ]);
 
         // Store submitted field data
@@ -244,7 +244,40 @@ class SchoolFormsController extends Controller
         ]);
     }
 
+    /**
+     * Download the form into PDF.
+     */
 
+    public function downloadApprovedForm($submissionId)
+    {
+        $user = JWTAuth::authenticate();
+
+        $submission = FormSubmission::with('formType', 'formData.formField')->findOrFail($submissionId);
+
+        // Allow only student who owns it or PSAS role
+        if (
+            !$user->hasRole('psas') &&
+            $submission->student_id !== $user->id
+        ) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ($submission->status !== 'approved') {
+            return response()->json(['message' => 'Form not approved'], 403);
+        }
+
+        // Return form data & PDF path for frontend
+        return response()->json([
+            'pdf_url' => Storage::url($submission->formType->pdf_path),
+            'fields' => $submission->formData->map(function ($data) {
+                return [
+                    'field_name' => $data->field_name,
+                    'value' => json_decode($data->answer_data),
+                ];
+            }),
+        ]);
+    }
+    
     // For student
     public function upload2x2Image(Request $request)
     {
