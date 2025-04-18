@@ -53,12 +53,17 @@ Route::middleware('auth.jwt')->group(function () {
     
     Route::post('/forms', [SchoolFormsController::class, 'store']);
     Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
+    Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
 
 
     Route::get('forms', [SchoolFormsController::class, 'index']);
     Route::get('forms/submissions', [SchoolFormsController::class, 'submissions']);
     Route::get('/forms/{id}', [SchoolFormsController::class, 'show']);
-    Route::post('forms/{id}/submit', [SchoolFormsController::class, 'submission']);
+
+    Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
+    Route::put('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'updateFields']);
+    Route::put('/forms/submissions/{id}', [SchoolFormsController::class, 'reviewSubmission']);
+    
 });
 
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);

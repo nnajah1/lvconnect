@@ -7,12 +7,18 @@ export const createForm = (formData) => api.post('/forms', formData);
 export const saveFormFields = (formId, fields) =>
   api.post(`/forms/${formId}/fields`, { fields });
 
-export const updateForm = async (id, formData) => {
-  return api.put(`${API_URL}/${id}`, formData);
+export const updateForm = (id, payload) => 
+  api.put(`/forms/${id}`, payload);
+
+export const updateFormFields = (formId, fields, deletedFieldIds) => {
+  return api.put(`/forms/${formId}/fields`, { fields, deleted_ids: deletedFieldIds });
 };
 
 export const getForms = async () => {
   return api.get('/forms');
+};
+export const getFormById = (formId) => {
+  return api.get(`/forms/${formId}`);
 };
 
 export const getSubmittedForms = async () => {

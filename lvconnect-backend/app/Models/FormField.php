@@ -12,10 +12,6 @@ class FormField extends Model
     protected $fillable = [
         'form_type_id',
         'field_data',
-        'x',
-        'y',
-        'width',
-        'height',
         'required',
         'page',
     ];
@@ -23,10 +19,6 @@ class FormField extends Model
     protected $casts = [
         'field_data' => 'array',
         'required' => 'boolean',
-        'x' => 'float',
-        'y' => 'float',
-        'width' => 'float',
-        'height' => 'float',
     ];
 
     /**

@@ -1,11 +1,11 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
-import FormBuilder from "@/components/school_forms/FormBuilder";
+import EditForm from "@/components/school_forms/EditSchoolForm";
 import SuccessModal from "@/components/school_updates/modals/successModal";
 import { useState } from "react";
 
-const CreateFormModal = ({ isOpen, closeModal }) => {
+const EditFormModal = ({ isOpen, closeModal, formItem, onSuccess }) => {
 
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +28,7 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
                 closeModal={closeModal}
                 showCloseButton={false}
                 title="Create New School Form"
-                description="Fill out the form below to create a new school form."
+                description="Fill out the form below to update a school form."
                 showTitle={false}
                 showDescription={false}
                 className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
@@ -40,8 +40,7 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
                         <Loader />
                     </div>
                 ) : (
-                    // Show the CreatePostForm only when not loading
-                    <FormBuilder closeModal={closeModal} onSuccess={handleSuccess} />
+                    <EditForm closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
                 )}
             </DynamicModal>
 
@@ -50,6 +49,8 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
             <SuccessModal
                 isOpen={isSuccessModalOpen}
                 closeModal={() => setIsSuccessModalOpen(false)}
+                // title="School Form Updated"
+                // description="The school form has been updated successfully"
             >
                 Manage School Forms 
             </SuccessModal>
@@ -58,4 +59,4 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
     );
 };
 
-export default CreateFormModal;
+export default EditFormModal;

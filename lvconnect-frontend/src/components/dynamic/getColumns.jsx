@@ -6,6 +6,7 @@ export const getColumns = ({
     userRole,
     schema = {},
     context,
+    openModal,
     actions = {},
     actionConditions = {},
     sorting, // Sorting state from parent component
@@ -73,19 +74,21 @@ export const getColumns = ({
         header: "Actions",
         cell: ({ row }) => {
             const item = row.original;
+            
             const applicableActions = Object.entries(actions)
                 .filter(([actionName]) => {
                     const condition = actionConditions[actionName];
                     return condition ? condition(item, userRole, context) : false;
                 })
-                .map(([actionName, { fn, variant}]) => (
+                .map(([actionName, { fn, variant, icon, className}]) => (
                     <Button
                         key={actionName}
                         variant={variant || "outline"}
-                        size="sm"
+                        size="icon"
+                        className={className}
                         onClick={() => fn(item.id, item)}
                     >
-                        {actionName.charAt(0).toUpperCase() + actionName.slice(1)}
+                        {icon}
                     </Button>
                 ));
 

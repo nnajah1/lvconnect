@@ -1,3 +1,5 @@
+import { Eye, Pencil } from "lucide-react";
+
 export const schoolFormTemplateSchema = {
     id: { header: "#", display: true },
     title: { header: "Form", display: true },
@@ -19,20 +21,32 @@ export const schoolFormSubmittedSchema = {
     created_at: { header: "Date Submitted", display: true, format: "date" },
 };
 
-export const formActions = {
-    view: {
-        fn: (id, item) => console.log(`Viewing item ${id}:`, item),
-        variant: "default"
-    },
+export const formActions = (openModal) => ({
     update: {
-        fn: (id, item) => console.log(`Editing item ${id}:`, item),
-        variant: "outline"
+        icon: <Pencil size={18} />,
+        fn: (id, item) => openModal(item), 
+        variant: "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
+    },
+
+});
+
+// Sample action conditions
+export const formActionConditions = {
+    update: (item, context, userRole) =>  true,
+};
+
+export const formSubmitActions = {
+    view: {
+        icon: <Eye size={20}/>,
+        fn: (id, item, navigate) =>  openModal(id),
+        variant: "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
     },
 
 }
 
 // Sample action conditions
-export const formActionConditions = {
-    view: (item, context, userRole) => userRole === "psas" && context === "formsSubmitted",
-    update: (item, context, userRole) => userRole === "psas"  && context === "formsTemplate",
+export const formSubmitActionConditions = {
+    view: (item, context, userRole) => true,
 };

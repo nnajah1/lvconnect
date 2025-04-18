@@ -1,4 +1,4 @@
-// components/ui/CustomModal.jsx
+
 import * as Dialog from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { X } from "lucide-react";
@@ -10,8 +10,6 @@ const DynamicModal = ({ isOpen, closeModal, showCloseButton, children, className
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10" />
         <Dialog.Content className={`fixed top-1/2 left-1/2 max-w-lg w-full -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}
-          aria-labelledby="dialog-title"
-          aria-describedby="dialog-description"
         >
           {/* Optional Close Button */}
           {showCloseButton && (
@@ -23,28 +21,30 @@ const DynamicModal = ({ isOpen, closeModal, showCloseButton, children, className
 
           {/* Title Section */}
           {showTitle ? (
-            <Dialog.Title id="dialog-title" className="text-lg font-semibold text-center text-[#20C1FB]">
+            <Dialog.Title aria-labelledby="dialog-title" className="text-lg font-semibold text-center text-[#20C1FB]">
               {title}
             </Dialog.Title>
           ) : (
             <VisuallyHidden>
-              <Dialog.Title>{title}</Dialog.Title>
+              <Dialog.Title aria-labelledby="dialog-title">{title}</Dialog.Title>
             </VisuallyHidden>
           )}
 
           {/* Description Section */}
           {showDescription ? (
-            <Dialog.Description id="dialog-description" className="text-sm text-center text-gray-500 mb-4">
+            <Dialog.Description
+              aria-describedby="dialog-description" className="text-sm text-center text-gray-500 mb-4">
               {description}
             </Dialog.Description>
           ) : (
             <VisuallyHidden>
-              <Dialog.Description>{description}</Dialog.Description>
+              <Dialog.Description
+                aria-describedby="dialog-description">{description}</Dialog.Description>
             </VisuallyHidden>
           )}
 
           {/* Modal Content */}
-          <div id="dialog-description">
+          <div>
             {children}
           </div>
 

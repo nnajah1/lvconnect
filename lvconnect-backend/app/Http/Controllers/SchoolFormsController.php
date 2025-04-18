@@ -39,8 +39,9 @@ class SchoolFormsController extends Controller
 
         if ($user->hasRole('psas')) {
             return FormSubmission::with('submissionData')
-            ->where('submitted_by', $user->id) 
-            ->get();
+                ->where('submitted_by', $user->id)
+                ->where('status', '!=', 'draft')
+                ->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -108,10 +109,6 @@ class SchoolFormsController extends Controller
             'fields.*.type' => 'required|string',
             'fields.*.name' => 'required|string',
             'fields.*.required' => 'boolean',
-            'fields.*.x' => 'nullable|numeric',
-            'fields.*.y' => 'nullable|numeric',
-            'fields.*.width' => 'nullable|numeric',
-            'fields.*.height' => 'nullable|numeric',
             'fields.*.options' => 'nullable|array',
             'fields.*.page' => 'nullable|integer',
         ]);
@@ -129,10 +126,6 @@ class SchoolFormsController extends Controller
                     'name' => $field['name'],
                     'options' => $field['options'] ?? [],
                 ],
-                'x' => $field['x'] ?? 0,
-                'y' => $field['y'] ?? 0,
-                'width' => $field['width'] ?? 100,
-                'height' => $field['height'] ?? 40,
                 'required' => $field['required'] ?? false,
                 'page' => $field['page'] ?? 1,
             ]);
@@ -307,13 +300,13 @@ class SchoolFormsController extends Controller
     public function show($id)
     {
         // Retrieve the form and its fields
-        $formType = FormType::with('fields')->find($id);
+        $formType = FormType::with('formFields')->find($id);
 
         if (!$formType) {
             return response()->json(['message' => 'Form not found'], 404);
         }
 
-        return response()->json($formType);
+        return response()->json(['form' => $formType, 'fields' => $formType->formFields,]);
     }
 
     /**
@@ -330,10 +323,10 @@ class SchoolFormsController extends Controller
         $form = FormType::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'content' => 'nullable|string',
-            'pdf' => 'sometimes|file|mimes:pdf',
+            // 'pdf' => 'sometimes|file|mimes:pdf',
             'is_visible' => 'boolean',
         ]);
 
@@ -341,12 +334,12 @@ class SchoolFormsController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        if ($request->hasFile('pdf')) {
-            // Delete old file
-            Storage::disk('public')->delete($form->pdf_path);
-            $pdfPath = $request->file('pdf')->store('pdf_forms', 'public');
-            $form->pdf_path = $pdfPath;
-        }
+        // if ($request->hasFile('pdf')) {
+        //     // Delete old file
+        //     Storage::disk('public')->delete($form->pdf_path);
+        //     $pdfPath = $request->file('pdf')->store('pdf_forms', 'public');
+        //     $form->pdf_path = $pdfPath;
+        // }
 
         $form->title = $request->title ?? $form->title;
         $form->description = $request->description ?? $form->description;
@@ -355,6 +348,69 @@ class SchoolFormsController extends Controller
         $form->save();
 
         return response()->json(['message' => 'Form updated successfully', 'form' => $form]);
+    }
+
+    public function updateFields(Request $request, $formTypeId)
+    {
+        // Validate incoming fields
+        $validator = Validator::make($request->all(), [
+            'fields' => 'required|array',
+            'fields.*.id' => 'nullable',
+            'fields.*.label' => 'required|string',
+            'fields.*.type' => 'required|string',
+            'fields.*.name' => 'required|string',
+            'fields.*.required' => 'boolean',
+            'fields.*.options' => 'nullable|array',
+            'fields.*.page' => 'nullable|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Handle deleted fields
+        if ($request->has('deleted_ids')) {
+            FormField::where('form_type_id', $formTypeId)
+                ->whereIn('id', $request->deleted_ids)
+                ->delete();
+        }
+
+        // Loop over the fields to update
+        foreach ($request->fields as $field) {
+            if (
+                !empty($field['id']) && is_numeric($field['id']) &&
+                FormField::where('form_type_id', $formTypeId)->where('id', $field['id'])->exists()
+            ) {
+                // UPDATE existing field
+                $formField = FormField::find($field['id']);
+                $formField->update([
+                    'field_data' => [
+                        'label' => $field['label'],
+                        'type' => $field['type'],
+                        'name' => $field['name'],
+                        'options' => $field['options'] ?? [],
+                    ],
+                    'required' => $field['required'] ?? false,
+                    'page' => $field['page'] ?? 1,
+                ]);
+            } else {
+                // CREATE new field
+                FormField::create([
+                    'form_type_id' => $formTypeId,
+                    'field_data' => [
+                        'label' => $field['label'],
+                        'type' => $field['type'],
+                        'name' => $field['name'],
+                        'options' => $field['options'] ?? [],
+                    ],
+                    'required' => $field['required'] ?? false,
+                    'page' => $field['page'] ?? 1,
+                ]);
+            }
+        }
+
+
+        return response()->json(['message' => 'Fields updated successfully.']);
     }
 
     /**

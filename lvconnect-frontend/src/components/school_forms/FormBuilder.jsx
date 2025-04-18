@@ -5,24 +5,39 @@ import 'quill/dist/quill.snow.css';
 import * as pdfjsLib from 'pdfjs-dist';
 import SwitchComponent from "@/components/school_updates/modals/switch";
 import { createForm, saveFormFields } from '@/services/school-formAPI';
+import { extractFieldsFromText } from '@/utils/pdfUtils';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 if (typeof window !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 }
 
-const FormBuilder = () => {
-  const [formFields, setFormFields] = useState([]);
+const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, error, onSuccess }) => {
+
+
   const [pdfFile, setPdfFile] = useState(null);
   const [ocrText, setOcrText] = useState('');
   const [instructions, setInstructions] = useState('');
-  const { register, handleSubmit, control, } = useForm();
+  const { register, handleSubmit, control, setValue } = useForm({
+    defaultValues: {
+      title: '',
+      description: '',
+      is_visible: false
+    }
+  });
+  const [formFields, setFormFields] = useState(initialFields || []);
+  const [deletedFields, setDeletedFields] = useState([]);
+  const [deletedFieldIds, setDeletedFieldIds] = useState([]);
+
   const editorRef = useRef(null);
   const quillRef = useRef(null);
   const canvasRef = useRef(null);
-  const [error, setError] = useState();
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [localError, setLocalError] = useState();
 
   useEffect(() => {
+
     if (editorRef.current && !quillRef.current) {
       quillRef.current = new Quill(editorRef.current, {
         theme: 'snow',
@@ -47,14 +62,34 @@ const FormBuilder = () => {
         setInstructions(quillRef.current.root.innerHTML);
       });
     }
-  }, []);
+
+    if (initialData?.content && quillRef.current) {
+      quillRef.current.root.innerHTML = initialData.content;
+      setInstructions(initialData.content);
+    }
+
+    if (initialData) {
+      setValue('title', initialData.title || '');
+      setValue('description', initialData.description || '');
+      setValue('is_visible', initialData.is_visible ?? false);
+    }
+
+    if (initialFields?.length) {
+      const normalizedFields = initialFields.map(field => ({
+        ...field,
+        ...field.field_data, // flatten field_data into the root
+      }));
+      setFormFields(normalizedFields);
+    }
+
+  }, [initialData, initialFields]);
 
   const handlePdfUpload = async (e) => {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
       setPdfFile(file);
     } else {
-      setError('Only PDF files are allowed');
+      setLocalError('Only PDF files are allowed');
     }
 
     const reader = new FileReader();
@@ -71,7 +106,7 @@ const FormBuilder = () => {
 
       // Insert into Quill
       const quill = quillRef.current;
-      quill.setText(modifiedText); // Or use quill.clipboard.dangerouslyPasteHTML if needed
+      quill.setText(modifiedText);
 
       setInstructions(modifiedText);
       setFormFields(fields);
@@ -79,79 +114,6 @@ const FormBuilder = () => {
       renderPdfPage(1, pdf);
     };
     reader.readAsArrayBuffer(file);
-  };
-
-  const extractFieldsFromText = (text) => {
-    const lines = text.split('\n');
-    const fields = [];
-    const modifiedLines = [];
-
-    lines.forEach((line) => {
-      let match, field;
-      if ((match = line.match(/^(.+?):\s*(?:_{2,}|\.\.\.\.)?/))) {
-        const label = match[1].trim();
-        const name = label.toLowerCase().replace(/[^a-z0-9]/gi, '_');
-
-        field = {
-          id: crypto.randomUUID(),
-          name,
-          label,
-          type: 'text',
-          required: false,
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 40,
-        };
-
-        modifiedLines.push(`${label}: {{${name}}}`);
-      } else if ((match = line.match(/^(.+?):\s*\[ \]$/))) {
-        const label = match[1].trim();
-        const name = label.toLowerCase().replace(/[^a-z0-9]/gi, '_');
-
-        field = {
-          id: crypto.randomUUID(),
-          name,
-          label,
-          type: 'checkbox',
-          required: false,
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 40,
-        };
-
-        modifiedLines.push(`${label}: {{${name}}}`);
-      } else if ((match = line.match(/^(.+?):\s*\( \)$/))) {
-        const label = match[1].trim();
-        const name = label.toLowerCase().replace(/[^a-z0-9]/gi, '_');
-
-        field = {
-          id: crypto.randomUUID(),
-          name,
-          label,
-          type: 'radio',
-          required: false,
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 40,
-        };
-
-        modifiedLines.push(`${label}: {{${name}}}`);
-      } else {
-        modifiedLines.push(line); // Keep original line
-      }
-
-      if (field) {
-        fields.push(field);
-      }
-    });
-
-    return {
-      modifiedText: modifiedLines.join('\n'),
-      fields,
-    };
   };
 
   const renderPdfPage = (pageNumber, pdf) => {
@@ -183,34 +145,81 @@ const FormBuilder = () => {
   };
 
   const insertFieldToEditor = (field) => {
-    const placeholder = `{{${field.name}}}`;
     const quill = quillRef.current;
     const editorContent = quill.getText();
+    const placeholder = `{{${field.label}}}`;
 
-    if (editorContent.includes(placeholder)) {
-      return;
-    }
+    const existing = formFields
+      .filter(f => f.id === field.id && f.label !== field.label)
+      .map(f => `{{${f.label}}}`);
+
+    existing.forEach(old => {
+      const startIndex = editorContent.indexOf(old);
+      if (startIndex !== -1) {
+        quill.deleteText(startIndex, old.length);
+      }
+    });
+
+    if (editorContent.includes(placeholder)) return;
     const cursorPosition = quill.getSelection()?.index || quill.getLength();
     quill.insertText(cursorPosition, placeholder, 'bold', 'user');
   };
 
   const removeField = (id) => {
-    const field = formFields.find(f => f.id === id);
+    setFormFields(prev => {
+      const index = prev.findIndex(f => f.id === id);
+      const field = prev[index];
+      const updated = [...prev.slice(0, index), ...prev.slice(index + 1)];
 
-    if (field) {
-      const placeholder = `{{${field.name}}}`;
-      const quill = quillRef.current;
+      // Track for restore
+      setDeletedFields(old => [...old, { field, index }]);
 
-      const editorContent = quill.getText();
-      const startIndex = editorContent.indexOf(placeholder);
-
-      if (startIndex !== -1) {
-        quill.deleteText(startIndex, placeholder.length);
+      // Track for backend delete
+      if (typeof id === 'number') { // means it's a real DB ID
+        setDeletedFieldIds(prev => [...prev, id]);
       }
 
-      setFormFields(formFields.filter(f => f.id !== id));
+      return updated;
+    });
+
+    // Also remove placeholder from Quill 
+    const field = formFields.find(f => f.id === id);
+    const placeholder = `{{${field.label}}}`;
+    const quill = quillRef.current;
+    const startIndex = quill.getText().indexOf(placeholder);
+    if (startIndex !== -1) {
+      quill.deleteText(startIndex, placeholder.length);
     }
   };
+
+  const restoreField = (id) => {
+    const toRestore = deletedFields.find(item => item.field.id === id);
+    if (!toRestore) return;
+
+    setFormFields(prev => {
+      const updated = [...prev];
+      updated.splice(toRestore.index, 0, toRestore.field); // insert at original index
+      return updated;
+    });
+
+    setDeletedFields(prev => prev.filter(item => item.field.id !== id));
+
+    if (typeof id === 'number') {
+      setDeletedFieldIds(prev => prev.filter(deletedId => deletedId !== id));
+    }
+
+    // Insert the restored field placeholder into the Quill editor
+    const quill = quillRef.current;
+    const placeholder = `{{${toRestore.field.label}}}`;
+
+    // Check if the field already exists to avoid duplicates
+    const editorContent = quill.getText();
+    if (!editorContent.includes(placeholder)) {
+      const cursorPosition = quill.getSelection()?.index || quill.getLength();
+      quill.insertText(cursorPosition, placeholder, 'bold', 'user');
+    }
+  };
+
 
   const updateField = (id, key, value) => {
     setFormFields(prevFields =>
@@ -220,46 +229,57 @@ const FormBuilder = () => {
     );
   };
 
+  const handleCreateForm = async (data) => {
+    if (isLoading) return;
+    setIsLoading(true);
 
-  const onSubmit = async (data) => {
-    try {
-      const formData = new FormData();
-      formData.append('title', data.title);
-      formData.append('description', data.description);
-      formData.append('content', instructions); // HTML from Quill
-      if (pdfFile) {
-        formData.append('pdf', pdfFile); // 
+    if (mode === 'edit') {
+      data.content = instructions;
+      onSubmit(data, formFields, deletedFieldIds);
+      setIsLoading(false);
+    } else {
+      try {
+        const formData = new FormData();
+        formData.append('title', data.title);
+        formData.append('description', data.description);
+        formData.append('content', instructions); // HTML from Quill
+        if (pdfFile) {
+          formData.append('pdf', pdfFile); // 
+        }
+        formData.append('is_visible', data.is_visible ? 1 : 0);
+
+        const formRes = await createForm(formData);
+        const formId = formRes.data.form.id;
+
+        await saveFormFields(formId, formFields);
+
+        if (onSuccess) onSuccess(formId);
+      } catch (error) {
+        console.error('Form submission error:', error);
+        setLocalError('There was an error creating the form.');
       }
-      formData.append('is_visible', data.is_visible ? 1 : 0);
-
-      const formRes = await createForm(formData);
-      const formId = formRes.data.form.id;
-
-      await saveFormFields(formId, formFields);
-
-      alert('Form created successfully!');
-    } catch (error) {
-      console.error('Form submission error:', error);
-      setError('There was an error creating the form.');
     }
+    setIsLoading(false);
   };
 
   return (
     <div className="p-4">
-      {error && <p className="text-red-500 text-center">{error}</p>}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {(error || localError) && (
+        <p className="text-red-500 text-center mb-4">{error || localError}</p>
+      )}
+
+      <form onSubmit={handleSubmit(handleCreateForm)} className="space-y-4">
         <div className="flex items-center justify-between">
 
           <h2 className="text-xl font-semibold mb-4">Create a Form</h2>
           <Controller
             name="is_visible"
             control={control}
-            defaultValue={false}
             render={({ field }) => (
               <SwitchComponent
                 label="Visible to Users"
-                checked={field.value}
-                onCheckedChange={field.onChange}
+                checked={!!field.value}
+                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
               />
             )}
           />
@@ -267,7 +287,9 @@ const FormBuilder = () => {
 
         <input {...register('title')} placeholder="Form Title" className="border p-2 w-full" required />
         <textarea {...register('description')} placeholder="Description" className="border p-2 w-full" />
-        <input type="file" accept="application/pdf" onChange={handlePdfUpload} />
+        {mode !== 'edit' && (
+          <input type="file" accept="application/pdf" onChange={handlePdfUpload} />
+        )}
 
         <div className={`grid ${pdfFile ? 'grid-cols-3' : 'grid-cols-2'} gap-4 mt-6`}>
           {pdfFile && (
@@ -304,12 +326,12 @@ const FormBuilder = () => {
                   </div>
 
                   <input
-                    value={field.label}
+                    value={field.label || ''}
                     onChange={(e) => updateField(field.id, 'label', e.target.value)}
                     className="border p-1 w-full mb-2"
                   />
                   <select
-                    value={field.type}
+                    value={field.type || ''}
                     onChange={(e) => updateField(field.id, 'type', e.target.value)}
                     className="border p-1 w-full mb-2"
                   >
@@ -327,12 +349,13 @@ const FormBuilder = () => {
                       <label className="block font-medium">Options (comma-separated)</label>
                       <input
                         type="text"
-                        value={field.options?.join(', ') || ''}
+                        value={(field.options && field.options.join(', ')) || ''}
                         onChange={(e) =>
                           updateField(field.id, 'options', e.target.value.split(',').map(opt => opt.trim()))
                         }
                         className="border p-2 w-full"
                         placeholder="e.g. Option 1, Option 2"
+                        required
                       />
                     </div>
                   )}
@@ -340,21 +363,46 @@ const FormBuilder = () => {
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={() => insertFieldToEditor(field)}
+                      type="button"
                       className="bg-blue-200 text-sm px-2 py-1 rounded"
                     >Insert</button>
                     <button
                       onClick={() => removeField(field.id)}
+                      type="button"
                       className="bg-red-200 text-sm px-2 py-1 rounded"
                     >Delete</button>
                   </div>
                 </div>
               ))}
             </div>
-
+            {deletedFields.length > 0 && (
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Deleted Fields</h4>
+                <div className="space-y-2">
+                  {deletedFields.map(({ field }) => (
+                    <div key={field.id} className="border p-2 rounded bg-gray-50 flex justify-between items-center">
+                      <span>{field.label || 'Untitled Field'}</span>
+                      <button
+                        onClick={() => restoreField(field.id)}
+                        className="text-sm bg-green-200 px-2 py-1 rounded"
+                      >Restore</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <button onClick={addField} type="button" className="mt-2 bg-gray-300 px-4 py-1">Add Field</button>
           </div>
         </div>
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Save Form</button>
+        <div className=' space-x-2 flex justify-end'>
+          <button type="submit" disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}>
+            {isLoading ? 'Saving...' : 'Save Form'}
+          </button>
+
+          {/* <button onClick={deleteForm} disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-red-500 text-white'}`}>
+            {isLoading ? 'Deleting...' : 'Delete Form'}
+          </button> */}
+        </div>
       </form>
     </div>
   );

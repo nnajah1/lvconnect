@@ -15,10 +15,6 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('form_type_id');
             $table->json('field_data');
-            $table->float('x');
-            $table->float('y');
-            $table->float('width');
-            $table->float('height');
             $table->boolean('required');
             $table->integer('page');
             $table->timestamps();

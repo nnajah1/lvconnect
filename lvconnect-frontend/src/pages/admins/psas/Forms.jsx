@@ -1,13 +1,14 @@
-"use client"; 
+"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { getForms, getSubmittedForms } from "@/services/school-formAPI";
-import { formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema } from "@/tableSchemas/schoolForm";
+import { formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema, formSubmitActions, formSubmitActionConditions } from "@/tableSchemas/schoolForm";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
+import EditFormModal from "@/pages/admins/psas/EditForm";
 
 const Forms = ({ userRole }) => {
   const [schoolForms, setSchoolForms] = useState([]);
@@ -16,21 +17,28 @@ const Forms = ({ userRole }) => {
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
 
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const openModal = (item) => {
+    setSelectedItem(item); // full item, not just id
+  };
+  const actions = formActions(openModal);
 
   const templateColumns = getColumns({
     userRole,
     schema: schoolFormTemplateSchema,
-    actions: formActions,
+    actions,
     actionConditions: formActionConditions,
-    context: "formsTemplate"
+    context: "formstemplate",
+    openModal,
   });
 
   const submittedColumns = getColumns({
     userRole,
     schema: schoolFormSubmittedSchema,
-    actions: formActions,
-    actionConditions: formActionConditions,
-    context: "formsSubmited"
+    actions: formSubmitActions,
+    actionConditions: formSubmitActionConditions,
+    context: "formssubmited",
   });
 
   useEffect(() => {
@@ -97,7 +105,7 @@ const Forms = ({ userRole }) => {
           {
             label: "Form Templates",
             value: "form Template",
-            content:  <DataTable columns={templateColumns} data={schoolForms} />
+            content: <DataTable columns={templateColumns} data={schoolForms} />
           },
           {
             label: "Submitted Forms",
@@ -109,7 +117,16 @@ const Forms = ({ userRole }) => {
 
       {/* Modals */}
       <CreateFormModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
+
+      {selectedItem && (
+        <EditFormModal
+          isOpen={!!selectedItem}
+          closeModal={() => setSelectedItem(false)}
+          formItem={selectedItem}
+        />
+      )}
     </div>
+
   );
 }
 
