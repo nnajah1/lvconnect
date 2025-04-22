@@ -2,49 +2,53 @@ import React, { useState, useEffect } from 'react';
 import { getForms } from '@/services/school-formAPI';
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema } from "@/tableSchemas/userSchoolForm";
+import {formSubmitActionConditions, formSubmitActions, formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema } from "@/tableSchemas/userSchoolForm";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
-import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
+import UserCreateFormModal from './UserCreateForm';
+import { useForms } from '@/context/FormsContext';
 
 const VisibleForms = ({ userRole }) => {
-  const [schoolForms, setSchoolForms] = useState([]);
+  const { schoolForms, submittedForms, fetchForms,fetchSubmitted } = useForms();
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
+  
+    const [selectedItem, setSelectedItem] = useState(null);
+  
+    const openModal = (item) => {
+      setSelectedItem(item); // full item, not just id
+    };
+    const actions = formActions(openModal);
   
     const templateColumns = getColumns({
       userRole,
       schema: schoolFormTemplateSchema,
-      actions: formActions,
+      actions: actions,
       actionConditions: formActionConditions,
       context: "UserFormsTemplate",
+      openModal
     });
   
     const submittedColumns = getColumns({
       userRole,
       schema: schoolFormSubmittedSchema,
-      actions: formActions,
-      actionConditions: formActionConditions, 
+      actions: formSubmitActions,
+      actionConditions: formSubmitActionConditions, 
       context: "UserFormsSubmitted",
     });
   
-    useEffect(() => {
-      const fetchForms = async () => {
-        try {
-          const response = await getForms();
-          setSchoolForms(response.data);
-        } catch (err) {
-          setError('Error fetching forms');
-        }
-      };
-  
-      fetchForms();
-    }, []);
-  
-    if (error) {
-      return <p className="text-red-500">Error: {error}</p>;
-    }
-  
+   const tabs = [
+       {
+         label: "Form Templates",
+         value: "form Template",
+         content: <DataTable columns={templateColumns} data={schoolForms} />
+       },
+       {
+         label: "Submitted Forms",
+         value: "submitted form",
+         content: <DataTable columns={submittedColumns} data={submittedForms} />
+       },
+      ];
   
     return (
       <div className="container mx-auto p-4">
@@ -63,25 +67,20 @@ const VisibleForms = ({ userRole }) => {
   
         <div>
         <span>School Forms</span>
-  
-        <DynamicTabs
-          tabs={[
-            {
-              label: "Form Templates",
-              value: "Form Template",
-              content:  <DataTable columns={templateColumns} data={schoolForms} />
-            },
-            {
-              label: "Submitted Forms",
-              value: "submitted form",
-              content: <DataTable columns={submittedColumns} data={schoolForms} />
-            },
-          ]}
-        />
+
         </div>
-  
+
+        <DynamicTabs tabs={tabs} />
+        
         {/* Modals */}
-        <CreateFormModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
+        {selectedItem && (
+          <UserCreateFormModal
+            isOpen={!!selectedItem}
+            closeModal={() => setSelectedItem(false)}
+            formItem={selectedItem}
+          />
+        )}
+
       </div>
     );
   }

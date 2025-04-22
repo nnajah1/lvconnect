@@ -4,7 +4,7 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import * as pdfjsLib from 'pdfjs-dist';
 import SwitchComponent from "@/components/school_updates/modals/switch";
-import { createForm, saveFormFields } from '@/services/school-formAPI';
+import { createForm, saveFormFields, deleteForm } from '@/services/school-formAPI';
 import { extractFieldsFromText } from '@/utils/pdfUtils';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
@@ -12,8 +12,14 @@ if (typeof window !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 }
 
-const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, error, onSuccess }) => {
+import { useForms } from '@/context/FormsContext';
+import ConfirmationModal from '@/components/dynamic/DeleteModal';
 
+const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, error, onSuccess}) => {
+
+  const { fetchForms, fetchSubmitted } = useForms();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [pdfFile, setPdfFile] = useState(null);
   const [ocrText, setOcrText] = useState('');
@@ -103,13 +109,16 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
       setOcrText(rawText);
 
       const { modifiedText, fields } = extractFieldsFromText(rawText);
-
+      
       // Insert into Quill
       const quill = quillRef.current;
       quill.setText(modifiedText);
+      
 
       setInstructions(modifiedText);
       setFormFields(fields);
+
+      
 
       renderPdfPage(1, pdf);
     };
@@ -134,7 +143,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
 
   const addField = () => {
     const newField = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       name: `field_${formFields.length + 1}`,
       label: `Field ${formFields.length + 1}`,
       type: 'text',
@@ -147,11 +156,11 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
   const insertFieldToEditor = (field) => {
     const quill = quillRef.current;
     const editorContent = quill.getText();
-    const placeholder = `{{${field.label}}}`;
+    const placeholder = `{{${field.name}}}`;
 
     const existing = formFields
-      .filter(f => f.id === field.id && f.label !== field.label)
-      .map(f => `{{${f.label}}}`);
+    .filter(f => f.id === field.id && f.name !== field.name)
+    .map(f => `{{${f.name}}}`);
 
     existing.forEach(old => {
       const startIndex = editorContent.indexOf(old);
@@ -159,8 +168,9 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
         quill.deleteText(startIndex, old.length);
       }
     });
-
+    
     if (editorContent.includes(placeholder)) return;
+
     const cursorPosition = quill.getSelection()?.index || quill.getLength();
     quill.insertText(cursorPosition, placeholder, 'bold', 'user');
   };
@@ -232,35 +242,66 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
   const handleCreateForm = async (data) => {
     if (isLoading) return;
     setIsLoading(true);
-
-    if (mode === 'edit') {
-      data.content = instructions;
-      onSubmit(data, formFields, deletedFieldIds);
-      setIsLoading(false);
-    } else {
-      try {
+  
+    try {
+      if (mode === 'edit') {
+        data.content = instructions;
+        await onSubmit(data, formFields, deletedFieldIds);
+        if (onSuccess) onSuccess();
+      } else {
         const formData = new FormData();
         formData.append('title', data.title);
         formData.append('description', data.description);
-        formData.append('content', instructions); // HTML from Quill
+        formData.append('content', instructions);
         if (pdfFile) {
-          formData.append('pdf', pdfFile); // 
+          formData.append('pdf', pdfFile);
         }
         formData.append('is_visible', data.is_visible ? 1 : 0);
-
+  
         const formRes = await createForm(formData);
         const formId = formRes.data.form.id;
-
+  
         await saveFormFields(formId, formFields);
-
+        await fetchForms();
+        await fetchSubmitted();
         if (onSuccess) onSuccess(formId);
-      } catch (error) {
-        console.error('Form submission error:', error);
-        setLocalError('There was an error creating the form.');
       }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setLocalError(
+        mode === 'edit'
+          ? 'There was an error updating the form.'
+          : 'There was an error creating the form.'
+      );
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
+  };  
+
+  // const handleDeleteForm = async (formId) => {
+  //   try {
+  //     if (onDelete) onDelete(formId);
+  //   } catch (err) {
+  //     setError('Error deleting form');
+  //   }
+  // };
+
+
+  const handleOpenDeleteModal = () => {
+    setShowDeleteModal(true);
   };
+  const handleDeleteConfirm = async (formId) => {
+    try {
+         await deleteForm(formId, (formId));
+        await fetchForms();
+        await fetchSubmitted();
+    } catch (error) {
+        console.error("Error deleting form:", error);
+    }
+    finally {
+    setShowDeleteModal(false); }
+};
+
 
   return (
     <div className="p-4">
@@ -395,16 +436,42 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
           </div>
         </div>
         <div className=' space-x-2 flex justify-end'>
+          {/* {mode !== 'edit' &&  */}
           <button type="submit" disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}>
             {isLoading ? 'Saving...' : 'Save Form'}
           </button>
+          {/* } */}
 
-          {/* <button onClick={deleteForm} disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-red-500 text-white'}`}>
-            {isLoading ? 'Deleting...' : 'Delete Form'}
-          </button> */}
+          {/* {mode === 'edit' && <button type="submit" disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}>
+            {isLoading ? 'Saving...' : 'Save Form'}
+          </button>} */}
+
+          {mode === 'edit' &&
+
+
+            <button onClick={handleOpenDeleteModal} disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-red-500 text-white'}`}>
+              Delete Form
+            </button>
+          }
+          {showDeleteModal && (
+            <ConfirmationModal
+                isOpen={showDeleteModal}
+                closeModal={() => setShowDeleteModal(false)}
+                onConfirm={() => handleDeleteConfirm(formId)} 
+                title="Are you sure?"
+                description="This action cannot be undone."
+            >
+                Confirm Deletion
+            </ConfirmationModal>
+        )}
+
         </div>
       </form>
+      
+    
     </div>
+
+
   );
 };
 

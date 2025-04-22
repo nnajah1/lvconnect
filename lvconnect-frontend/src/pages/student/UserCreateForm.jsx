@@ -1,11 +1,11 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
-import EditForm from "@/components/school_forms/EditSchoolForm";
+import UserFormView from "@/components/school_forms/userSubmitForm"
 import ConfirmationModal from "@/components/school_forms/confirmationModal";
 import { useState } from "react";
 
-const EditFormModal = ({ isOpen, closeModal, formItem, }) => {
+const UserCreateFormModal = ({ isOpen, closeModal, formItem, }) => {
 
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +37,7 @@ const EditFormModal = ({ isOpen, closeModal, formItem, }) => {
                     showDescription={false}
                     className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <EditForm closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
+                    <UserFormView closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
 
                 </DynamicModal>
             )}
@@ -58,4 +58,4 @@ const EditFormModal = ({ isOpen, closeModal, formItem, }) => {
     );
 };
 
-export default EditFormModal;
+export default UserCreateFormModal;

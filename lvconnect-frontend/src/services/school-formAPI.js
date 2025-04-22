@@ -26,8 +26,9 @@ export const getSubmittedForms = async () => {
 };
 
 
-export const deleteForm = async (id) => {
-  return api.delete(`${API_URL}/${id}`);
+export const deleteForm = async (formId) => {
+ await api.delete(`/forms/${formId}`);
+
 };
 
 export const extractPdfFields = async (pdfFile) => {

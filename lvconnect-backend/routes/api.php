@@ -63,7 +63,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
     Route::put('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'updateFields']);
     Route::put('/forms/submissions/{id}', [SchoolFormsController::class, 'reviewSubmission']);
-    
+    Route::delete('/forms/{id}', [SchoolFormsController::class, 'destroy']);
 });
 
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);

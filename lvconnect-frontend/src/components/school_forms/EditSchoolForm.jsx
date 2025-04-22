@@ -3,7 +3,7 @@ import { getFormById, updateForm, updateFormFields } from '@/services/school-for
 import FormBuilder from './FormBuilder'; 
 import Loader from '../dynamic/loader';
 
-const EditForm = ({ formId, closeModal, onSuccess}) => {
+const EditForm = ({ formId, onSuccess}) => {
   const [formData, setFormData] = useState(null);
   const [formFields, setFormFields] = useState([]);
   const [error, setError] = useState(null);
@@ -23,17 +23,16 @@ const EditForm = ({ formId, closeModal, onSuccess}) => {
   }, [formId]);
 
   const handleUpdate = async (updatedData, updatedFields, deletedFieldIds) => {
-    if (formData && formFields) return;
+    if (!updatedData || !updatedFields) return;
     try {
       await updateForm(formId, updatedData); 
       await updateFormFields(formId, updatedFields, deletedFieldIds); 
-      if (onSuccess) onSuccess(formId);
+     
+      if (onSuccess) onSuccess();
     } catch (err) {
       setError('Error updating form');
     }
   };
-
-  // if (!formData) return <Loader/>;
 
   return (
     <FormBuilder
@@ -42,6 +41,7 @@ const EditForm = ({ formId, closeModal, onSuccess}) => {
       initialFields={formFields}
       onSubmit={handleUpdate}
       error={error}
+      onSuccess={onSuccess}
     />
   );
 };

@@ -2,7 +2,7 @@
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
 import FormBuilder from "@/components/school_forms/FormBuilder";
-import SuccessModal from "@/components/school_updates/modals/successModal";
+import ConfirmationModal from "@/components/school_forms/confirmationModal";
 import { useState } from "react";
 
 const CreateFormModal = ({ isOpen, closeModal }) => {
@@ -11,48 +11,49 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSuccess = (formId) => {
-        setIsLoading(true); 
+        setIsLoading(true);
 
         setTimeout(() => {
-            closeModal(); 
+            closeModal();
             if (formId) {
-                setIsSuccessModalOpen(true); 
-            } 
-            setIsLoading(false); 
-        }, 2000); 
+                setIsSuccessModalOpen(true);
+            }
+            setIsLoading(false);
+        }, 2000);
     };
 
     return (
         <>
-            <DynamicModal isOpen={isOpen}
-                closeModal={closeModal}
-                showCloseButton={false}
-                title="Create New School Form"
-                description="Fill out the form below to create a new school form."
-                showTitle={false}
-                showDescription={false}
-                className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+            {isLoading ? (
+                // Show loader while waiting for success
+                <div className="flex justify-center items-center mt-4 w-[10rem] text-center">
+                    <Loader />
+                </div>
+            ) : (
+                <DynamicModal isOpen={isOpen}
+                    closeModal={closeModal}
+                    showCloseButton={false}
+                    title="Create New School Form"
+                    description="Fill out the form below to create a new school form."
+                    showTitle={false}
+                    showDescription={false}
+                    className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-
-                {isLoading ? (
-                    // Show loader while waiting for success
-                    <div className="flex justify-center items-center mt-4 w-[20rem]">
-                        <Loader />
-                    </div>
-                ) : (
-                    // Show the CreatePostForm only when not loading
                     <FormBuilder closeModal={closeModal} onSuccess={handleSuccess} />
-                )}
-            </DynamicModal>
+
+                </DynamicModal>
+            )}
 
 
             {/* Success Modal */}
-            <SuccessModal
+            <ConfirmationModal
                 isOpen={isSuccessModalOpen}
                 closeModal={() => setIsSuccessModalOpen(false)}
+                title="The School Form is created"
+                description="The School Form has been successfully created."
             >
-                Manage School Forms 
-            </SuccessModal>
+                Manage School Forms
+            </ConfirmationModal>
 
         </>
     );

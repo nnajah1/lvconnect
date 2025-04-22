@@ -425,7 +425,9 @@ class SchoolFormsController extends Controller
         }
 
         $form = FormType::findOrFail($id);
-        Storage::disk('public')->delete($form->pdf_path);
+        if ($form->pdf_path) {
+            Storage::disk('public')->delete($form->pdf_path);
+        }    
         $form->delete();
 
         return response()->json(['message' => 'Form deleted successfully']);

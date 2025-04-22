@@ -18,6 +18,7 @@ import PsasDashboard from "./pages/admins/psas/AdminDashboard";
 import Forms from "./pages/admins/psas/Forms";
 import FormView from "./components/school_forms/userSubmitForm";
 import VisibleForms from "./pages/student/UserSchoolForm";
+import StudentView from "./components/school_forms/userSubmitForm";
 
 
 
@@ -96,7 +97,7 @@ const router = createBrowserRouter([
         ],
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
-    { path: "/trial", element: <FormView /> },
+    { path: "/trial", element: <StudentView /> },
     { path: "/app", element: <VisibleForms /> }
 
 
