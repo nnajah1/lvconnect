@@ -164,7 +164,7 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('student')) {
+        if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -185,7 +185,7 @@ class SchoolFormsController extends Controller
         // Create form submission
         $submission = FormSubmission::create([
             'form_type_id' => $formTypeId,
-            'user_id' => $user->id,
+            'submitted_by' => $user->id,
             'status' => 'pending', 
         ]);
 
@@ -194,10 +194,12 @@ class SchoolFormsController extends Controller
             FormSubmissionData::create([
                 'form_submission_id' => $submission->id,
                 'form_field_id' => $fieldId,
-                'value' => $value,
+                'field_name' => $user->name,
+                'answer_data' => $value,
+                'is_verified'=> $request->is_verified,
             ]);
         }
-
+     
         return response()->json([
             'message' => 'Form submitted successfully and is now pending review.',
             'submission_id' => $submission->id,

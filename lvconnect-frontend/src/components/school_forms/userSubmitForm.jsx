@@ -136,10 +136,12 @@ const StudentView = ({ formId, onSuccess }) => {
         fields: {}, 
       };
   
-      Object.keys(data).forEach((key) => {
-        payload.fields[key] = data[key];
+      fields.forEach((field) => {
+        const fieldId = field.id;
+        const fieldName = field.field_data.name;
+        payload.fields[fieldId] = data[fieldName];
       });
-
+      
       const response = await submitForm(formId, payload);
 
 
