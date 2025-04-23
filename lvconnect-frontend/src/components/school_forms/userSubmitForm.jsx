@@ -2,7 +2,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import DOMPurify from 'dompurify';
-import { getFormById } from '@/services/school-formAPI';
+import { getFormById, submitForm } from '@/services/school-formAPI';
 
 
 const generateFormFromContent = (content, fields, control) => {
@@ -30,7 +30,7 @@ const generateFormFromContent = (content, fields, control) => {
 
       return (
         <div key={index} className="my-4">
-          <label className="block font-medium mb-1">{label}</label>
+          {/* <label className="block font-medium mb-1">{label}</label> */}
           <Controller
             name={fieldName}
             control={control}
@@ -140,7 +140,8 @@ const StudentView = ({ formId, onSuccess }) => {
         payload.fields[key] = data[key];
       });
 
-      const response = await axios.post(`/api/forms/submissions/${formId}`, payload);
+      const response = await submitForm(formId, payload);
+
 
       if (response.status === 201) {
         alert('Form submitted successfully');
