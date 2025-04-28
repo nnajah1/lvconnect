@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description');
-            $table->enum('status',['pending', 'approved', 'rejected']);
+            $table->boolean('status');
             $table->unsignedBigInteger('created_by');
             $table->boolean('is_visible');
             $table->boolean('mandatory');

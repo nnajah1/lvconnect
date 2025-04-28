@@ -158,11 +158,19 @@ class SurveyController extends Controller
             ]);
         }
 
+        // Mark the survey as completed (status = true)
+        $survey = Survey::find($validated['survey_id']);
+        if ($survey) {
+            $survey->status = true;
+            $survey->save();
+        }
+
         return response()->json([
             'message' => 'Survey submitted successfully.',
             'response_id' => $response->id,
         ]);
     }
+
 
     /**
      * Toggle the visibility of a survey.
