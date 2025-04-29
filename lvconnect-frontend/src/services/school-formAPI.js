@@ -7,6 +7,9 @@ export const createForm = (formData) => api.post('/forms', formData);
 export const saveFormFields = (formId, fields) =>
   api.post(`/forms/${formId}/fields`, { fields });
 
+export const reviewSubmission = (submissionId, data) =>
+  api.post(`/forms/submissions/${submissionId}/review`, data);
+
 export const updateForm = (id, payload) => 
   api.put(`/forms/${id}`, payload);
 
@@ -22,9 +25,12 @@ export const getFormById = (formId) => {
 };
 
 export const getSubmittedForms = async () => {
-  return api.get('/forms/submissions');
+  return api.get('/submissions');
 };
 
+export const getSubmittedFormById = (formId) => {
+  return api.get(`/forms/submissions/${formId}`);
+};
 
 export const deleteForm = async (formId) => {
  await api.delete(`/forms/${formId}`);
@@ -45,16 +51,4 @@ export const extractPdfFields = async (pdfFile) => {
 
 export const submitForm = async (formId, payload) => {
  return await api.post(`forms/submissions/${formId}`, payload);
-};
-
-export const getSubmissions = async (formId) => {
-  return api.get(`${API_URL}?form_id=${formId}`);
-};
-
-export const getSubmission = async (id) => {
-  return api.get(`${API_URL}/${id}`);
-};
-
-export const updateSubmissionStatus = async (id, statusData) => {
-  return api.put(`${API_URL}/${id}/status`, statusData);
 };

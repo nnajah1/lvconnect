@@ -5,20 +5,26 @@ import { getColumns } from "@/components/dynamic/getColumns";
 import {formSubmitActionConditions, formSubmitActions, formActionConditions, formActions, schoolFormTemplateSchema, schoolFormSubmittedSchema } from "@/tableSchemas/userSchoolForm";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
-import UserCreateFormModal from './UserCreateForm';
+import UserCreateFormModal from './UserCreateSchoolForm';
 import { useForms } from '@/context/FormsContext';
+import UserViewFormModal from './UserViewSchoolForm';
 
 const VisibleForms = ({ userRole }) => {
   const { schoolForms, submittedForms, fetchForms,fetchSubmitted } = useForms();
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
   
-    const [selectedItem, setSelectedItem] = useState(null);
-  
-    const openModal = (item) => {
-      setSelectedItem(item); // full item, not just id
-    };
-    const actions = formActions(openModal);
+    
+      const [formItem, setFormItem] = useState(null);
+      const [submittedItem, setSubmittedItem] = useState(null);
+    
+      const openFormModal = (item) => {
+        setFormItem(item); // full item, not just id
+      };
+      const openSubmittedModal = (item) => {
+        setSubmittedItem(item); // full item, not just id
+      };
+    const actions = formActions(openFormModal);
   
     const templateColumns = getColumns({
       userRole,
@@ -26,13 +32,13 @@ const VisibleForms = ({ userRole }) => {
       actions: actions,
       actionConditions: formActionConditions,
       context: "UserFormsTemplate",
-      openModal
+      openFormModal
     });
-  
+    const submitActions = formSubmitActions(openSubmittedModal);
     const submittedColumns = getColumns({
       userRole,
       schema: schoolFormSubmittedSchema,
-      actions: formSubmitActions,
+      actions: submitActions,
       actionConditions: formSubmitActionConditions, 
       context: "UserFormsSubmitted",
     });
@@ -73,11 +79,20 @@ const VisibleForms = ({ userRole }) => {
         <DynamicTabs tabs={tabs} />
         
         {/* Modals */}
-        {selectedItem && (
+        {formItem && (
           <UserCreateFormModal
-            isOpen={!!selectedItem}
-            closeModal={() => setSelectedItem(false)}
-            formItem={selectedItem}
+            isOpen={!!formItem}
+            closeModal={() => setFormItem(false)}
+            formItem={formItem}
+            fetchForms={fetchForms} 
+          />
+        )}
+
+        {submittedItem && (
+          <UserViewFormModal
+            isOpen={!!submittedItem}
+            closeModal={() => setSubmittedItem(false)}
+            submittedItem={submittedItem}
           />
         )}
 

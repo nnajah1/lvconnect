@@ -54,11 +54,13 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/forms', [SchoolFormsController::class, 'store']);
     Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
     Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
+    Route::post('/forms/submissions/{id}/review', [SchoolFormsController::class, 'reviewSubmission']);
 
 
     Route::get('forms', [SchoolFormsController::class, 'index']);
-    Route::get('forms/submissions', [SchoolFormsController::class, 'submissions']);
     Route::get('/forms/{id}', [SchoolFormsController::class, 'show']);
+    Route::get('/submissions', [SchoolFormsController::class, 'submissions']);
+    Route::get('/forms/submissions/{id}', [SchoolFormsController::class, 'showSubmission']);
 
     Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
     Route::put('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'updateFields']);

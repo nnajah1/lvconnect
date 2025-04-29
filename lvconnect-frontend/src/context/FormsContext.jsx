@@ -11,6 +11,7 @@ export const FormsProvider = ({ children }) => {
   const fetchForms = async () => {
     try {
       const response = await getForms();
+      // console.log(response.data)
       setSchoolForms(response.data);
     } catch (err) {
       setError('Error fetching forms');
@@ -19,8 +20,10 @@ export const FormsProvider = ({ children }) => {
 
   const fetchSubmitted = async () => {
     try {
-      const res = await getSubmittedForms();
-      setSubmittedForms(res.data);
+      const response = await getSubmittedForms();
+      
+      console.log(response.data)
+      setSubmittedForms(response.data);
     } catch (err) {
       setError('Error fetching submitted forms');
     }

@@ -5,14 +5,14 @@ export const schoolFormTemplateSchema = {
 };
 
 export const schoolFormSubmittedSchema = {
-    title: { header: "Form", display: true },
+    form_type_title: { header: "Form", display: true },
     status: { header: "Status", display: true },
 };
 
-export const formActions = (openModal) => ({
+export const formActions = (openFormModal) => ({
     update: {
         icon: <Pencil size={18} />,
-        fn: (id, item) => openModal(item), 
+        fn: (id, item) => openFormModal(item), 
         variant: "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
@@ -24,15 +24,15 @@ export const formActionConditions = {
     update: (item, context, userRole) =>  true,
 };
 
-export const formSubmitActions = {
+export const formSubmitActions = (openSubmittedModal) => ({
     view: {
         icon: <Eye size={20}/>,
-        fn: (id, item, navigate) =>  openModal(id),
+        fn: (id, item) =>  openSubmittedModal(item),
         variant: "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
 
-}
+})
 
 // Sample action conditions
 export const formSubmitActionConditions = {

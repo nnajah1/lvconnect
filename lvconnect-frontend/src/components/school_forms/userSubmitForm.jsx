@@ -3,6 +3,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import DOMPurify from 'dompurify';
 import { getFormById, submitForm } from '@/services/school-formAPI';
+import SwitchComponent from '../school_updates/modals/switch';
+import { useForms } from '@/context/FormsContext';
 
 
 const generateFormFromContent = (content, fields, control) => {
@@ -33,15 +35,16 @@ const generateFormFromContent = (content, fields, control) => {
           {/* <label className="block font-medium mb-1">{label}</label> */}
           <Controller
             name={fieldName}
+            defaultValue={fieldType === 'checkbox' ? false : ''}
             control={control}
             render={({ field }) => {
               switch (fieldType) {
                 case 'text':
-                  return <input {...field} type="text" className="border p-2 w-full rounded" />;
+                  return <input {...field} type="text" value={field.value ?? ""} className="border p-2 w-full rounded" />;
                 case 'textarea':
-                  return <textarea {...field} className="border p-2 w-full rounded" />;
+                  return <textarea {...field} value={field.value ?? ""} className="border p-2 w-full rounded" />;
                 case 'date':
-                  return <input {...field} type="date" className="border p-2 w-full rounded" />;
+                  return <input {...field} type="date" value={field.value ?? ""} className="border p-2 w-full rounded" />;
                 case 'checkbox':
                   return (
                     <input
@@ -71,7 +74,7 @@ const generateFormFromContent = (content, fields, control) => {
                   );
                 case 'select':
                   return (
-                    <select {...field} className="border p-2 w-full rounded">
+                    <select {...field} value={field.value ?? ""} className="border p-2 w-full rounded">
                       <option value="">Select an option</option>
                       {options.map((opt, i) => (
                         <option key={i} value={opt}>{opt}</option>
@@ -100,11 +103,12 @@ const generateFormFromContent = (content, fields, control) => {
   });
 };
 
-const StudentView = ({ formId, onSuccess }) => {
+const StudentEditForm = ({ formId, onSuccess }) => {
   const { control, handleSubmit } = useForm();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { fetchForms, fetchSubmitted } = useForms();
 
   useEffect(() => {
     const loadForm = async () => {
@@ -131,6 +135,7 @@ const StudentView = ({ formId, onSuccess }) => {
   const { content = '', fields = [], title, description } = form;
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
       const payload = {
         fields: {}, 
@@ -143,20 +148,27 @@ const StudentView = ({ formId, onSuccess }) => {
       });
       
       const response = await submitForm(formId, payload);
-
-
-      if (response.status === 201) {
-        alert('Form submitted successfully');
-      }
+      await fetchForms();
+      await fetchSubmitted();
+      if (onSuccess) onSuccess(response);
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('There was an error submitting the form.');
+    }finally {
+      setLoading(false);
     }
   };
   
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl mx-auto p-6 space-y-6 bg-white rounded shadow">
+      {/* <div>
+      <SwitchComponent
+                label="is_verified"
+                checked={}
+                onCheckedChange={}
+              />
+      </div> */}
       <h2 className="text-2xl font-semibold">{title}</h2>
       <p className="text-gray-600">{description}</p>
 
@@ -172,4 +184,4 @@ const StudentView = ({ formId, onSuccess }) => {
   );
 };
 
-export default StudentView;
+export default StudentEditForm;

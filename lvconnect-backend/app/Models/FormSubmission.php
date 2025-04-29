@@ -20,6 +20,7 @@ class FormSubmission extends Model
     protected $casts = [
         'submitted_at' => 'datetime',
     ];
+    protected $appends = ['submitted_by_name', 'form_type_title'];
 
     /**
      * Belongs to a form type.
@@ -29,12 +30,22 @@ class FormSubmission extends Model
         return $this->belongsTo(FormType::class);
     }
 
+    public function getFormTypeTitleAttribute()
+    {
+        return $this->formType?->title;
+    }
+
     /**
      * Belongs to a student user.
      */
     public function student()
     {
         return $this->belongsTo(User::class, 'submitted_by');
+    }
+
+    public function getSubmittedByNameAttribute()
+    {
+        return $this->student?->name;
     }
 
     /**

@@ -4,6 +4,7 @@ import Loader from "@/components/dynamic/loader";
 import UserFormView from "@/components/school_forms/userSubmitForm"
 import ConfirmationModal from "@/components/school_forms/confirmationModal";
 import { useState } from "react";
+import StudentEditForm from "@/components/school_forms/userSubmitForm";
 
 const UserCreateFormModal = ({ isOpen, closeModal, formItem, }) => {
 
@@ -37,7 +38,7 @@ const UserCreateFormModal = ({ isOpen, closeModal, formItem, }) => {
                     showDescription={false}
                     className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <UserFormView closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
+                    <StudentEditForm closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
 
                 </DynamicModal>
             )}

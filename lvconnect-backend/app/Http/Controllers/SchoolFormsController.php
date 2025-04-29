@@ -37,11 +37,20 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('psas')) {
-            return FormSubmission::with('submissionData')
+        if ($user->hasRole('student')) {
+            // Ensure there's data being returned
+            $submissions = FormSubmission::with('formType')
                 ->where('submitted_by', $user->id)
-                ->where('status', '!=', 'draft')
                 ->get();
+
+            return response()->json($submissions);
+        }
+
+        if ($user->hasRole('psas')) {
+            // Ensure there's data being returned for psas role
+            $submissions = FormSubmission::with('formType')->get();
+
+            return response()->json($submissions);
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -164,11 +173,12 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasRole('student')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $formType = FormType::with('formFields')->findOrFail($formTypeId);
+
 
         // Validate dynamic fields
         $rules = [];
@@ -186,20 +196,23 @@ class SchoolFormsController extends Controller
         $submission = FormSubmission::create([
             'form_type_id' => $formTypeId,
             'submitted_by' => $user->id,
-            'status' => 'pending', 
+            'status' => 'pending',
         ]);
 
         // Store submitted field data
         foreach ($request->fields as $fieldId => $value) {
+            $field = $formType->formFields->find($fieldId);
+            $fieldData = $field->field_data;
+            $fieldName = $fieldData['name'] ?? null;
             FormSubmissionData::create([
                 'form_submission_id' => $submission->id,
                 'form_field_id' => $fieldId,
-                'field_name' => $user->name,
+                'field_name' => $fieldName,
                 'answer_data' => $value,
-                'is_verified'=> $request->is_verified,
+                'is_verified' => true,
             ]);
         }
-     
+
         return response()->json([
             'message' => 'Form submitted successfully and is now pending review.',
             'submission_id' => $submission->id,
@@ -272,7 +285,7 @@ class SchoolFormsController extends Controller
             }),
         ]);
     }
-    
+
     // For student
     public function upload2x2Image(Request $request)
     {
@@ -310,6 +323,31 @@ class SchoolFormsController extends Controller
 
         return response()->json(['form' => $formType, 'fields' => $formType->formFields,]);
     }
+    public function showSubmission($id)
+    {
+        $user = JWTAuth::authenticate();
+
+        // Load the submission and submission data
+        $submission = FormSubmission::with(['submissionData', 'formType'])->find($id);
+
+        if (!$submission) {
+            return response()->json(['message' => 'Submission not found'], 404);
+        }
+
+        if ($user->hasRole('student') && $submission->submitted_by !== $user->id) {
+            return response()->json(['message' => 'Unauthorized access to this submission.'], 403);
+        }
+        
+        if ($user->hasRole('psas') || $user->hasRole('student')) {
+            return response()->json([
+                'submission' => $submission,
+                'submission_data' => $submission->submissionData,
+            ]);
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
 
     /**
      * Update the specified resource in storage.
@@ -429,7 +467,7 @@ class SchoolFormsController extends Controller
         $form = FormType::findOrFail($id);
         if ($form->pdf_path) {
             Storage::disk('public')->delete($form->pdf_path);
-        }    
+        }
         $form->delete();
 
         return response()->json(['message' => 'Form deleted successfully']);
