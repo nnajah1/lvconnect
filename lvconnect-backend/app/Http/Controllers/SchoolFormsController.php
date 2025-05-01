@@ -242,12 +242,12 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        $submission = FormSubmission::with('formType', 'formData.formField')->findOrFail($submissionId);
+        $submission = FormSubmission::with(['formType', 'submissionData'])->findOrFail($submissionId);
 
         // Allow only student who owns it or PSAS role
         if (
             !$user->hasRole('psas') &&
-            $submission->student_id !== $user->id
+            $submission->submitted_by !== $user->id
         ) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -259,7 +259,7 @@ class SchoolFormsController extends Controller
         // Prepare data for the view
         $data = [
             'formType' => $submission->formType->name,
-            'fields' => $submission->formData->map(function ($item) {
+            'fields' => $submission->submissionData->map(function ($item) {
                 return [
                     'field_name' => $item->field_name,
                     'value' => json_decode($item->answer_data),

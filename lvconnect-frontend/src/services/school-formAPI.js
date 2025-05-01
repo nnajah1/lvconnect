@@ -32,6 +32,20 @@ export const getSubmittedFormById = (formId) => {
   return api.get(`/forms/submissions/${formId}`);
 };
 
+export const downloadSubmission = async (formId) => {
+  const response = await api.get(`submissions/${formId}/download`, {
+    responseType: 'blob',
+  });
+
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `submission_${submissionId}.pdf`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
 export const deleteForm = async (formId) => {
  await api.delete(`/forms/${formId}`);
 

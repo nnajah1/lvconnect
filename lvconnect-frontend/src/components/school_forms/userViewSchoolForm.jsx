@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { getSubmittedFormById, reviewSubmission } from '@/services/school-formAPI';
+import { downloadSubmission, getSubmittedFormById, reviewSubmission } from '@/services/school-formAPI';
 import { useForms } from '@/context/FormsContext';
 import { toast } from 'react-toastify';
 import StudentEditForm from './userSubmitForm';
 import 'quill/dist/quill.snow.css';
+import { Button } from '../ui/button';
 
 const ShowSubmission = ({ formId, userRole }) => {
   const { fetchForms, fetchSubmitted } = useForms();
@@ -64,17 +65,17 @@ const ShowSubmission = ({ formId, userRole }) => {
   };
   const renderContentWithAnswers = (content, submissionData) => {
     if (!content) return '';
-  
-    const baseURL = 'http://localhost:8000/'; 
+
+    const baseURL = 'http://localhost:8000/';
     let updatedContent = content;
-  
+
     submissionData.forEach(field => {
       const placeholder = `{{${field.field_name}}}`;
       const rawAnswer = field.answer_data || '';
       const fieldType = field.form_field_data?.type;
-  
+
       let formattedAnswer = '[Not answered]'; // default
-  
+
       if (fieldType === '2x2_image' && rawAnswer) {
         const imageURL = rawAnswer.startsWith('http') ? rawAnswer : `${baseURL}${rawAnswer}`;
         formattedAnswer = `<img 
@@ -86,21 +87,21 @@ const ShowSubmission = ({ formId, userRole }) => {
       } else if (rawAnswer) {
         formattedAnswer = rawAnswer;
       }
-  
+
       const regex = new RegExp(escapeRegExp(placeholder), 'gi');
       updatedContent = updatedContent.replace(regex, formattedAnswer);
     });
-  
+
     // Catch any leftover placeholders
     updatedContent = updatedContent.replace(/{{[^}]+}}/g, '[Not answered]');
-  
+
     return updatedContent;
   };
-  
+
   const escapeRegExp = (string) => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   };
-  
+
 
   if (loading) return <div className="p-4">Loading form...</div>;
   if (error) return <div className="p-4 text-red-600">{error}</div>;
@@ -138,6 +139,11 @@ const ShowSubmission = ({ formId, userRole }) => {
                 >
                   Edit Draft
                 </button>
+              )}
+              {status === 'approved' && (
+                <Button onClick={() => downloadSubmission(formId)}>
+                  Download PDF
+                </Button>
               )}
             </div>
           </div>
