@@ -52,3 +52,7 @@ export const extractPdfFields = async (pdfFile) => {
 export const submitForm = async (formId, payload) => {
  return await api.post(`forms/submissions/${formId}`, payload);
 };
+
+export const updateDraftForm = (submissionId, payload) => {
+  return api.put(`/submissions/${submissionId}`, payload);
+};

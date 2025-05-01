@@ -22,6 +22,9 @@ class FormSubmissionData extends Model
         'is_verified' => 'boolean',
     ];
 
+    protected $appends = ['form_field_data'];
+
+
     /**
      * Belongs to a submission.
      */
@@ -37,4 +40,10 @@ class FormSubmissionData extends Model
     {
         return $this->belongsTo(FormField::class);
     }
+
+    public function getFormFieldDataAttribute()
+    {
+        return $this->formField?->field_data;
+    }
+
 }

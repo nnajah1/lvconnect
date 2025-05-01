@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Intervention\Image\ImageManager;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SchoolFormsController extends Controller
@@ -144,29 +143,6 @@ class SchoolFormsController extends Controller
         return response()->json(['message' => 'Fields saved successfully.']);
     }
 
-
-    /**
-     * Visibility for toggle
-     */
-    public function toggleVisibility(Request $request, $id)
-    {
-        $user = JWTAuth::authenticate();
-
-        if (!$user->hasRole('psas')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $form = FormType::findOrFail($id);
-
-        $form->is_visible = !$form->is_visible;
-        $form->save();
-
-        return response()->json([
-            'message' => 'Visibility updated successfully.',
-            'is_visible' => $form->is_visible
-        ]);
-    }
-
     /**
      * Submit form for student.
      */
@@ -180,24 +156,26 @@ class SchoolFormsController extends Controller
 
         $formType = FormType::with('formFields')->findOrFail($formTypeId);
 
-
+        $status = $request->input('status', 'pending');
         // Validate dynamic fields
         $rules = [];
-        foreach ($formType->formFields as $field) {
-            $rules["fields.{$field->id}"] = $field->is_required ? 'required|string' : 'nullable|string';
-        }
+        if ($status !== 'draft') {
+            foreach ($formType->formFields as $field) {
+                $rules["fields.{$field->id}"] = $field->is_required ? 'required|string' : 'nullable|string';
+            }
 
-        $validator = Validator::make($request->all(), $rules);
+            $validator = Validator::make($request->all(), $rules);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
         }
 
         // Create form submission
         $submission = FormSubmission::create([
             'form_type_id' => $formTypeId,
             'submitted_by' => $user->id,
-            'status' => 'pending',
+            'status' => $status,
         ]);
 
         // Store submitted field data
@@ -205,6 +183,10 @@ class SchoolFormsController extends Controller
             $field = $formType->formFields->find($fieldId);
             $fieldData = $field->field_data;
             $fieldName = $fieldData['name'] ?? null;
+
+            if (!$field->is_required && is_null($value))
+                continue;
+
             FormSubmissionData::create([
                 'form_submission_id' => $submission->id,
                 'form_field_id' => $fieldId,
@@ -215,7 +197,7 @@ class SchoolFormsController extends Controller
         }
 
         return response()->json([
-            'message' => 'Form submitted successfully and is now pending review.',
+            'message' => $status === 'draft' ? 'Form saved as draft.' : 'Form submitted successfully and is now pending review.',
             'submission_id' => $submission->id,
         ], 201);
     }
@@ -293,24 +275,28 @@ class SchoolFormsController extends Controller
     // For student
     public function upload2x2Image(Request $request)
     {
+        $user = JWTAuth::authenticate();
+        if (!$user->hasRole('student')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $validator = Validator::make($request->all(), [
-            'photo' => 'required|image|mimes:jpeg,png,jpg|dimensions:width=600,height=600|max:2048', // 2x2 inches at 300 DPI
+            'photo' => 'required|image|mimes:jpeg,png,jpg|dimensions:width=600,height=600|max:2048',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Handle and resize image with Intervention Image
         $image = $request->file('photo');
-        $manager = ImageManager::gd(); // or use ->imagick() if using Imagick
 
-        $processed = $manager->read($image)->resize(600, 600); // Resize to 2x2 inch at 300 DPI
-        $filename = uniqid('2x2_') . '.' . $image->getClientOriginalExtension();
-        $path = storage_path('app/public/2x2/' . $filename);
-        $processed->save($path);
+        // Store to 'public/2x2' (which is storage/app/public/2x2)
+        $path = $image->store('2x2', 'public');
 
-        return response()->json(['message' => 'Image uploaded successfully', 'path' => 'storage/2x2/' . $filename]);
+        return response()->json([
+            'message' => 'Image uploaded successfully',
+            'image_url' => asset('storage/' . $path), // Full web-accessible URL
+        ]);
     }
 
     /**
@@ -325,7 +311,7 @@ class SchoolFormsController extends Controller
             return response()->json(['message' => 'Form not found'], 404);
         }
 
-        return response()->json(['form' => $formType, 'fields' => $formType->formFields,]);
+        return response()->json(['form' => $formType, 'fields' => $formType->formFields]);
     }
     public function showSubmission($id)
     {
@@ -341,7 +327,7 @@ class SchoolFormsController extends Controller
         if ($user->hasRole('student') && $submission->submitted_by !== $user->id) {
             return response()->json(['message' => 'Unauthorized access to this submission.'], 403);
         }
-        
+
         if ($user->hasRole('psas') || $user->hasRole('student')) {
             return response()->json([
                 'submission' => $submission,
@@ -367,10 +353,10 @@ class SchoolFormsController extends Controller
         $form = FormType::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
+            'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'content' => 'nullable|string',
-            // 'pdf' => 'sometimes|file|mimes:pdf',
+            'pdf' => 'sometimes|file|mimes:pdf',
             'is_visible' => 'boolean',
         ]);
 
@@ -378,12 +364,12 @@ class SchoolFormsController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // if ($request->hasFile('pdf')) {
-        //     // Delete old file
-        //     Storage::disk('public')->delete($form->pdf_path);
-        //     $pdfPath = $request->file('pdf')->store('pdf_forms', 'public');
-        //     $form->pdf_path = $pdfPath;
-        // }
+        if ($request->hasFile('pdf')) {
+            // Delete old file
+            Storage::disk('public')->delete($form->pdf_path);
+            $pdfPath = $request->file('pdf')->store('pdf_forms', 'public');
+            $form->pdf_path = $pdfPath;
+        }
 
         $form->title = $request->title ?? $form->title;
         $form->description = $request->description ?? $form->description;
@@ -455,6 +441,52 @@ class SchoolFormsController extends Controller
 
 
         return response()->json(['message' => 'Fields updated successfully.']);
+    }
+
+    public function updateDraftForm(Request $request, $id)
+    {
+        $user = JWTAuth::authenticate();
+        $submission = FormSubmission::with('formType.formFields')->findOrFail($id);
+
+        if ($submission->submitted_by !== $user->id || $submission->status !== 'draft') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $formType = $submission->formType;
+        $rules = [];
+        foreach ($formType->formFields as $field) {
+            $rules["fields.{$field->id}"] = $field->is_required && $request->status !== 'draft'
+                ? 'required|string'
+                : 'nullable|string';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $submission->status = $request->status;
+        $submission->save();
+
+        // Update or create submission data
+        foreach ($request->fields as $fieldId => $value) {
+            $field = $formType->formFields->find($fieldId);
+            $fieldName = $field->field_data['name'] ?? null;
+
+            FormSubmissionData::updateOrCreate(
+                [
+                    'form_submission_id' => $submission->id,
+                    'form_field_id' => $fieldId,
+                ],
+                [
+                    'field_name' => $fieldName,
+                    'answer_data' => $value,
+                    'is_verified' => true,
+                ]
+            );
+        }
+
+        return response()->json(['message' => 'Draft updated successfully']);
     }
 
     /**

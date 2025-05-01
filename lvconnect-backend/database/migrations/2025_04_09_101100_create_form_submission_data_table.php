@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('form_submission_id');
             $table->unsignedBigInteger('form_field_id');
             $table->string('field_name');
-            $table->json('answer_data');
+            $table->json('answer_data')->nullable();
             $table->boolean('is_verified');
             $table->timestamps();
 

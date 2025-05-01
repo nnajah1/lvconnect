@@ -4,7 +4,7 @@ import SwitchComponent from "@/components/school_updates/modals/switch";
 import TooltipComponent from "@/components/school_updates/modals/tooltip";
 import { BsFillInfoCircleFill } from "react-icons/bs";
 import { createPost, updatePost, publishPost, syncToFacebook } from "@/services/axios"; // Import API function
-import TextEditor from "@/user_pages/communication_page/comms_components/texteditor"; // Quill Editor
+import TextEditor from "@/components/school_updates/textEditor"; // Quill Editor
 
 
 const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
