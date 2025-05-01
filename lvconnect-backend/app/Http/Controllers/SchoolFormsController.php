@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Intervention\Image\ImageManager;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SchoolFormsController extends Controller
 {
@@ -255,7 +256,6 @@ class SchoolFormsController extends Controller
     /**
      * Download the form into PDF.
      */
-
     public function downloadApprovedForm($submissionId)
     {
         $user = JWTAuth::authenticate();
@@ -274,16 +274,20 @@ class SchoolFormsController extends Controller
             return response()->json(['message' => 'Form not approved'], 403);
         }
 
-        // Return form data & PDF path for frontend
-        return response()->json([
-            'pdf_url' => Storage::url($submission->formType->pdf_path),
-            'fields' => $submission->formData->map(function ($data) {
+        // Prepare data for the view
+        $data = [
+            'formType' => $submission->formType->name,
+            'fields' => $submission->formData->map(function ($item) {
                 return [
-                    'field_name' => $data->field_name,
-                    'value' => json_decode($data->answer_data),
+                    'field_name' => $item->field_name,
+                    'value' => json_decode($item->answer_data),
                 ];
-            }),
-        ]);
+            })
+        ];
+
+        $pdf = Pdf::loadView('pdf.form-submission', $data);
+
+        return $pdf->download("submission_{$submission->id}.pdf");
     }
 
     // For student
