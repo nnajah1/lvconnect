@@ -1,0 +1,204 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+.form-wrapper {
+    min-height: 100vh;
+    background-color: white;
+    padding: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .form-wrapper {
+      padding: 2rem;
+    }
+  }
+  
+  .form-container {
+    max-width: 42rem;
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-radius: 12px;
+  }
+  
+  /* Header */
+  .form-header {
+    position: relative;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .form-title {
+    text-align: center;
+    font-weight: 600;
+    color: #1E2A78;
+    font-size: 1.25rem;
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    color: #4b5563;
+    transition: 0.2s;
+  }
+  .close-btn:hover {
+    color: #000;
+  }
+  
+  /* School Info */
+  .form-info {
+  display: flex;
+  flex-direction: row;  /* Always keep it in a row */
+  gap: 1rem;
+  align-items: center;  /* Keep the logo and text aligned vertically */
+  padding: 1.5rem;
+  justify-content: flex-start;  /* Align all elements to the left */
+}
+
+  @media (min-width: 640px) {
+    .form-info {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+
+  .school-logo {
+    width: 5rem;
+    height: 5rem;
+    object-fit: cover;
+    border-radius: 9999px;
+    border: 1px solid #d1d5db;
+  }
+  
+  .school-details {
+  line-height: 1.2;
+}
+  
+.school-name {
+    font-size: 1.1rem;
+    color: #1E2A78;
+  }
+
+ @media (min-width: 640px) {
+  .school-name {
+    font-size: 1.25rem;
+  }
+}
+
+  
+.school-location {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  /* Input Fields */
+  .input-section {
+    margin: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .input-wrapper {
+    border: 1px solid #9ca3af;
+    border-radius: 1rem;
+    padding: 1rem;
+    background-color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .input-text {
+    resize: none;
+    width: 100%;
+    padding: 0.5rem;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    outline: none;
+    font-size: 1rem;
+  }
+  
+  .trash-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+  
+  .trash-btn {
+    color: #ef4444;
+    transition: 0.2s;
+  }
+  .trash-btn:hover {
+    color: #dc2626;
+  }
+  
+  /* Add Field */
+  .add-field {
+    padding: 0 1.5rem 1rem;
+  }
+  .add-btn {
+    border: 1px solid #38bdf8;
+    color: #0ea5e9;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    background-color: transparent;
+    transition: 0.2s;
+  }
+  .add-btn:hover {
+    background-color: #e0f2fe;
+  }
+  
+  /* Footer */
+  .form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .import-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #1E2A78;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: 0.2s;
+  }
+  .import-btn:hover {
+    background-color: #1B256B;
+  }
+  
+  .footer-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .upload-btn {
+    background-color: #0ea5e9;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: 0.2s;
+  }
+  .upload-btn:hover {
+    background-color: #38bdf8;
+  }
+  
+  .draft-btn {
+    border: 1px solid #d1d5db;
+    color: #1f2937;
+    background-color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: 0.2s;
+  }
+  .draft-btn:hover {
+    background-color: #f3f4f6;
+  }
+  

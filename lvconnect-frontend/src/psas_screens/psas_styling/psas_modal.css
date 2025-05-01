@@ -1,0 +1,308 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+.psas-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.psas-modal-container {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 650px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  position: relative;
+}
+
+/* Close Button */
+.psas-modal-close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+/* Icon */
+.psas-modal-icon {
+  font-size: 2rem;
+  color: #1F3463;
+  margin: 0 auto 1rem auto;
+  display: block;
+}
+
+/* Title */
+/* Title */
+.psas-modal-title {
+  font-size: 1.125rem; 
+  font-weight: 600;
+  color: #1F3463;
+  margin-bottom: 0.75rem;
+}
+
+.psas-modal-blue .psas-modal-icon,
+.psas-modal-blue .psas-modal-title {
+  color: #2CA4DD;
+}
+
+.psas-modal-red .psas-modal-icon,
+.psas-modal-red .psas-modal-title {
+  color: #FF1F25;
+}
+
+
+/* Description */
+.psas-modal-description {
+  font-size: 1rem;
+  color: #4b5563;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Button */
+.psas-modal-button {
+  padding: 0.4rem 1rem;
+  background-color: #1e3a8a;
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.psas-modal-button:hover {
+  background-color: #1e40af;
+}
+
+.psas-modal-button-icon {
+  font-size: 1rem;
+}
+
+/* Responsiveness */
+
+@media (max-width: 640px) {
+  .psas-modal-container {
+    padding: 1.5rem 1rem; 
+    margin: 0 1rem; 
+  }
+
+  .psas-modal-title {
+    font-size: 1.25rem;
+  }
+
+  .psas-modal-description {
+    font-size: 0.875rem; 
+  }
+
+  .psas-modal-button {
+    padding: 0.4rem 0.8rem; 
+    font-size: 0.875rem; 
+  }
+
+  .psas-modal-icon {
+    font-size: 1.5rem; 
+  }
+}
+
+/* For medium screens (tablets) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .psas-modal-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .psas-modal-title {
+    font-size: 1.375rem; 
+  }
+
+  .psas-modal-description {
+    font-size: 0.95rem;
+  }
+
+  .psas-modal-button {
+    padding: 0.4rem 1rem; 
+  }
+
+  .psas-modal-icon {
+    font-size: 1.75rem; 
+  }
+}
+
+/* For larger screens (desktop) */
+@media (min-width: 1025px) {
+  .psas-modal-container {
+    padding: 2.5rem 2rem; /* Default padding */
+  }
+
+  .psas-modal-title {
+    font-size: 1.5rem; /* Default title size */
+  }
+
+  .psas-modal-description {
+    font-size: 1rem; /* Default description font */
+  }
+
+  .psas-modal-button {
+    padding: 0.5rem 1.25rem; /* Default button padding */
+  }
+
+  .psas-modal-icon {
+    font-size: 2rem; /* Default icon size */
+  }
+}
+
+
+.modal-footer-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-cancel-button,
+.modal-save-button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Cancel Button */
+.modal-cancel-button {
+  background-color: transparent;
+  color: #555;
+  border: 1px solid #ccc;
+}
+
+.modal-cancel-button:hover {
+  background-color: #f5f5f5;
+}
+
+/* Save Button */
+.modal-save-button {
+  background-color: #2CA4DD;
+  color: white;
+  border: none;
+}
+
+.modal-save-button:hover {
+  background-color: #1e90c2;
+}
+
+/* Responsive tweaks for very small screens */
+@media (max-width: 480px) {
+  .modal-footer-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modal-cancel-button,
+  .modal-save-button {
+    width: 100%;
+  }
+}
+
+
+.psas-modal-icon-red {
+  font-size: 2.5rem;
+  color: #ef4444; /* Tailwind Red-500 */
+  display: block;
+  margin: 0 auto 1rem;
+}
+
+.psas-modal-title-black {
+  color: #111827; /* Tailwind Gray-900 */
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.psas-modal-message {
+  text-align: left;
+}
+
+.psas-modal-description {
+  color: #6b7280; /* Tailwind Gray-500 */
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.psas-reject-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  font-size: 1rem;
+  color: #374151; /* Tailwind Gray-700 */
+  border: 1px solid #e5e7eb; /* Tailwind Gray-200 */
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  resize: vertical;
+  outline: none;
+  margin-bottom: 1.5rem;
+}
+
+/* No hover effect */
+.psas-reject-textarea:hover {
+  border-color: #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Optional: when focusing */
+.psas-reject-textarea:focus {
+  border-color: #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* Modal Footer Buttons */
+.modal-footer-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-cancel-button,
+.modal-reject-button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Cancel Button */
+.modal-cancel-button {
+  background-color: transparent;
+  color: #555;
+  border: 1px solid #ccc;
+}
+
+.modal-cancel-button:hover {
+  background-color: #f5f5f5;
+}
+
+/* Reject Button */
+.modal-reject-button {
+  background-color: #FF1F25; 
+  color: white;
+  border: none;
+}
+
+.modal-reject-button:hover {
+  background-color: #FF1F25;
+}
