@@ -1,0 +1,66 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+/* form-builder.css */
+
+.psas_form_container {
+    @apply w-full max-w-3xl mx-auto p-6 rounded-lg shadow-md bg-white;
+  }
+  
+  .psas_header {
+    @apply text-center text-xl font-bold text-[#1F2D5A] mb-4;
+  }
+  
+  .psas_logo_section {
+    @apply flex items-center justify-start gap-3 mb-4;
+  }
+  
+  .psas_input_card {
+    @apply w-full bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm relative;
+  }
+  
+  .psas_input_placeholder {
+    @apply w-full text-gray-600 text-base mb-2 outline-none border-none;
+  }
+  
+  .psas_toolbar {
+    @apply flex items-center gap-2 mb-2;
+  }
+  
+  .psas_toolbar select,
+  .psas_toolbar button {
+    @apply border border-gray-300 rounded-md px-2 py-1 text-sm text-gray-700 bg-white hover:bg-gray-100;
+  }
+  
+  .psas_text_dropdown {
+    @apply border border-gray-300 rounded-md px-3 py-2 text-sm mt-2;
+  }
+  
+  .psas_input_footer {
+    @apply flex justify-between items-center mt-4;
+  }
+  
+  .psas_add_input_button {
+    @apply inline-flex items-center gap-2 px-4 py-2 border border-[#39A7FF] text-[#39A7FF] rounded-md text-sm hover:bg-[#e6f4ff];
+  }
+  
+  .psas_import_button {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-[#122A5C] text-white rounded-md text-sm hover:bg-[#0f2147];
+  }
+  
+  .psas_upload_button {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-[#39A7FF] text-white rounded-md text-sm hover:bg-[#1e8fe4];
+  }
+  
+  .psas_save_draft_button {
+    @apply inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-100;
+  }
+  
+  .psas_delete_button {
+    @apply absolute top-3 right-3 text-red-500 hover:text-red-700 cursor-pointer;
+  }
+  
+  .psas_play_button {
+    @apply absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-600 bg-white rounded-full shadow p-2 hover:bg-gray-100;
+  }
+  
