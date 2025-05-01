@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class SchoolFormsController extends Controller
 {
@@ -256,22 +257,35 @@ class SchoolFormsController extends Controller
             return response()->json(['message' => 'Form not approved'], 403);
         }
 
-        // Prepare data for the view
-        $data = [
-            'formType' => $submission->formType->name,
-            'fields' => $submission->submissionData->map(function ($item) {
-                return [
-                    'field_name' => $item->field_name,
-                    'value' => json_decode($item->answer_data),
-                ];
-            })
-        ];
+        // Prepare data
+        $formTypeName = e($submission->formType->name);
+        $fields = $submission->submissionData->map(function ($item) {
+            return [
+                'field_name' => $item->field_name,
+                'value' => json_decode($item->answer_data),
+            ];
+        });
 
-        $pdf = Pdf::loadView('pdf.form-submission', $data);
+        // Build HTML content manually
+        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Form</title>';
+        $html .= '<style>body { font-family: DejaVu Sans, sans-serif; } .field { margin-bottom: 10px; }</style>';
+        $html .= '</head><body>';
+        $html .= "<h1>{$formTypeName}</h1>";
+
+        foreach ($fields as $field) {
+            $value = is_array($field['value']) ? implode(', ', $field['value']) : $field['value'];
+            $html .= '<div class="field">';
+            $html .= '<strong>' . e($field['field_name']) . ':</strong> ' . e($value);
+            $html .= '</div>';
+        }
+
+        $html .= '</body></html>';
+
+        // Generate PDF from HTML
+        $pdf = Pdf::loadHTML($html);
 
         return $pdf->download("submission_{$submission->id}.pdf");
     }
-
     // For student
     public function upload2x2Image(Request $request)
     {
