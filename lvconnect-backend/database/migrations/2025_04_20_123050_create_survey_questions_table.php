@@ -16,10 +16,9 @@ return new class extends Migration
             $table->unsignedBigInteger('survey_id');
             $table->string('survey_question_type');
             $table->text('question');
-            $table->text('description');
             $table->json('survey_question_data');
             $table->integer('order');
-            $table->boolean('is_required');
+            $table->boolean('is_required')->default(false);
             $table->timestamps();
 
             $table->foreign('survey_id')->references('id')->on('surveys')->onDelete('cascade');

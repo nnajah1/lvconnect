@@ -19,6 +19,9 @@ import Forms from "./pages/admins/psas/Forms";
 import FormView from "./components/school_forms/userSubmitForm";
 import VisibleForms from "./pages/student/UserSchoolForm";
 import StudentView from "./components/school_forms/userSubmitForm";
+import Surveys from "./pages/admins/psas/Surveys";
+import VisibleSurveys from "./pages/student/UserSurvey";
+import CreateNewFormsz from "./Psas_pages/schoolforms/create_forms/create_new_forms";
 
 
 
@@ -60,9 +63,11 @@ const router = createBrowserRouter([
             { path: 'change-current-password', element: <ChangePassword /> },
 
             {
-                path: "dashboard", element: <ProtectedRoute allowedRoles={['student']} />, // Only users can access
+                path: "/", element: <ProtectedRoute allowedRoles={['student']} />, // Only users can access
                 children: [
-                    { index: true, element: <UserDashboard /> }, // User dashboard
+                    { index: true, path: "dashboard", element: <UserDashboard /> }, 
+                    { path: "surveys", element: <VisibleSurveys/> }, 
+                    { path: "student-services", element: <VisibleForms /> }, 
                 ],
             },
 
@@ -90,7 +95,7 @@ const router = createBrowserRouter([
                 children: [
                     { index: true, element: <PsasDashboard /> },
                     { path: "forms", element: <Forms /> },
-                    { path: "archive", element: <ArchivePosts /> },
+                    { path: "surveys", element: <Surveys /> },
                 ],
             },
 
@@ -98,7 +103,7 @@ const router = createBrowserRouter([
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
     { path: "/trial", element: <StudentView /> },
-    { path: "/app", element: <VisibleForms /> }
+    { path: "/app", element: <CreateNewFormsz /> }
 
 
 

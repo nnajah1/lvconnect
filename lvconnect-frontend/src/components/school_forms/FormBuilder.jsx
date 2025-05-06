@@ -3,11 +3,12 @@ import { useForm, Controller } from 'react-hook-form';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import * as pdfjsLib from 'pdfjs-dist';
-import SwitchComponent from "@/components/school_updates/modals/switch";
+import SwitchComponent from "@/components/dynamic/switch";
 import { createForm, saveFormFields, deleteForm } from '@/services/school-formAPI';
 import { extractFieldsFromText } from '@/utils/pdfUtils';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 if (typeof window !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 }
@@ -15,7 +16,7 @@ if (typeof window !== 'undefined') {
 import { useForms } from '@/context/FormsContext';
 import ConfirmationModal from '@/components/dynamic/DeleteModal';
 
-const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, error, onSuccess}) => {
+const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, error, onSuccess }) => {
 
   const { fetchForms, fetchSubmitted } = useForms();
 
@@ -31,6 +32,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
       is_visible: false
     }
   });
+  const [previousFieldNames, setPreviousFieldNames] = useState({});
   const [formFields, setFormFields] = useState(initialFields || []);
   const [deletedFields, setDeletedFields] = useState([]);
   const [deletedFieldIds, setDeletedFieldIds] = useState([]);
@@ -109,16 +111,16 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
       setOcrText(rawText);
 
       const { modifiedText, fields } = extractFieldsFromText(rawText);
-      
+
       // Insert into Quill
       const quill = quillRef.current;
       quill.setText(modifiedText);
-      
+
 
       setInstructions(modifiedText);
       setFormFields(fields);
 
-      
+
 
       renderPdfPage(1, pdf);
     };
@@ -144,8 +146,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
   const addField = () => {
     const newField = {
       id: crypto.randomUUID(),
-      name: `field_${formFields.length + 1}`,
-      label: `Field ${formFields.length + 1}`,
+      name: `Field ${formFields.length + 1}`,
       type: 'text',
       required: false,
     };
@@ -155,24 +156,30 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
 
   const insertFieldToEditor = (field) => {
     const quill = quillRef.current;
-    const editorContent = quill.getText();
-    const placeholder = `{{${field.name}}}`;
+    if (!quill) return;
 
-    const existing = formFields
-    .filter(f => f.id === field.id && f.name !== field.name)
-    .map(f => `{{${f.name}}}`);
+    const oldName = previousFieldNames[field.id];
+    const newPlaceholder = `{{${field.name}}}`;
 
-    existing.forEach(old => {
-      const startIndex = editorContent.indexOf(old);
+    if (oldName && oldName !== field.name) {
+      const oldPlaceholder = `{{${oldName}}}`;
+      const editorText = quill.getText();
+      const startIndex = editorText.indexOf(oldPlaceholder);
+
       if (startIndex !== -1) {
-        quill.deleteText(startIndex, old.length);
+        // Replace old placeholder with the new one at the exact position
+        quill.deleteText(startIndex, oldPlaceholder.length);
+        quill.insertText(startIndex, newPlaceholder, 'user');
+        return;
       }
-    });
-    
-    if (editorContent.includes(placeholder)) return;
+    }
 
-    const cursorPosition = quill.getSelection()?.index || quill.getLength();
-    quill.insertText(cursorPosition, placeholder, 'bold', 'user');
+    // If not previously inserted or already replaced, insert at cursor
+    const editorText = quill.getText();
+    if (!editorText.includes(newPlaceholder)) {
+      const cursorIndex = quill.getSelection()?.index || editorText.length;
+      quill.insertText(cursorIndex, newPlaceholder, 'user');
+    }
   };
 
   const removeField = (id) => {
@@ -194,7 +201,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
 
     // Also remove placeholder from Quill 
     const field = formFields.find(f => f.id === id);
-    const placeholder = `{{${field.label}}}`;
+    const placeholder = `{{${field.name}}}`;
     const quill = quillRef.current;
     const startIndex = quill.getText().indexOf(placeholder);
     if (startIndex !== -1) {
@@ -220,13 +227,13 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
 
     // Insert the restored field placeholder into the Quill editor
     const quill = quillRef.current;
-    const placeholder = `{{${toRestore.field.label}}}`;
+    const placeholder = `{{${toRestore.field.name}}}`;
 
     // Check if the field already exists to avoid duplicates
     const editorContent = quill.getText();
     if (!editorContent.includes(placeholder)) {
       const cursorPosition = quill.getSelection()?.index || quill.getLength();
-      quill.insertText(cursorPosition, placeholder, 'bold', 'user');
+      quill.insertText(cursorPosition, placeholder, 'user');
     }
   };
 
@@ -242,7 +249,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
   const handleCreateForm = async (data) => {
     if (isLoading) return;
     setIsLoading(true);
-  
+
     try {
       if (mode === 'edit') {
         data.content = instructions;
@@ -257,10 +264,10 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
           formData.append('pdf', pdfFile);
         }
         formData.append('is_visible', data.is_visible ? 1 : 0);
-  
+
         const formRes = await createForm(formData);
         const formId = formRes.data.form.id;
-  
+
         await saveFormFields(formId, formFields);
         await fetchForms();
         await fetchSubmitted();
@@ -276,7 +283,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
     } finally {
       setIsLoading(false);
     }
-  };  
+  };
 
   // const handleDeleteForm = async (formId) => {
   //   try {
@@ -292,15 +299,16 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
   };
   const handleDeleteConfirm = async (formId) => {
     try {
-         await deleteForm(formId, (formId));
-        await fetchForms();
-        await fetchSubmitted();
+      await deleteForm(formId, (formId));
+      await fetchForms();
+      await fetchSubmitted();
     } catch (error) {
-        console.error("Error deleting form:", error);
+      console.error("Error deleting form:", error);
     }
     finally {
-    setShowDeleteModal(false); }
-};
+      setShowDeleteModal(false);
+    }
+  };
 
 
   return (
@@ -326,13 +334,16 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
           />
         </div>
 
-        <input {...register('title')} placeholder="Form Title" className="border p-2 w-full" required />
-        <textarea {...register('description')} placeholder="Description" className="border p-2 w-full" />
+        <input {...register('title')} placeholder="Form Title" className="border p-2 w-full rounded" required />
+        <textarea {...register('description')} placeholder="Description" className="border p-2 w-full rounded bg-white" />
         {mode !== 'edit' && (
           <input type="file" accept="application/pdf" onChange={handlePdfUpload} />
         )}
 
-        <div className={`grid ${pdfFile ? 'grid-cols-3' : 'grid-cols-2'} gap-4 mt-6`}>
+        <div className={`grid ${pdfFile
+          ? 'grid-cols-[300px_450px_250px]' // Custom 3-column widths
+          : 'grid-cols-[1fr_250px]' // Custom 2-column widths
+          } gap-4 mt-6`}>
           {pdfFile && (
             <div>
               <h3 className="font-semibold mb-2">PDF Preview</h3>
@@ -367,25 +378,36 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
                   </div>
 
                   <input
-                    value={field.label || ''}
-                    onChange={(e) => updateField(field.id, 'label', e.target.value)}
+                    value={field.name || ''}
+                    onFocus={() => {
+                      setPreviousFieldNames((prev) => ({
+                        ...prev,
+                        [field.id]: field.name, // Store current name
+                      }));
+                    }}
+                    onChange={(e) => updateField(field.id, 'name', e.target.value)}
                     className="border p-1 w-full mb-2"
                   />
-                  <select
-                    value={field.type || ''}
-                    onChange={(e) => updateField(field.id, 'type', e.target.value)}
-                    className="border p-1 w-full mb-2"
+                  <Select
+                    value={field.type}
+                    onValueChange={(value) => updateField(field.id, 'type', value)}
                   >
-                    <option value="text">Text</option>
-                    <option value="textarea">Paragraph</option>
-                    <option value="date">Date</option>
-                    <option value="checkbox">Checkbox</option>
-                    <option value="radio">Multiple Choice</option>
-                    <option value="select">Dropdown</option>
-                    <option value="2x2_image">2x2 Image</option>
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select field type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="text">Text</SelectItem>
+                      <SelectItem value="textarea">Paragraph</SelectItem>
+                      <SelectItem value="date">Date</SelectItem>
+                      <SelectItem value="checkbox">Checkbox Group</SelectItem>
+                      <SelectItem value="single_checkbox">Single Checkbox</SelectItem>
+                      <SelectItem value="radio">Multiple Choice</SelectItem>
+                      <SelectItem value="select">Dropdown</SelectItem>
+                      <SelectItem value="2x2_image">2x2 Image</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                  {['radio', 'select'].includes(field.type) && (
+                  {['radio', 'select', 'checkbox'].includes(field.type) && (
                     <div className="mt-2">
                       <label className="block font-medium">Options (comma-separated)</label>
                       <input
@@ -422,7 +444,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
                 <div className="space-y-2">
                   {deletedFields.map(({ field }) => (
                     <div key={field.id} className="border p-2 rounded bg-gray-50 flex justify-between items-center">
-                      <span>{field.label || 'Untitled Field'}</span>
+                      <span>{field.name || 'Untitled Field'}</span>
                       <button
                         onClick={() => restoreField(field.id)}
                         className="text-sm bg-green-200 px-2 py-1 rounded"
@@ -455,20 +477,20 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
           }
           {showDeleteModal && (
             <ConfirmationModal
-                isOpen={showDeleteModal}
-                closeModal={() => setShowDeleteModal(false)}
-                onConfirm={() => handleDeleteConfirm(formId)} 
-                title="Are you sure?"
-                description="This action cannot be undone."
+              isOpen={showDeleteModal}
+              closeModal={() => setShowDeleteModal(false)}
+              onConfirm={() => handleDeleteConfirm(formId)}
+              title="Are you sure?"
+              description="This action cannot be undone."
             >
-                Confirm Deletion
+              Confirm Deletion
             </ConfirmationModal>
-        )}
+          )}
 
         </div>
       </form>
-      
-    
+
+
     </div>
 
 

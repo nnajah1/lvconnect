@@ -29,7 +29,8 @@ class SchoolFormsController extends Controller
         }
 
         if ($user->hasRole('psas')) {
-            return FormType::with('formFields')->where('created_by', $user->id)->get();
+            return FormType::with('formFields')
+                ->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -49,7 +50,9 @@ class SchoolFormsController extends Controller
 
         if ($user->hasRole('psas')) {
             // Ensure there's data being returned for psas role
-            $submissions = FormSubmission::with('formType')->get();
+            $submissions = FormSubmission::with('formType')
+                ->where('status', '!=', 'draft')
+                ->get();
 
             return response()->json($submissions);
         }
@@ -115,7 +118,7 @@ class SchoolFormsController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'fields' => 'required|array',
-            'fields.*.label' => 'required|string',
+            // 'fields.*.label' => 'required|string',
             'fields.*.type' => 'required|string',
             'fields.*.name' => 'required|string',
             'fields.*.required' => 'boolean',
@@ -131,7 +134,7 @@ class SchoolFormsController extends Controller
             FormField::create([
                 'form_type_id' => $formTypeId,
                 'field_data' => [
-                    'label' => $field['label'],
+                    // 'label' => $field['label'],
                     'type' => $field['type'],
                     'name' => $field['name'],
                     'options' => $field['options'] ?? [],
@@ -258,11 +261,12 @@ class SchoolFormsController extends Controller
         }
 
         // Prepare data
-        $formTypeName = e($submission->formType->name);
+        $formTypeName = e($submission->formType->title);
         $fields = $submission->submissionData->map(function ($item) {
+            $decoded = json_decode($item->answer_data, true);
             return [
                 'field_name' => $item->field_name,
-                'value' => json_decode($item->answer_data),
+                'value' => is_array($decoded) || is_string($decoded) ? $decoded : $item->answer_data,
             ];
         });
 
@@ -274,9 +278,33 @@ class SchoolFormsController extends Controller
 
         foreach ($fields as $field) {
             $value = is_array($field['value']) ? implode(', ', $field['value']) : $field['value'];
+
+            if (is_string($value) && preg_match('/^http.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i', $value)) {
+                $relativePath = parse_url($value, PHP_URL_PATH); // e.g. /storage/2x2/filename.png
+                $imagePath = public_path($relativePath);
+
+                if (file_exists($imagePath)) {
+                    $base64 = base64_encode(file_get_contents($imagePath));
+                    $ext = pathinfo($imagePath, PATHINFO_EXTENSION);
+                    $src = 'data:image/' . $ext . ';base64,' . $base64;
+                    $value = "<img src='{$src}' style='max-width:200px; max-height:200px;' />";
+                } else {
+                    $value = "{$relativePath}";
+                }
+            }
+
             $html .= '<div class="field">';
-            $html .= '<strong>' . e($field['field_name']) . ':</strong> ' . e($value);
+            $html .= '<strong>' . e($field['field_name']) . ':</strong>';
+
+            if (str_starts_with($value, '<img')) {
+                // Put the image on the next line
+                $html .= '<br>' . $value . '<br>' ;
+            } else {
+                $html .= ' ' . e($value);
+            }
+
             $html .= '</div>';
+
         }
 
         $html .= '</body></html>';
@@ -400,7 +428,7 @@ class SchoolFormsController extends Controller
         $validator = Validator::make($request->all(), [
             'fields' => 'required|array',
             'fields.*.id' => 'nullable',
-            'fields.*.label' => 'required|string',
+            // 'fields.*.label' => 'required|string',
             'fields.*.type' => 'required|string',
             'fields.*.name' => 'required|string',
             'fields.*.required' => 'boolean',
@@ -429,7 +457,7 @@ class SchoolFormsController extends Controller
                 $formField = FormField::find($field['id']);
                 $formField->update([
                     'field_data' => [
-                        'label' => $field['label'],
+                        // 'label' => $field['label'],
                         'type' => $field['type'],
                         'name' => $field['name'],
                         'options' => $field['options'] ?? [],

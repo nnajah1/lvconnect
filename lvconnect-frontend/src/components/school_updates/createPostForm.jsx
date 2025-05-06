@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { IoArrowBack } from "react-icons/io5";
-import SwitchComponent from "@/components/school_updates/modals/switch";
-import TooltipComponent from "@/components/school_updates/modals/tooltip";
+import SwitchComponent from "@/components/dynamic/switch";
+import TooltipComponent from "@/components/dynamic/tooltip";
 import { BsFillInfoCircleFill } from "react-icons/bs";
 import { createPost, updatePost, publishPost, syncToFacebook } from "@/services/axios"; // Import API function
 import TextEditor from "@/components/school_updates/textEditor"; // Quill Editor

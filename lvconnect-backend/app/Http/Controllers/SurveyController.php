@@ -7,7 +7,9 @@ use App\Models\User;
 use App\Models\SurveyAnswer;
 use App\Models\SurveyQuestion;
 use App\Models\SurveyResponse;
+use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class SurveyController extends Controller
@@ -28,7 +30,8 @@ class SurveyController extends Controller
 
         if ($user->hasRole('psas')) {
             // PSAS admin can see all surveys
-            return Survey::with('questions')->get();
+            return Survey::with('questions')
+                ->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -37,33 +40,76 @@ class SurveyController extends Controller
     /**
      * Store a newly created survey (by PSAS admin).
      */
-    public function store(Request $request)
+    public function storeSurveyWithQuestions(Request $request)
     {
         $user = JWTAuth::authenticate();
-
+    
         if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        $request->validate([
+    
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_visible' => 'boolean',
             'mandatory' => 'boolean',
+            'questions' => 'required|array',
+            'questions.*.type' => 'required|string',
+            'questions.*.question' => 'required|string',
+            'questions.*.is_required' => 'required|boolean',
+            'questions.*.order' => 'required|integer',
+            'questions.*.choices' => 'nullable|array',
+        ]);
+    
+        DB::beginTransaction();
+        try {
+            $survey = Survey::create([
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'created_by' => $user->id,
+                'is_visible' => $validated['is_visible'] ?? false,
+                'mandatory' => $validated['mandatory'] ?? false,
+            ]);
+    
+            foreach ($validated['questions'] as $q) {
+                SurveyQuestion::create([
+                    'survey_id' => $survey->id,
+                    'survey_question_type' => $q['type'],
+                    'question' => $q['question'],
+                    'survey_question_data' => json_encode([
+                        'choices' => $q['choices'] ?? [],
+                        // 'files' => [] 
+                    ]),
+                    'order' => $q['order'],
+                    'is_required' => $q['is_required'] ?? false,
+                ]);
+            }
+    
+            DB::commit();
+            return response()->json([
+                'message' => 'Survey and questions saved successfully.',
+                'survey_id' => $survey->id,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to save survey.'], 500);
+        }
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $survey = Survey::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'created_by' => $user->id,
-            'is_visible' => $request->is_visible ?? false,
-            'mandatory' => $request->mandatory ?? false,
-        ]);
+        $file = $request->file('image');
+        $path = $file->store('survey_images', 'public');
 
         return response()->json([
-            'message' => 'Survey created successfully.',
-            'survey' => $survey
-        ]);
+            'message' => 'Image uploaded successfully',
+            'file_path' => $path,
+            'url' => Storage::url($path),
+        ], 200);
     }
 
     /**
@@ -85,91 +131,177 @@ class SurveyController extends Controller
     /**
      * Update the specified survey.
      */
-    public function update(Request $request, string $id)
+    public function updateSurveyWithQuestions(Request $request, $id)
     {
         $user = JWTAuth::authenticate();
-        $survey = Survey::findOrFail($id);
-
+    
         if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
+    
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_visible' => 'boolean',
             'mandatory' => 'boolean',
+            'questions' => 'required|array',
+            'questions.*.id' => 'nullable', 
+            'questions.*.type' => 'required|string',
+            'questions.*.question' => 'required|string',
+            'questions.*.is_required' => 'required|boolean',
+            'questions.*.order' => 'required|integer',
+            'questions.*.choices' => 'nullable|array',
+            // 'questions.*.files' => 'nullable|array',
         ]);
-
-        $survey->update($request->only([
-            'title', 'description', 'is_visible', 'mandatory'
-        ]));
-
-        return response()->json([
-            'message' => 'Survey updated successfully.',
-            'survey' => $survey
-        ]);
+    
+        DB::beginTransaction();
+        try {
+            $survey = Survey::findOrFail($id);
+            $survey->update([
+                'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'is_visible' => $validated['is_visible'] ?? false,
+                'mandatory' => $validated['mandatory'] ?? false,
+            ]);
+    
+            $existingQuestionIds = [];
+    
+            foreach ($validated['questions'] as $q) {
+                // Prepare the question data
+                $questionData = [
+                    'survey_id' => $survey->id,
+                    'survey_question_type' => $q['type'],
+                    'question' => $q['question'],
+                    'order' => $q['order'],
+                    'is_required' => $q['is_required'] ?? false,
+                ];
+    
+                // Prepare the JSON data separately
+                $jsonData = [];
+                
+                // Handle choices for choice-based questions
+                if (isset($q['choices']) && is_array($q['choices'])) {
+                    $jsonData['choices'] = $q['choices'];
+                } else {
+                    $jsonData['choices'] = [];
+                }
+                
+                // Add the JSON encoded data
+                $questionData['survey_question_data'] = json_encode($jsonData);
+    
+                if (!empty($q['id'])) {
+                    // Update existing question
+                    $question = SurveyQuestion::find($q['id']);
+                    if ($question) {
+                        $question->update($questionData);
+                        $existingQuestionIds[] = $question->id;
+                    } else {
+                        // If ID provided but question not found, create new
+                        $question = SurveyQuestion::create($questionData);
+                        $existingQuestionIds[] = $question->id;
+                    }
+                } else {
+                    // New question
+                    $question = SurveyQuestion::create($questionData);
+                    $existingQuestionIds[] = $question->id;
+                }
+            }
+    
+            // Delete removed questions
+            SurveyQuestion::where('survey_id', $survey->id)
+                ->whereNotIn('id', $existingQuestionIds)
+                ->delete();
+    
+            DB::commit();
+            return response()->json(['message' => 'Survey updated successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'error' => 'Survey update failed.',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
+
 
     /**
      * For student submitted survey.
      */
 
-    public function submitResponse(Request $request)
-    {
-        $user = JWTAuth::authenticate();
+     public function submitResponse(Request $request)
+{
+    $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('student')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+    if (!$user->hasRole('student')) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    $validated = $request->validate([
+        'survey_id' => 'required|exists:surveys,id',
+        'answers' => 'required|array|min:1',
+        'answers.*.survey_question_id' => 'required|exists:survey_questions,id',
+        'answers.*.answer' => 'nullable|string',
+        'answers.*.img_url' => 'nullable|string',
+        'answers.*.taken_at' => 'nullable|date',
+    ]);
+
+    // Prevent duplicate submissions
+    $existing = SurveyResponse::where('survey_id', $validated['survey_id'])
+        ->where('student_information_id', $user->student_information_id)
+        ->exists();
+
+    if ($existing) {
+        return response()->json(['message' => 'You have already submitted this survey.'], 409);
+    }
+
+    // Load the survey with questions
+    $survey = Survey::with('questions')->findOrFail($validated['survey_id']);
+    $answers = collect($validated['answers']);
+
+    // Enforce required answers
+    foreach ($survey->questions as $question) {
+        if ($question->is_required) {
+            $answer = $answers->firstWhere('survey_question_id', $question->id);
+
+            $hasAnswer = $answer && (
+                ($question->survey_question_type === 'Upload Photo' && !empty($answer['img_url'])) ||
+                (!empty($answer['answer']))
+            );
+
+            if (!$hasAnswer) {
+                return response()->json([
+                    'message' => "Answer is required for question: {$question->question}"
+                ], 422);
+            }
         }
+    }
 
-        $validated = $request->validate([
-            'survey_id' => 'required|exists:surveys,id',
-            'answers' => 'required|array|min:1',
-            'answers.*.survey_question_id' => 'required|exists:survey_questions,id',
-            'answers.*.answer' => 'nullable|string',
-            'answers.*.img_url' => 'nullable|string',
-        ]);
+    // Create survey response
+    $response = SurveyResponse::create([
+        'survey_id' => $validated['survey_id'],
+        'student_information_id' => $user->student_information_id,
+        'submitted_at' => now(),
+    ]);
 
-        // Prevent duplicate submissions
-        $existing = SurveyResponse::where('survey_id', $validated['survey_id'])
-            ->where('student_information_id', $user->student_information_id)
-            ->first();
-
-        if ($existing) {
-            return response()->json(['message' => 'You have already submitted this survey.'], 409);
-        }
-
-        // Create survey response record
-        $response = SurveyResponse::create([
+    // Save each answer
+    foreach ($validated['answers'] as $answerData) {
+        SurveyAnswer::create([
             'survey_id' => $validated['survey_id'],
+            'survey_question_id' => $answerData['survey_question_id'],
             'student_information_id' => $user->student_information_id,
-            'submitted_at' => now(),
-        ]);
-
-        // Save each answer
-        foreach ($validated['answers'] as $answerData) {
-            SurveyAnswer::create([
-                'survey_response_id' => $response->id,
-                'survey_question_id' => $answerData['survey_question_id'],
-                'student_information_id' => $user->student_information_id,
-                'answer' => $answerData['answer'] ?? null,
-                'img_url' => $answerData['img_url'] ?? null,
-            ]);
-        }
-
-        // Mark the survey as completed (status = true)
-        $survey = Survey::find($validated['survey_id']);
-        if ($survey) {
-            $survey->status = true;
-            $survey->save();
-        }
-
-        return response()->json([
-            'message' => 'Survey submitted successfully.',
-            'response_id' => $response->id,
+            'answer' => $answerData['answer'] ?? null,
+            'img_url' => $answerData['img_url'] ?? null,
+            'taken_at' => $answerData['taken_at'] ?? null,
+            'created_at' => now(),
         ]);
     }
+
+    return response()->json([
+        'message' => 'Survey submitted successfully.',
+        'response_id' => $response->id,
+    ]);
+}
 
 
     /**
