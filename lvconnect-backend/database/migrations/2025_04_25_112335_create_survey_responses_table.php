@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('student_information_id');
             $table->unsignedBigInteger('survey_id');
-            $table->timestamp('submmitted_at');
+            $table->timestamp('submitted_at');
             $table->timestamps();
 
             $table->foreign('survey_id')->references('id')->on('surveys')->onDelete('cascade');

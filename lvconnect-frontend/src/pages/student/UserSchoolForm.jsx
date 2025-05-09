@@ -59,7 +59,7 @@ const VisibleForms = ({ userRole }) => {
     return (
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold mb-4">School Services</h1>
+          <h1 className="text-2xl font-bold mb-4">Student Services</h1>
           {/* Search Input */}
           <div className="relative w-96">
             <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />

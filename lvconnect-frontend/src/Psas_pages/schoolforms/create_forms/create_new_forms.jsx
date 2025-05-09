@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { X, Upload, Trash2 } from "lucide-react";
-import SchoolLogo from "../psas_assets/image.png";
-import "../psas_styling/create_new_form.css"; 
+import SchoolLogo from "../../psas_assets/image.png";
+import "../../psas_styling/create_new_form.css"; 
 
-export default function CreateNewForms() {
+export default function CreateNewFormsz() {
   const [isOpen, setIsOpen] = useState(true);
   const [inputFields, setInputFields] = useState([
     { id: Date.now(), value: "" },

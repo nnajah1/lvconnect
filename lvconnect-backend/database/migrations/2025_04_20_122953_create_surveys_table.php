@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('surveys', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('description');
-            $table->boolean('status');
+            $table->text('description')->nullable();
             $table->unsignedBigInteger('created_by');
             $table->boolean('is_visible');
             $table->boolean('mandatory');

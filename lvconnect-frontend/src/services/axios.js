@@ -39,20 +39,22 @@ export const getPostById = async (id) => {
 export const uploadImages = async (imageFiles) => {
   const formData = new FormData();
 
-  // Wrap the single image in an array 
   const filesToUpload = Array.isArray(imageFiles) ? imageFiles : [imageFiles];
 
-  // Add each image file to the FormData object
-  filesToUpload.forEach((file) => formData.append('images[]', file));
+  filesToUpload.forEach((file) => {
+    formData.append('images[]', file); // Backend must expect "images[]"
+  });
 
   try {
-    const response = await api.post("/upload-images", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+    const response = await api.post('/upload-images', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
 
-    return response.data.image_urls; // Return the image URLs
+    return response.data.image_urls; // Example: ['url1', 'url2']
   } catch (error) {
-    console.error("Image upload failed", error);
+    console.error('Image upload failed:', error);
     throw error;
   }
 };

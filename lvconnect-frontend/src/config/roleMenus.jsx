@@ -8,7 +8,8 @@ export const roleMenus = {
     { name: "Enrollment", path: "/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
     { name: "Grades", path: "/grades", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
     { name: "SOA", path: "/soa", solidIcon: HiClipboardDocumentList, outlineIcon: HiOutlineClipboardDocumentList },
-    { name: "Student Services", path: "/services", solidIcon: RiGraduationCapFill, outlineIcon: RiGraduationCapLine },
+    { name: "Student Services", path: "/student-services", solidIcon: RiGraduationCapFill, outlineIcon: RiGraduationCapLine },
+    { name: "Surveys", path: "/surveys", solidIcon: RiGraduationCapFill, outlineIcon: RiGraduationCapLine },
   ],
   comms: [
     { name: "Dashboard", path: "/comms-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
@@ -21,7 +22,7 @@ export const roleMenus = {
   ],
   psas: [
     { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Survey", path: "psas-admin/survey", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Survey", path: "psas-admin/surveys", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
     { name: "School Forms", path: "psas-admin/forms", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
   ],
 };

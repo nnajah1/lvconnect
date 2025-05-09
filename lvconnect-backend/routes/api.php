@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\SchoolFormsController;
+use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\OAuthController;
@@ -50,7 +51,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
     Route::delete('/posts/{post}', [SchoolUpdateController::class, 'destroy']);
 
-    
+
     Route::post('/forms', [SchoolFormsController::class, 'store']);
     Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
     Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
@@ -70,6 +71,16 @@ Route::middleware('auth.jwt')->group(function () {
     Route::put('/forms/submissions/{id}', [SchoolFormsController::class, 'reviewSubmission']);
     Route::put('/submissions/{id}', [SchoolFormsController::class, 'updateDraftForm']);
     Route::delete('/forms/{id}', [SchoolFormsController::class, 'destroy']);
+
+
+    Route::get('surveys', [SurveyController::class, 'index']);
+    Route::get('/surveys/{id}', [SurveyController::class, 'show']);
+
+    Route::post('/survey', [SurveyController::class, 'storeSurveyWithQuestions']);
+    Route::post('/survey-responses', [SurveyController::class, 'submitResponse']);
+    Route::post('/upload-image', [SurveyController::class, 'uploadImage']);
+
+    Route::put('/surveys/{id}', [SurveyController::class, 'updateSurveyWithQuestions']);
 });
 
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);

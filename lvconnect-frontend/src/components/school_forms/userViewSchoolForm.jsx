@@ -3,7 +3,6 @@ import { downloadSubmission, getSubmittedFormById, reviewSubmission } from '@/se
 import { useForms } from '@/context/FormsContext';
 import { toast } from 'react-toastify';
 import StudentEditForm from './userSubmitForm';
-import 'quill/dist/quill.snow.css';
 import { Button } from '../ui/button';
 
 const ShowSubmission = ({ formId, userRole }) => {
@@ -153,7 +152,7 @@ const ShowSubmission = ({ formId, userRole }) => {
 
 
       {/* Admin Review Section for PSAS only */}
-      {userRole === 'psas' && (
+      {userRole === 'psas'&& status === 'pending' && (
         <div className="mt-6 p-4 border rounded-md bg-gray-50 space-y-4">
           <h3 className="text-lg font-semibold">Admin Review</h3>
           <textarea

@@ -8,7 +8,7 @@ export const extractFieldsFromText = (text) => {
       let match, field;
       if ((match = line.match(/^(.+?):\s*(?:_{2,}|\.\.\.\.)?/))) {
         const label = match[1].trim();
-        const name = label.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+        const name = label;
 
         field = {
           id: crypto.randomUUID(),
@@ -25,7 +25,7 @@ export const extractFieldsFromText = (text) => {
         modifiedLines.push(`${label}: {{${name}}}`);
       } else if ((match = line.match(/^(.+?):\s*\[ \]$/))) {
         const label = match[1].trim();
-        const name = label.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+        const name = label;
 
         field = {
           id: crypto.randomUUID(),
@@ -42,7 +42,7 @@ export const extractFieldsFromText = (text) => {
         modifiedLines.push(`${label}: {{${name}}}`);
       } else if ((match = line.match(/^(.+?):\s*\( \)$/))) {
         const label = match[1].trim();
-        const name = label.toLowerCase().replace(/[^a-z0-9]/gi, '_');
+        const name = label;
 
         field = {
           id: crypto.randomUUID(),

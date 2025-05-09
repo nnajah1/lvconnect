@@ -4,10 +4,10 @@ import {
   QUESTION_TYPES,
   isChoiceBased,
   createEmptyQuestion,
-} from "./questionconfig";
-import "@/Psas_pages/psas_styling/create_new_survey";
+} from "../../../utils/surveyUtils";
+import "@/Psas_pages/psas_styling/create_new_survey.css";
 
-export default function CreateForm() {
+export default function CreateFormation() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState([]);

@@ -16,8 +16,10 @@ return new class extends Migration
             $table->unsignedBigInteger('survey_id');
             $table->unsignedBigInteger('student_information_id');
             $table->unsignedBigInteger('survey_question_id');
-            $table->string('img_url');
-            $table->timestamp('created_at');
+            $table->text('answer')->nullable();
+            $table->string('img_url')->nullable();
+            $table->timestamp('taken_at')->nullable();
+            $table->timestamp('created_at')->useCurrent();
 
             $table->foreign('survey_id')->references('id')->on('surveys')->onDelete('cascade');
             $table->foreign('survey_question_id')->references('id')->on('survey_questions')->onDelete('cascade');
