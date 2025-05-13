@@ -38,7 +38,7 @@ export default function StudentInformationForm() {
       <h1 className="student-form-title">Enrollment</h1>
 
       <div className="student-form-container">
-        <div className="student-form-header">School Year 2024–2025</div>
+        <div className="student-form-header">School Year: {schoolyear}</div>
 
         <div className="student-form-content">
           {step === 1 && (
