@@ -18,10 +18,10 @@ return new class extends Migration
             $table->unsignedBigInteger('enrollment_schedule_id');
             $table->integer('year_level');
             $table->boolean('privacy_policy');
-            $table->enum('enrollment_status', ['pending', 'enrolled', 'rejected']);
+            $table->enum('enrollment_status', ['pending', 'enrolled', 'not_enrolled', 'rejected']);
             $table->string('admin_remarks');
             $table->timestamp('submission_date');
-            $table->timestamp('updated_at');
+            $table->timestamps();
         });
     }
 

@@ -13,15 +13,13 @@ return new class extends Migration
     {
         Schema::create('form_submission_data', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('form_submission_id');
-            $table->unsignedBigInteger('form_field_id');
+            $table->foreignId('form_submission_id')->constrained('form_submissions')->onDelete('cascade');
+            $table->foreignId('form_field_id')->constrained('form_fields')->onDelete('cascade');
             $table->string('field_name');
             $table->json('answer_data')->nullable();
             $table->boolean('is_verified');
             $table->timestamps();
 
-            $table->foreign('form_submission_id')->references('id')->on('form_submissions')->onDelete('cascade');
-            $table->foreign('form_field_id')->references('id')->on('form_fields')->onDelete('cascade');
         });
     }
 

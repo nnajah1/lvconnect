@@ -25,4 +25,9 @@ export const roleMenus = {
     { name: "Survey", path: "psas-admin/surveys", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
     { name: "School Forms", path: "psas-admin/forms", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
   ],
+  registrar: [
+    { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
+    { name: "Enrollment", path: "psas-admin/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Student Information Management", path: "psas-admin/student-information", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+  ],
 };

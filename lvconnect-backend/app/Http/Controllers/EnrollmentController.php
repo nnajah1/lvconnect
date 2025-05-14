@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EnrolleeRecord;
+use App\Models\StudentInformation;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class EnrollmentController extends Controller
 {
@@ -11,7 +14,20 @@ class EnrollmentController extends Controller
      */
     public function index()
     {
-        //
+         $user = JWTAuth::authenticate();
+
+        if ($user->hasRole('student')) {
+            return EnrolleeRecord::where('id', $user->id)
+                ->get();
+        }
+
+        if ($user->hasRole('psas')) { //change to registrar
+            return StudentInformation::with('enrolleeRecord')
+                ->get();
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+   
     }
 
     /**

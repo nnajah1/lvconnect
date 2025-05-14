@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('religion');
             $table->string('lrn');
             $table->string('fb_link');
-            $table->enum('student_type',['', '']);
+            $table->enum('student_type',['regular', 'irregular']);
             $table->string('government_subsidy');
             $table->string('scholarship_status');
             $table->string('last_school_attended');

@@ -15,12 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->unsignedBigInteger('created_by');
-            $table->boolean('is_visible');
-            $table->boolean('mandatory');
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->enum('visibility_mode', ['hidden', 'optional', 'mandatory'])->default('hidden');
             $table->timestamps();
-
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

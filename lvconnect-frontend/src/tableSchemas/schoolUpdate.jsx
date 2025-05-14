@@ -10,15 +10,15 @@ export const schoolUpdateSchema = {
 export const actions =  (handleViewPost) => ( {
     view: {
         fn: handleViewPost,
-        variant: "default"
+        variant:() => "default"
     },
     edit: {
         fn: (id, item) => console.log(`Editing item ${id}:`, item),
-        variant: "outline"
+        variant:() => "outline"
     },
     delete: {
         fn: (id, item) => console.log(`Deleting item ${id}:`, item),
-        variant: "destructive"
+        variant:() => "destructive"
     }
 });
 

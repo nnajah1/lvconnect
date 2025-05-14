@@ -1,13 +1,11 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
-import UserFormView from "@/components/school_forms/userSubmitForm"
-import ConfirmationModal from "@/components/school_forms/confirmationModal";
-import { useState } from "react";
-import StudentEditForm from "@/components/school_forms/userSubmitForm";
+import ConfirmationModal from "@/components/dynamic/alertModal";
 import SurveyAnswerView from "@/components/survey/userSubmitSurvey";
+import { useState } from "react";
 
-const UserCreateSurveyModal = ({ isOpen, closeModal, formItem, }) => {
+const UserCreateSurveyModal = ({ isOpen, closeModal, formItem }) => {
 
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -32,28 +30,27 @@ const UserCreateSurveyModal = ({ isOpen, closeModal, formItem, }) => {
             ) : (
                 <DynamicModal isOpen={isOpen}
                     closeModal={closeModal}
-                    showCloseButton={false}
-                    title="Create New School Form"
-                    description="Fill out the form below to update a school form."
+                    title="Submit Survey"
+                    description="Fill out the survey."
                     showTitle={false}
                     showDescription={false}
                     className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <SurveyAnswerView closeModal={closeModal} onSuccess={handleSuccess} surveyId={formItem.id} />
+                    <SurveyAnswerView isOpen={isOpen} closeModal={closeModal} onSuccess={handleSuccess} surveyId={formItem.id} />
 
                 </DynamicModal>
             )}
 
-                <ConfirmationModal
-                
-                    isOpen={isSuccessModalOpen}
-                    closeModal={() => setIsSuccessModalOpen(false)}
-                    title="The School Form is updated"
-                    description="The School Form has been successfully updated."
-                >
-                    Manage School Forms
-                </ConfirmationModal>
-            
+            <ConfirmationModal
+
+                isOpen={isSuccessModalOpen}
+                closeModal={() => setIsSuccessModalOpen(false)}
+                title="The School Form is updated"
+                description="The School Form has been successfully updated."
+            >
+                Manage School Forms
+            </ConfirmationModal>
+
 
 
         </>

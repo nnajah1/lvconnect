@@ -13,16 +13,12 @@ return new class extends Migration
     {
         Schema::create('survey_answers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('survey_id');
-            $table->unsignedBigInteger('student_information_id');
-            $table->unsignedBigInteger('survey_question_id');
+            $table->foreignId('survey_response_id')->constrained('survey_responses')->onDelete('cascade');
+            $table->foreignId('survey_question_id')->constrained('survey_questions')->onDelete('cascade');
             $table->text('answer')->nullable();
             $table->string('img_url')->nullable();
             $table->timestamp('taken_at')->nullable();
             $table->timestamp('created_at')->useCurrent();
-
-            $table->foreign('survey_id')->references('id')->on('surveys')->onDelete('cascade');
-            $table->foreign('survey_question_id')->references('id')->on('survey_questions')->onDelete('cascade');
         });
     }
 

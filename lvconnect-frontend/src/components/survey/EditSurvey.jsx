@@ -6,11 +6,11 @@ import SurveyBuilder from './SurveyBuilder';
 import {
   isChoiceBased,
 } from '@/utils/surveyUtils';
+import { toast } from 'react-toastify';
 
-const EditSurvey = ({ surveyId, onSuccess }) => {
+const EditSurvey = ({ surveyId, closeModal, onDelete }) => {
   const [surveyData, setSurveyData] = useState(null);
   const [questions, setQuestions] = useState([]);
-  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ const EditSurvey = ({ surveyId, onSuccess }) => {
         setQuestions(transformedQuestions);
       } catch (err) {
         console.error('Error loading survey:', err);
-        setError('Failed to load survey');
+        toast.error('Failed to load survey');
       } finally {
         setIsLoading(false);
       }
@@ -62,14 +62,12 @@ const EditSurvey = ({ surveyId, onSuccess }) => {
   const handleUpdate = async (updatedSurvey, updatedQuestions) => {
     try {
       
-      setError(null);
       setIsLoading(true);
       
       const payload = {
         title: updatedSurvey.title,
         description: updatedSurvey.description,
-        is_visible: updatedSurvey.is_visible ? true : false,
-        mandatory: updatedSurvey.mandatory ? true : false,
+        visibility_mode: updatedSurvey.visibility_mode ?? 'hidden',
         questions: updatedQuestions.map(q => {
           const questionData = {
             id: q.id, 
@@ -89,15 +87,14 @@ const EditSurvey = ({ surveyId, onSuccess }) => {
       };
 
       const response = await updateSurvey(surveyId, payload);
-      
-      if (onSuccess) onSuccess();
+      toast.success('Survey updated successfully');
       return response.data;
     } catch (err) {
       console.error('Update error:', err);
       const errorMessage = err.response?.data?.message || 
                          err.response?.data?.errors?.title?.[0] || 
                          'Failed to update survey';
-      setError(errorMessage);
+      toast.error(errorMessage);
       throw err;
     } finally {
       setIsLoading(false);
@@ -108,18 +105,14 @@ const EditSurvey = ({ surveyId, onSuccess }) => {
     return <div className="text-center py-10">Loading survey...</div>;
   }
 
-  if (error && !surveyData) {
-    return <div className="text-red-500 text-center py-10">{error}</div>;
-  }
-
   return (
     <SurveyBuilder
       mode="edit"
       initialData={surveyData}
       initialQuestions={questions}
       onSubmit={handleUpdate}
-      error={error}
-      onSuccess={onSuccess}
+      onDelete={onDelete}
+      closeModal={closeModal}
     />
   );
 };

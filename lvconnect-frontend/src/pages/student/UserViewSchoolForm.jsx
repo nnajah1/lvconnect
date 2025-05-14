@@ -1,7 +1,7 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
-import ConfirmationModal from "@/components/school_forms/confirmationModal";
+import ConfirmationModal from "@/components/dynamic/alertModal";
 import ShowSubmission from "@/components/school_forms/userViewSchoolForm";
 import { useAuthContext } from "@/context/AuthContext";
 

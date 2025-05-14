@@ -2,7 +2,7 @@
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
 import FormBuilder from "@/components/school_forms/FormBuilder";
-import ConfirmationModal from "@/components/school_forms/confirmationModal";
+import ConfirmationModal from "@/components/dynamic/alertModal";
 import { useState } from "react";
 
 const CreateFormModal = ({ isOpen, closeModal }) => {

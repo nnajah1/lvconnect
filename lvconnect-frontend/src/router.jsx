@@ -22,6 +22,10 @@ import StudentView from "./components/school_forms/userSubmitForm";
 import Surveys from "./pages/admins/psas/Surveys";
 import VisibleSurveys from "./pages/student/UserSurvey";
 import CreateNewFormsz from "./Psas_pages/schoolforms/create_forms/create_new_forms";
+import Psos from "./Psas_pages/schoolforms/view_weather_response";
+import InclementWeatherForm from "./student_pages/student_response/weather_response";
+import SurveyResponses from "./pages/admins/psas/SurveyResponses";
+import Enrollment from "./pages/registrar/Enrollment";
 
 
 
@@ -96,6 +100,16 @@ const router = createBrowserRouter([
                     { index: true, element: <PsasDashboard /> },
                     { path: "forms", element: <Forms /> },
                     { path: "surveys", element: <Surveys /> },
+                    { path: "survey-responses/:surveyId", element: <SurveyResponses /> },
+                ],
+            },
+             {
+                path: "psas-admin",
+                element: <ProtectedRoute allowedRoles={["psas"]} />,
+                children: [
+                    { index: true, element: <AdminDashboard /> },
+                    { path: "enrollment", element: <Enrollment /> },
+                    { path: "student-information", element: <ArchivePosts /> },
                 ],
             },
 
@@ -103,7 +117,7 @@ const router = createBrowserRouter([
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
     { path: "/trial", element: <StudentView /> },
-    { path: "/app", element: <CreateNewFormsz /> }
+    { path: "/app", element: <InclementWeatherForm /> }
 
 
 

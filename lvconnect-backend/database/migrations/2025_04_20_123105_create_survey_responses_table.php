@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('survey_responses', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('student_information_id');
-            $table->unsignedBigInteger('survey_id');
+            $table->foreignId('survey_id')->constrained('surveys')->onDelete('cascade');
             $table->timestamp('submitted_at');
             $table->timestamps();
-
-            $table->foreign('survey_id')->references('id')->on('surveys')->onDelete('cascade');
+            
+            // $table->foreign('student_information_id')->references('id')->on('student_information')->onDelete('cascade');
         });
     }
 
