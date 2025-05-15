@@ -9,28 +9,27 @@ import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
 import EditFormModal from "@/pages/admins/psas/EditForm";
 import UserViewFormModal from "@/pages/student/UserViewSchoolForm";
-import { getEnrollees } from "@/services/enrollmentAPI";
+import { bulkDeleteEnrollment, bulkExportEnrollment, bulkRemindEnrollment, getEnrollees} from "@/services/enrollmentAPI";
 import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
+import AcademicYear from "@/components/enrollment/academicYear";
 
 
 const Enrollment = ({ userRole }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [survey, setSurvey] = useState([]);
+  const [enrollment, setEnrollment] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [item, setItem] = useState(null);
   const [acceptItem, setAcceptItem] = useState(null);
   const [rejectItem, setRejectItem] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [globalFilter, setGlobalFilter] = useState("");
-  const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
-
   useEffect(() => {
     const loadSurveys = async () => {
       const data = await getEnrollees();
-      setSurvey(data);
+      setEnrollment(data);
     };
     loadSurveys();
   }, []);
@@ -40,26 +39,28 @@ const Enrollment = ({ userRole }) => {
   const openRejectModal = (item) => setRejectItem(item);
 
   const actionMap = actions(openModal, openAcceptModal, openRejectModal, activeTab);
-
   const filteredData = useMemo(() => {
+    
     switch (activeTab) {
       case "pending":
-        return survey.filter((s) => s.status === "pending");
+        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "pending");
       case "enrolled":
-        return survey.filter((s) => s.status === "enrolled");
+        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "enrolled");
       case "not_enrolled":
-        return survey.filter((s) => s.status === "not_enrolled");
+        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "not_enrolled");
+      case "rejected":
+        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "rejected");
       default:
-        return survey;
+        return enrollment;
     }
-  }, [activeTab, survey]);
+  }, [activeTab, enrollment]);
 
   const getBulkActions = (tab) => {
     switch (tab) {
       case "pending":
         return [
           { label: "Approve Selected", onClick: handleBulkApprove },
-          { label: "Delete Selected", onClick: handleBulkDelete },
+          // { label: "Delete Selected", onClick: handleBulkDelete },
         ];
       case "enrolled":
         return [{ label: "Export Selected", onClick: handleBulkExport }];
@@ -67,6 +68,11 @@ const Enrollment = ({ userRole }) => {
         return [
           { label: "Send Reminder", onClick: handleBulkRemind },
           { label: "Delete Selected", onClick: handleBulkDelete },
+        ];
+      case "rejected":
+        return [
+          { label: "Send Reminder", onClick: handleBulkRemind },
+          // { label: "Delete Selected", onClick: handleBulkDelete },
         ];
       default:
         return;
@@ -85,19 +91,28 @@ const Enrollment = ({ userRole }) => {
     showSelectionColumn: activeTab !== "all",
   });
 
-  const handleBulkApprove = (items) => console.log("Approve", items);
-  const handleBulkDelete = (items) => console.log("Delete", items);
-  const handleBulkExport = (items) => console.log("Export", items);
-  const handleBulkRemind = (items) => console.log("Remind", items);
-  const handleAccept = () => console.log("Accepted");
-  const handleReject = () => console.log("Rejected");
+  const handleBulkApprove = async (items) => {
+  const ids = items.map((item) => item.id);
+  await bulkApproveEnrollment(ids);
+};
 
-  const toggleEnrollment = () => {
-    setIsEnrollmentOpen((prev) => !prev);
+const handleBulkDelete = async (items) => {
+  const ids = items.map((item) => item.id);
+  await bulkDeleteEnrollment(ids);
+};
 
-    // make API call or trigger action here
-    // await updateEnrollmentStatus(!isEnrollmentOpen);
-  };
+const handleBulkExport = async (items) => {
+  const ids = items.map((item) => item.id);
+  const response = await bulkExportEnrollment(ids);
+  // Trigger file download if needed
+  console.log("Exported Data:", response.data);
+};
+
+const handleBulkRemind = async (items) => {
+  const ids = items.map((item) => item.id);
+  await bulkRemindEnrollment(ids);
+};
+
 
   return (
     <div className="container mx-auto p-4">
@@ -105,16 +120,8 @@ const Enrollment = ({ userRole }) => {
         <h1 className="text-2xl font-bold">Enrollment</h1>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
-
-      <div className="flex justify-end gap-4 mb-4">
-        <button
-          onClick={toggleEnrollment}
-          className={`px-4 py-2 rounded text-white ${isEnrollmentOpen ? "bg-[#dd2c2c]" : "bg-[#2CA4DD]"
-            }`}
-        >
-          {isEnrollmentOpen ? "Close Enrollment" : "Open Enrollment"}
-        </button>
-      </div>
+      
+      <div className="pb-6"><AcademicYear /></div>
 
       <DynamicTabs
         tabs={[
@@ -122,6 +129,7 @@ const Enrollment = ({ userRole }) => {
           { label: "Pending", value: "pending" },
           { label: "Enrolled", value: "enrolled" },
           { label: "Not Enrolled", value: "not_enrolled" },
+          { label: "Rejected", value: "rejected" },
         ]}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -136,7 +144,7 @@ const Enrollment = ({ userRole }) => {
 
 
       {item && (
-        navigate(`/psas-admin/survey-responses/${item.id}`, {
+        navigate(`/psas-admin/student-information/${item.id}`, {
           state: { from: location.pathname }
         })
       )}

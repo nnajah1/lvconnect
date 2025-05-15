@@ -1,7 +1,7 @@
 
 import FormField from "./formfield"
 import SectionHeader from "./header_section"
-import "../registrar_styling/student_information.css"
+import "./../registrar_styling/student_information.css"
 
 export default function GuardianInfoComponent({
   title,
