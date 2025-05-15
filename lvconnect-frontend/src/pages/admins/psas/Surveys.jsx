@@ -1,13 +1,15 @@
-"use client"; // Mark as a Client Component
+"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { getSurveys } from "@/services/surveyAPI";
-import { actionConditions, actions, surveySchema } from "@/tableSchemas/survey" ;
+import { actionConditions, actions, surveySchema } from "@/tableSchemas/survey";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateSurveyModal from "./CreateSurvey";
 import EditSurveyModal from "./EditSurvey";
+import { Navigate } from "react-router-dom";
+import { ConfirmationModal } from "@/components/dynamic/alertModal";
 
 const Surveys = ({ userRole }) => {
   const [survey, setSurvey] = useState([]);
@@ -15,16 +17,22 @@ const Surveys = ({ userRole }) => {
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [formItem, setFormItem] = useState(null);
-
+  const [responseItem, setresponseItem] = useState(null);
   
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
   const openModal = (item) => {
-    setFormItem(item); 
+    setFormItem(item);
+  };
+
+  const openResponseModal = (item) => {
+    setresponseItem(item);
   };
 
   const columns = getColumns({
     userRole,
     schema: surveySchema,
-    actions: actions(openModal),
+    actions: actions(openModal, openResponseModal),
     actionConditions: actionConditions
 
   });
@@ -77,12 +85,32 @@ const Surveys = ({ userRole }) => {
       {/* Modals */}
       <CreateSurveyModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
       {formItem && (
-              <EditSurveyModal
-                isOpen={!!formItem}
-                closeModal={() => setFormItem(false)}
-                formItem={formItem}
-              />
-            )}
+        <EditSurveyModal
+          isOpen={!!formItem}
+          closeModal={() => setFormItem(null)}
+          formItem={formItem}
+          onDeleteModal={() => setIsSuccessModalOpen(true)}
+        />
+      )}
+
+      <ConfirmationModal
+        isOpen={isSuccessModalOpen}
+        closeModal={() => setIsSuccessModalOpen(false)}
+        title="Survey Deleted"
+        description="The survey has been successfully deleted."
+      >
+        <button
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          onClick={() => setIsSuccessModalOpen(false)}
+        >
+          Back to Surveys
+        </button>
+      </ConfirmationModal>
+
+      {responseItem && (
+        <Navigate to={`/psas-admin/survey-responses/${responseItem.id}`} />
+      )}
+
 
     </div>
   );

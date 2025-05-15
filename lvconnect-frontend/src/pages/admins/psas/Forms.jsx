@@ -19,6 +19,8 @@ const Forms = ({ userRole }) => {
 
   const [formItem, setFormItem] = useState(null);
   const [submittedItem, setSubmittedItem] = useState(null);
+  
+    const [activeTab, setActiveTab] = useState("form Template");
 
   const openFormModal = (item) => {
     setFormItem(item); // full item, not just id
@@ -89,7 +91,9 @@ const Forms = ({ userRole }) => {
         </button>
       </div>
 
-      <DynamicTabs tabs={tabs} />
+      <DynamicTabs tabs={tabs} activeTab={activeTab}
+        onTabChange={setActiveTab}
+        className="mb-2"/>
 
       {/* Modals */}
       <CreateFormModal isOpen={isOpen} closeModal={() => setIsOpen(false)} fetchForms={fetchForms} fetchSubmitted={fetchSubmitted} />

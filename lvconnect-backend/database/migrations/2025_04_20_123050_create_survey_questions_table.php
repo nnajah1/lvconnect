@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('survey_questions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('survey_id');
+            $table->foreignId('survey_id')->constrained('surveys')->onDelete('cascade');
             $table->string('survey_question_type');
             $table->text('question');
             $table->json('survey_question_data');
@@ -21,7 +21,6 @@ return new class extends Migration
             $table->boolean('is_required')->default(false);
             $table->timestamps();
 
-            $table->foreign('survey_id')->references('id')->on('surveys')->onDelete('cascade');
         });
     }
 

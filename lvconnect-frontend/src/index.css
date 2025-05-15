@@ -4,24 +4,46 @@
 /* ---break---*/
 @custom-variant dark (&:is(.dark *));
 
-* {
-    box-sizing: border-box;
+/* 1. Box sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
+
+/* 2. Full height for layout containers */
 html, body, #root, #defaultLayout, #guestLayout {
-    min-height: 100vh;
+  min-height: 100vh;
 }
 
+/* 3. Remove default margins from text elements */
 h1, h2, h3, h4, h5, h6, p {
-    margin: 0;
+  margin: 0;
 }
 
+/* 4. Base body styles */
 body {
-    font-family: 'Open Sans', sans-serif;
-    margin: 0;
-    padding: 0;
-    font-size: 14px;
-    color: #212121;
-    background-color: #f6f6f6;
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  color: #212121;
+  background-color: #f6f6f6;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 5. Responsive typography */
+@media (max-width: 768px) {
+  body {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 12px;
+  }
 }
 
 input {

@@ -10,11 +10,10 @@ class SurveyResponse extends Model
     use HasFactory;
 
     protected $fillable = [
-        'student_information_id',
         'survey_id',
+        'student_information_id',
         'submitted_at',
     ];
-
     protected $dates = [
         'submitted_at',
     ];
@@ -23,7 +22,8 @@ class SurveyResponse extends Model
 
     public function student()
     {
-        return $this->belongsTo(StudentInformation::class, 'student_information_id');
+        // return $this->belongsTo(StudentInformation::class, 'student_information_id');
+        return $this->belongsTo(User::class, 'student_information_id');
     }
 
     public function survey()

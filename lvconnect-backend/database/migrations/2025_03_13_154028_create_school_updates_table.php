@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('school_updates', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('created_by'); // comms officer
-            $table->unsignedBigInteger('approved_by')->nullable(); // school admin
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('type', ['announcement', 'event']); 
             $table->string('title');
             $table->text('content');
@@ -29,9 +29,6 @@ return new class extends Migration
             $table->timestamp('archived_at')->nullable();
             $table->boolean('is_urgent')->default(false);
             $table->timestamps();
-        
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
         });
         
     }

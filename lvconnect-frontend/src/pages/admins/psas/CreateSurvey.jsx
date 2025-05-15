@@ -1,7 +1,7 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
-import ConfirmationModal from "@/components/school_forms/confirmationModal";
+import ConfirmationModal, { InfoModal } from "@/components/dynamic/alertModal";
 import SurveyBuilder from "@/components/survey/SurveyBuilder";
 import { useState } from "react";
 
@@ -49,12 +49,17 @@ const CreateSurveyModal = ({ isOpen, closeModal }) => {
             <ConfirmationModal
                 isOpen={isSuccessModalOpen}
                 closeModal={() => setIsSuccessModalOpen(false)}
-                title="The School Form is created"
-                description="The School Form has been successfully created."
+                title="The Survey is created"
+                description="The Survey has been successfully created."
             >
-                Manage School Forms
+                <button
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    onClick={() => setIsSuccessModalOpen(false)}
+                >
+                    Manage Surveys
+                </button>
             </ConfirmationModal>
-
+            
         </>
     );
 };

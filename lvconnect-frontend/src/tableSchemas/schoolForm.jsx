@@ -23,9 +23,9 @@ export const schoolFormSubmittedSchema = {
 
 export const formActions = (openFormModal) => ({
     update: {
-        icon: <Pencil size={18} />,
+        icon:() => <Pencil size={18} />,
         fn: (id, item) => openFormModal(item), 
-        variant: "ghost",
+        variant:() => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
 
@@ -38,9 +38,9 @@ export const formActionConditions = {
 
 export const formSubmitActions = (openSubmittedModal) => ({
     view: {
-        icon: <Eye size={20}/>,
+        icon:() => <Eye size={20}/>,
         fn: (id, item) =>  openSubmittedModal(item),
-        variant: "ghost",
+        variant:() => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
 

@@ -6,16 +6,39 @@ import { ImFilePicture } from "react-icons/im";
 import "@/Psas_pages/psas_styling/view_weather_response.css";
 
 
-export default function psas_WeatherResponse() {
+export default function Psos({}) {
   
- 
+
   const [otherWeatherCondition, setOtherWeatherCondition] = useState("");
   const [weatherConditions, setWeatherConditions] = useState({});
   const [evacuationStatus, setEvacuationStatus] = useState(null);
   const [textareas, setTextareas] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [enableResponses, setEnableResponses] = useState(true);
-
+  const formData = {
+    questions: [
+      {
+        id: "q1",
+        text: "What is your name?",
+        type: "text",
+        required: true,
+        answer: ""
+      },
+      {
+        id: "q2",
+        text: "How old are you?",
+        type: "number",
+        required: true,
+        answer: ""
+      },
+      {
+        id: "q3",
+        text: "What is your email address?",
+        type: "email",
+        required: true,
+        answer: ""
+      }
+    ]};
 
   const handleWeatherConditionChange = (condition) => {
     setWeatherConditions((prev) => ({

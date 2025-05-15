@@ -1,27 +1,22 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
-import EditForm from "@/components/school_forms/EditSchoolForm";
-import ConfirmationModal from "@/components/school_forms/confirmationModal";
+import ConfirmationModal, { InfoModal } from "@/components/dynamic/alertModal";
 import EditSurvey from "@/components/survey/EditSurvey";
 import { useState } from "react";
 
-const EditSurveyModal = ({ isOpen, closeModal, formItem, }) => {
+const EditSurveyModal = ({ isOpen, closeModal, formItem, onDeleteModal }) => {
 
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-
-    const handleSuccess = () => {
+   const handleDelete = () => {
         setIsLoading(true);
-
         setTimeout(() => {
-            // closeModal();
-            // if (formId) {
-            setIsSuccessModalOpen(true);
-            // }
+            closeModal();
+            onDeleteModal();
             setIsLoading(false);
         }, 2000);
     };
+ 
 
     return (
         <>
@@ -38,22 +33,10 @@ const EditSurveyModal = ({ isOpen, closeModal, formItem, }) => {
                     showDescription={false}
                     className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <EditSurvey closeModal={closeModal} onSuccess={handleSuccess} surveyId={formItem.id} />
+                    <EditSurvey closeModal={closeModal} surveyId={formItem.id} onDelete={handleDelete} />
 
                 </DynamicModal>
             )}
-
-                <ConfirmationModal
-                
-                    isOpen={isSuccessModalOpen}
-                    closeModal={() => setIsSuccessModalOpen(false)}
-                    title="The School Form is updated"
-                    description="The School Form has been successfully updated."
-                >
-                    Manage School Forms
-                </ConfirmationModal>
-            
-
 
         </>
     );

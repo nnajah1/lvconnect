@@ -8,7 +8,7 @@ class SurveyQuestion extends Model
 {
     protected $fillable = ['survey_id', 'survey_question_type', 'question', 'description', 'survey_question_data', 'order', 'is_required'];
     protected $casts = [
-        'field_data' => 'array',
+        'survey_question_data' => 'array',
     ];
     
     public function survey()

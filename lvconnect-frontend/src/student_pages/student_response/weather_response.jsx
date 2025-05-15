@@ -6,13 +6,42 @@ import { MdDelete } from "react-icons/md";
 import { ImFilePicture } from "react-icons/im";
 import "../student_styling/weather_response.css";
 
-export default function InclementWeatherForm({ formData, userData }) {
+export default function InclementWeatherForm() {
   const [otherWeatherCondition, setOtherWeatherCondition] = useState("");
   const [weatherConditions, setWeatherConditions] = useState({});
   const [evacuationStatus, setEvacuationStatus] = useState(null);
   const [textareas, setTextareas] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState({});
+  const formData = {
+    questions: [
+      {
+        title: "q1",
+        description: "What is your name?",
+        type: "text",
+        question: true,
+      },
+      {
+        introTitle: "q1",
+        introDescription: "What is your name?",
+        type: "text",
+        question: true,
+      },]}
 
+      const userData = {
+        answers: [
+          {
+            profileUrl: "q1",
+            name: "What is your name?",
+            submittedAt: "text",
+            required: true,
+          },
+          {
+            id: "q2",
+            text: "How old are you?",
+            type: "number",
+            required: true,
+            answer: ""
+          },]}
   const handleWeatherConditionChange = (condition) => {
     setWeatherConditions((prev) => ({
       ...prev,
@@ -37,7 +66,7 @@ export default function InclementWeatherForm({ formData, userData }) {
     <div className="form-container">
       <div className="form-card">
         <div className="form-header">
-          <div className="form-date">{formData.date}</div>
+          <div className="form-date">shes</div>
           <h1 className="form-title">{formData.title}</h1>
           <div className="form-profile">
             <div className="profile-container">

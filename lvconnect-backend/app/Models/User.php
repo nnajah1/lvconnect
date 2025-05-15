@@ -31,7 +31,8 @@ class User extends Authenticatable implements JWTSubject
         'avatar',
         'email_verified_at',
         'remember_token',
-        'must_change_password'
+        'must_change_password',
+        'survey_completed'
     ];
 
     /**
@@ -78,5 +79,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(TrustedDevice::class);
     }
 
+    public function surveys()
+    {
+        return $this->belongsToMany(Survey::class, 'survey_user', 'student_information_id', 'survey_id')
+                    ->withPivot('completed_at')
+                    ->withTimestamps();
+    }
 
 }

@@ -13,16 +13,13 @@ return new class extends Migration
     {
         Schema::create('form_submissions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('form_type_id');
-            $table->unsignedBigInteger('submitted_by');
+            $table->foreignId('form_type_id')->constrained('form_types')->onDelete('cascade');
+            $table->foreignId('submitted_by')->constrained('users')->onDelete('cascade');
             $table->enum('status', ['draft', 'pending', 'approved', 'rejected']);
             $table->timestamp('submitted_at');
             $table->string('admin_remarks')->nullable();
             $table->timestamp('rejected_at')->nullable();
             $table->timestamps();
-
-            $table->foreign('form_type_id')->references('id')->on('form_types')->onDelete('cascade');
-            $table->foreign('submitted_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

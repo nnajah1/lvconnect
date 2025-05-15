@@ -2,7 +2,7 @@
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
 import UserFormView from "@/components/school_forms/userSubmitForm"
-import ConfirmationModal from "@/components/school_forms/confirmationModal";
+import ConfirmationModal from "@/components/dynamic/alertModal";
 import { useState } from "react";
 import StudentEditForm from "@/components/school_forms/userSubmitForm";
 

@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('survey_responses', function (Blueprint $table) {
+        Schema::create('enrollment_schedules', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('student_information_id');
-            $table->unsignedBigInteger('survey_id');
-            $table->timestamp('submitted_at');
+            $table->unsignedBigInteger('academic_year_id');
+            $table->enum('semester',['1st_semester', 'second_semester']);
+            $table->boolean('is_active');
+            $table->date('start_date');
+            $table->date('end_date');
             $table->timestamps();
-
-            $table->foreign('survey_id')->references('id')->on('surveys')->onDelete('cascade');
         });
     }
 
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('survey_responses');
+        Schema::dropIfExists('enrollment_schedules');
     }
 };

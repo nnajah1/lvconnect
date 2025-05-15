@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { RiDeleteBin6Line, RiArrowDropDownLine } from 'react-icons/ri';
-import { createSurvey } from '@/services/surveyAPI';
+import { createSurvey, deleteSurvey } from '@/services/surveyAPI';
 import {
     QUESTION_TYPES,
     isChoiceBased,
@@ -9,6 +9,8 @@ import {
 import "@/styles/components/create_new_survey.css";
 import SwitchComponent from '../dynamic/switch';
 import WebcamCapture from './captureCamera';
+import { DeleteModal, ErrorModal } from '../dynamic/alertModal';
+import { toast } from 'react-toastify';
 
 export default function SurveyBuilder({
     mode = 'create',
@@ -16,23 +18,25 @@ export default function SurveyBuilder({
     initialQuestions = [],
     onSubmit,
     onSuccess,
-    error,
+    onDelete,
+    closeModal
 }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [isVisible, setIsVisible] = useState(false);
-    const [isMandatory, setIsMandatory] = useState(false);
+    const [visibilityMode, setVisibilityMode] = useState('hidden');
     const [questions, setQuestions] = useState([emptyQuestion()]);
     const [isLoading, setIsLoading] = useState(false);
-    const [localError, setLocalError] = useState(null);
+
+    const [isAlertModal, setIsAlertModal] = useState(false);
+    const openAlertModal = () => setIsAlertModal(true);
+    const closeAlertModal = () => setIsAlertModal(false);
 
     // Fix: Properly initialize the form when in edit mode
     useEffect(() => {
         if (mode === 'edit' && initialData) {
             setTitle(initialData.title || '');
             setDescription(initialData.description || '');
-            setIsVisible(initialData.is_visible === true || initialData.is_visible === 1);
-            setIsMandatory(initialData.mandatory === true || initialData.mandatory === 1);
+            setVisibilityMode(initialData.visibility_mode);
 
             if (initialQuestions && initialQuestions.length > 0) {
                 const initializedQuestions = initialQuestions.map(q => ({
@@ -115,26 +119,26 @@ export default function SurveyBuilder({
     };
 
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         if (isLoading) return;
         setIsLoading(true);
-        setLocalError(null);
 
         // Basic validation
         if (!title.trim()) {
-            setLocalError('Survey title is required');
+            toast.error('Survey title is required');
             setIsLoading(false);
             return;
         }
 
         for (const q of questions) {
             if (!q.question.trim()) {
-                setLocalError('All questions must have text');
+                toast.error('All questions must have text');
                 setIsLoading(false);
                 return;
             }
             if (isChoiceBased(q.type) && q.choices.some(c => !c.trim())) {
-                setLocalError('All choice options must have text');
+                toast.error('All choice options must have text');
                 setIsLoading(false);
                 return;
             }
@@ -146,22 +150,19 @@ export default function SurveyBuilder({
                     {
                         title,
                         description,
-                        is_visible: isVisible,
-                        mandatory: isMandatory,
+                        visibility_mode: visibilityMode,
                     },
                     questions.map((q, index) => ({
                         ...q,
                         order: index + 1
                     }))
                 );
-                if (onSuccess) onSuccess();
             } else {
                 // Create mode handling remains the same...
                 const formData = new FormData();
                 formData.append('title', title);
                 formData.append('description', description || '');
-                formData.append('is_visible', isVisible ? '1' : '0');
-                formData.append('mandatory', isMandatory ? '1' : '0');
+                formData.append('visibility_mode', visibilityMode);
 
                 questions.forEach((q, index) => {
                     formData.append(`questions[${index}][type]`, q.type);
@@ -181,28 +182,38 @@ export default function SurveyBuilder({
                 if (onSuccess) onSuccess(res.survey_id);
             }
         } catch (err) {
-            setLocalError(mode === 'edit' ? 'Failed to update survey.' : 'Failed to create survey.');
+            toast.error(mode === 'edit' ? 'Failed to update survey.' : 'Failed to create survey.');
             console.error(err);
         } finally {
             setIsLoading(false);
         }
     };
+
+   const handleDeleteSurvey = async () => {
+  if (!initialData.id) return;
+  try {
+    await deleteSurvey(initialData.id);
+    if (onDelete) onDelete(initialData.id);
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to delete survey.');
+  }
+  closeAlertModal(); 
+};
     return (
         <div className="flex flex-col p-4 max-w-4xl mx-auto">
-            {error && <div className="text-red-500 mb-4">{error}</div>}
-            {localError && <div className="text-red-500 mb-4">{localError}</div>}
 
             <div className="flex items-end justify-end space-x-4 mb-4">
-                <SwitchComponent
-                    label="Visible to Users"
-                    checked={isVisible}
-                    onCheckedChange={(checked) => setIsVisible(checked)}
-                />
-                <SwitchComponent
-                    label="Mandatory Survey"
-                    checked={isMandatory}
-                    onCheckedChange={(checked) => setIsMandatory(checked)}
-                />
+                <label htmlFor="visibilityMode">Survey Visibility</label>
+                <select
+                    id="visibilityMode"
+                    value={visibilityMode}
+                    onChange={(e) => setVisibilityMode(e.target.value)}
+                >
+                    <option value="hidden">Hidden (Not shown to users)</option>
+                    <option value="optional">Optional (Visible in survey list)</option>
+                    <option value="mandatory">Mandatory (Shown on login, required)</option>
+                </select>
             </div>
 
             <div className="form-title mb-4">
@@ -307,11 +318,7 @@ export default function SurveyBuilder({
                         )}
 
                         {q.type === 'Upload Photo' && (
-                            <div className="upload-box mb-4">
-                                <div className="camera-capture mb-4">
-                                    <WebcamCapture />
-                                </div>
-                            </div>
+                            <WebcamCapture />
                         )}
 
                         <div className="question-actions flex items-center gap-4 pt-2 border-t">
@@ -350,12 +357,43 @@ export default function SurveyBuilder({
             </button>
 
             <div className="publish-actions flex justify-end gap-4">
-                <button
-                    onClick={() => window.history.back()}
-                    className="btn-cancel px-4 py-2 border rounded-lg hover:bg-gray-50"
-                >
-                    Cancel
-                </button>
+                {mode === 'edit' ? (
+                    <div>
+                        <button
+                            onClick={openAlertModal}
+                            className="text-red-600 border border-red-600 hover:bg-red-50 px-4 py-2 rounded-lg"
+                        >
+                            Delete
+                        </button>
+                        <DeleteModal
+                            isOpen={isAlertModal}
+                            closeModal={closeAlertModal}
+                            >
+                            {/* Action buttons inside the modal */}
+                            <button
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+                                onClick={closeAlertModal}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleDeleteSurvey}
+                            >
+                                Delete
+                            </button>
+                        </DeleteModal>
+                    </div>
+                ) :
+                    (
+                        <button
+                            onClick={closeModal}
+                            className="btn-cancel px-4 py-2 border rounded-lg hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+                    )
+                }
+
                 <button
                     onClick={handleSubmit}
                     disabled={isLoading}

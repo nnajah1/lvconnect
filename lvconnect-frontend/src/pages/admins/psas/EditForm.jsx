@@ -2,7 +2,7 @@
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import Loader from "@/components/dynamic/loader";
 import EditForm from "@/components/school_forms/EditSchoolForm";
-import ConfirmationModal from "@/components/school_forms/confirmationModal";
+import ConfirmationModal from "@/components/dynamic/alertModal";
 import { useState } from "react";
 
 const EditFormModal = ({ isOpen, closeModal, formItem, }) => {

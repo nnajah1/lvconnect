@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\SchoolFormsController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\UserController;
@@ -74,13 +75,21 @@ Route::middleware('auth.jwt')->group(function () {
 
 
     Route::get('surveys', [SurveyController::class, 'index']);
+    Route::get('/survey-responses/{id}', [SurveyController::class, 'getSurveyResponses']);
     Route::get('/surveys/{id}', [SurveyController::class, 'show']);
+    Route::get('/survey-submissions/check/{surveyId}', [SurveyController::class, 'checkSubmission']);
+    Route::get('/my-survey-response/{surveyId}', [SurveyController::class, 'getSurveyResponse']);
+      Route::get('/survey-response/{surveyResponseId}', [SurveyController::class, 'getSubmittedSurveyResponseWithQuestions']);
 
     Route::post('/survey', [SurveyController::class, 'storeSurveyWithQuestions']);
     Route::post('/survey-responses', [SurveyController::class, 'submitResponse']);
-    Route::post('/upload-image', [SurveyController::class, 'uploadImage']);
+    Route::post('/upload-photo', [SurveyController::class, 'uploadImage']);
 
     Route::put('/surveys/{id}', [SurveyController::class, 'updateSurveyWithQuestions']);
+
+    Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
+
+    Route::get('enrollees', [EnrollmentController::class, 'index']);
 });
 
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);

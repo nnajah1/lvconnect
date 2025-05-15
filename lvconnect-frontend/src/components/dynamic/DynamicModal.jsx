@@ -3,21 +3,25 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { X } from "lucide-react";
 
-const DynamicModal = ({ isOpen, closeModal, showCloseButton, children, className = "", title, description, showTitle = true,
-  showDescription = true, }) => {
+const DynamicModal = ({ isOpen, closeModal, children, className = "", title, description, showTitle = true,
+  showDescription = true}) => {
   return (
+
     <Dialog.Root open={isOpen} onOpenChange={closeModal}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10" />
-        <Dialog.Content className={`fixed top-1/2 left-1/2 max-w-lg w-full -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg z-50 ${className}`}
+        <div className="fixed top-1/2 left-1/2 max-w-lg w-full -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg z-50">
+       
+        <Dialog.Content onPointerDownOutside={(event) => event.preventDefault()}
+          onEscapeKeyDown={(event) => event.preventDefault()}
+          className={`p-4 rounded-lg shadow-lg ${className}`}
         >
-          {/* Optional Close Button */}
-          {showCloseButton && (
-            <Dialog.Close className="absolute top-4 right-4 opacity-70 hover:opacity-100">
-              <X className="w-4 h-4" />
-              <span className="sr-only">Close</span>
-            </Dialog.Close>
-          )}
+         {/* Close Button */}
+          <Dialog.Close 
+            className="absolute -top-4 -right-4 bg-red-500 rounded-full p-1 hover:opacity-90 cursor-pointer">
+            <X className="w-5 h-5 bg-red-500 rounded text-white" />
+            <span className="sr-only">Close</span>
+          </Dialog.Close>
 
           {/* Title Section */}
           {showTitle ? (
@@ -49,6 +53,7 @@ const DynamicModal = ({ isOpen, closeModal, showCloseButton, children, className
           </div>
 
         </Dialog.Content>
+        </div>
       </Dialog.Portal>
     </Dialog.Root>
   );
