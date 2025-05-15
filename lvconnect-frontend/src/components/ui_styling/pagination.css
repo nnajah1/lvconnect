@@ -1,0 +1,75 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+.pagination-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.pagination-button {
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background-color: transparent;
+  color: #374151;
+  transition: background-color 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+
+.pagination-prev,
+.pagination-next {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  padding: 0.5rem;
+  border-color: #d1d5db;
+}
+
+.pagination-prev:disabled,
+.pagination-next:disabled {
+  cursor: not-allowed;
+  color: #d1d5db;
+}
+
+.pagination-page {
+  border-color: #d1d5db;
+}
+
+.pagination-active {
+  border-color: #3b82f6;
+  color: #2563eb;
+}
+
+.pagination-select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.pagination-select {
+  appearance: none;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.375rem 1.5rem 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.pagination-select-icon {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.625rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.pagination-page-label {
+  margin-left: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}

@@ -1,4 +1,4 @@
-// src/components/ActionButtons.js
+
 
 import "../registrar_styling/student_information.css";
 
