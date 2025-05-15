@@ -3,12 +3,12 @@
 import { useState } from "react"
 import { ChevronLeft } from "lucide-react"
 import ProfileSection from "./student_information/profile"
-import StudentInfoSection from "../Registrar_screens/student_information/student_info"
-import AddressSection from "../Registrar_screens/student_information/address"
-import FamilyInfoSection from "../Registrar_screens/student_information/family_info"
-import SchoolInfoSection from "../Registrar_screens/student_information/schoolinfo"
-import GuardianInfoComponent from "../Registrar_screens/student_information/guardianinfo"
-import SectionHeader from "../Registrar_screens/student_information/header_section"
+import StudentInfoSection from "./student_info"
+import AddressSection from "./address"
+import FamilyInfoSection from "./profile"
+import SchoolInfoSection from "./schoolinfo"
+import GuardianInfoComponent from "./guardianinfo"
+import SectionHeader from "./header_section"
 import ActionButtons from "./student_information/actions" 
 
 export default function StudentInformationForm() {
