@@ -345,11 +345,6 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
 }
 
-.guidelines-icon {
-  font-size: 1.5rem;
-  color: #1291ce;
-}
-
 .guidelines-title {
   margin-top: 0.5rem;
   text-align: center;
@@ -357,6 +352,14 @@
   font-size: 0.875rem;
   color: #1f2937;
 }
+
+.guidelines-icon {
+  font-size: 1.5rem;
+  color: #1291ce;
+
+}
+
+
 
 
 

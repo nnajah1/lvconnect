@@ -2,7 +2,8 @@ import React from 'react';
 import { FaBook } from 'react-icons/fa6';
 import { IoIosLock } from 'react-icons/io';
 
-import '../student_styling/student_enrollment_form.css';
+import '../student_styling/studentservice.css';
+
 const GuidelinesAndPolicies = () => {
   return (
     <div className="guidelines-container">

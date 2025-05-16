@@ -46,3 +46,28 @@ export async function deleteSurvey(id) {
         throw new Error('Failed to delete survey');
     }
 }
+
+export const getAcademicYears = () => api.get("/academic-years");
+
+export const createAcademicYear = (schoolYear) =>
+  api.post("/academic-years", { school_year: schoolYear });
+
+export const bulkApproveEnrollment = (ids) =>
+  api.post('/enrollment/bulk-approve', { ids });
+
+export const bulkDeleteEnrollment = (ids) =>
+  api.post('/enrollment/bulk-delete', { ids });
+
+export const bulkExportEnrollment = (ids) =>
+  api.post('/enrollment/bulk-export', { ids });
+
+export const bulkRemindEnrollment = (ids) =>
+  api.post('/enrollment/bulk-remind', { ids });
+
+export const getEnrollmentSchedule = ({ academic_year_id, semester }) =>
+  api.get("/enrollment-schedule", {
+    params: { academic_year_id, semester },
+  });
+
+export const toggleEnrollmentSchedule = (payload) =>
+  api.post("/enrollment-schedule/toggle", payload);

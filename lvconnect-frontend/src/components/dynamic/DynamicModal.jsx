@@ -10,11 +10,11 @@ const DynamicModal = ({ isOpen, closeModal, children, className = "", title, des
     <Dialog.Root open={isOpen} onOpenChange={closeModal}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10" />
-        <div className="fixed top-1/2 left-1/2 max-w-lg w-full -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg z-50">
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg z-50">
        
         <Dialog.Content onPointerDownOutside={(event) => event.preventDefault()}
           onEscapeKeyDown={(event) => event.preventDefault()}
-          className={`p-4 rounded-lg shadow-lg ${className}`}
+          className={`p-4 rounded-lg max-w-[70rem] w-full shadow-lg ${className}`}
         >
          {/* Close Button */}
           <Dialog.Close 

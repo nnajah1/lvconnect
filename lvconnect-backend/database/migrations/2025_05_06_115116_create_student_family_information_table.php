@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('student_information_id');
             $table->integer('num_children_in_family');
             $table->integer('birth_order');
-            $table->string('has_siibling_in_lvcc');
+            $table->string('has_sibling_in_lvcc');
             $table->string('mother_first_name');
             $table->string('mother_middle_name');
             $table->string('mother_last_name');
@@ -38,6 +38,7 @@ return new class extends Migration
             $table->string('guardian_occupation');
             $table->string('guardian_monthly_income');
             $table->string('guardian_mobile_number');
+            $table->string('guardian_relationship');
             $table->timestamps();
         });
     }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FcGraduationCap } from 'react-icons/fc';
 import { GiOpenBook, GiNotebook } from 'react-icons/gi';
-import '../student_styling/student_enrollment_form.css';
+import '../student_styling/studentservice.css';
 
 const SchoolServices = () => {
   return (

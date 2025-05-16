@@ -26,6 +26,8 @@ import Psos from "./Psas_pages/schoolforms/view_weather_response";
 import InclementWeatherForm from "./student_pages/student_response/weather_response";
 import SurveyResponses from "./pages/admins/psas/SurveyResponses";
 import Enrollment from "./pages/registrar/Enrollment";
+import Enrollees from "./pages/registrar/Enrollees";
+import StudentInformationForm from "./Registrar_screens/student_information/studentinfor_apps";
 
 
 
@@ -110,6 +112,7 @@ const router = createBrowserRouter([
                     { index: true, element: <AdminDashboard /> },
                     { path: "enrollment", element: <Enrollment /> },
                     { path: "student-information", element: <ArchivePosts /> },
+                    { path: "student-information/:surveyId", element: <Enrollees /> },
                 ],
             },
 
@@ -117,7 +120,7 @@ const router = createBrowserRouter([
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
     { path: "/trial", element: <StudentView /> },
-    { path: "/app", element: <InclementWeatherForm /> }
+    { path: "/app", element: <StudentInformationForm/> }
 
 
 

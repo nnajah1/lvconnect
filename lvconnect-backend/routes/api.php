@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\SchoolFormsController;
 use App\Http\Controllers\SurveyController;
@@ -29,67 +30,79 @@ Route::get('/login/google/callback', [OAuthController::class, 'handleGoogleCallb
 Route::post('/auth/google/token', [OAuthController::class, 'exchangeGoogleToken']);
 
 Route::middleware('auth.jwt')->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::get('/logout', [AuthController::class, 'logout']);
-    Route::post('/create-user', [AuthController::class, 'createUser']);
-    Route::get('/trusted-devices', [TrustedDeviceController::class, 'index']); // List all trusted devices
-    Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
-    Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
-    Route::post('/change-password', [ChangePasswordController::class, 'ChangePassword']);
-    Route::get('/posts', [SchoolUpdateController::class, 'index']);
-    Route::get('/posts/{id}', [SchoolUpdateController::class, 'show']);
-    Route::post('/posts', [SchoolUpdateController::class, 'store']);
-    Route::put('/posts/{post}', [SchoolUpdateController::class, 'update']);
-    Route::post('/posts/{post}/submit', [SchoolUpdateController::class, 'submitForApproval']);
-    Route::post('/posts/{post}/approve', [SchoolUpdateController::class, 'approve']);
-    Route::post('/posts/{post}/reject', [SchoolUpdateController::class, 'reject']);
-    Route::post('/posts/{post}/revision', [SchoolUpdateController::class, 'requestRevision']);
-    Route::post('/posts/{post}/publish', [SchoolUpdateController::class, 'publish']);
-    Route::post('/posts/{post}/archive', [SchoolUpdateController::class, 'archive']);
-    Route::post('/posts/{post}/restore', [SchoolUpdateController::class, 'restore']);
-    Route::get('/posts/archive', [SchoolUpdateController::class, 'archivedPosts']);
-    Route::post('/upload-images', [SchoolUpdateController::class, 'uploadImages']);
-    Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
-    Route::delete('/posts/{post}', [SchoolUpdateController::class, 'destroy']);
+  Route::get('/me', [AuthController::class, 'me']);
+  Route::get('/logout', [AuthController::class, 'logout']);
+  Route::post('/create-user', [AuthController::class, 'createUser']);
+  Route::get('/trusted-devices', [TrustedDeviceController::class, 'index']); // List all trusted devices
+  Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
+  Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
+  Route::post('/change-password', [ChangePasswordController::class, 'ChangePassword']);
+  Route::get('/posts', [SchoolUpdateController::class, 'index']);
+  Route::get('/posts/{id}', [SchoolUpdateController::class, 'show']);
+  Route::post('/posts', [SchoolUpdateController::class, 'store']);
+  Route::put('/posts/{post}', [SchoolUpdateController::class, 'update']);
+  Route::post('/posts/{post}/submit', [SchoolUpdateController::class, 'submitForApproval']);
+  Route::post('/posts/{post}/approve', [SchoolUpdateController::class, 'approve']);
+  Route::post('/posts/{post}/reject', [SchoolUpdateController::class, 'reject']);
+  Route::post('/posts/{post}/revision', [SchoolUpdateController::class, 'requestRevision']);
+  Route::post('/posts/{post}/publish', [SchoolUpdateController::class, 'publish']);
+  Route::post('/posts/{post}/archive', [SchoolUpdateController::class, 'archive']);
+  Route::post('/posts/{post}/restore', [SchoolUpdateController::class, 'restore']);
+  Route::get('/posts/archive', [SchoolUpdateController::class, 'archivedPosts']);
+  Route::post('/upload-images', [SchoolUpdateController::class, 'uploadImages']);
+  Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
+  Route::delete('/posts/{post}', [SchoolUpdateController::class, 'destroy']);
 
 
-    Route::post('/forms', [SchoolFormsController::class, 'store']);
-    Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
-    Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
-    Route::post('/forms/submissions/{id}/review', [SchoolFormsController::class, 'reviewSubmission']);
-    Route::post('/upload-2x2-image', [SchoolFormsController::class, 'upload2x2Image']);
+  Route::post('/forms', [SchoolFormsController::class, 'store']);
+  Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
+  Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
+  Route::post('/forms/submissions/{id}/review', [SchoolFormsController::class, 'reviewSubmission']);
+  Route::post('/upload-2x2-image', [SchoolFormsController::class, 'upload2x2Image']);
 
 
-    Route::get('forms', [SchoolFormsController::class, 'index']);
-    Route::get('/forms/{id}', [SchoolFormsController::class, 'show']);
-    Route::get('/submissions', [SchoolFormsController::class, 'submissions']);
-    Route::get('/forms/submissions/{id}', [SchoolFormsController::class, 'showSubmission']);
-    Route::get('/submissions/{submissionId}/download', [SchoolFormsController::class, 'downloadApprovedForm']);
+  Route::get('forms', [SchoolFormsController::class, 'index']);
+  Route::get('/forms/{id}', [SchoolFormsController::class, 'show']);
+  Route::get('/submissions', [SchoolFormsController::class, 'submissions']);
+  Route::get('/forms/submissions/{id}', [SchoolFormsController::class, 'showSubmission']);
+  Route::get('/submissions/{submissionId}/download', [SchoolFormsController::class, 'downloadApprovedForm']);
 
 
-    Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
-    Route::put('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'updateFields']);
-    Route::put('/forms/submissions/{id}', [SchoolFormsController::class, 'reviewSubmission']);
-    Route::put('/submissions/{id}', [SchoolFormsController::class, 'updateDraftForm']);
-    Route::delete('/forms/{id}', [SchoolFormsController::class, 'destroy']);
+  Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
+  Route::put('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'updateFields']);
+  Route::put('/forms/submissions/{id}', [SchoolFormsController::class, 'reviewSubmission']);
+  Route::put('/submissions/{id}', [SchoolFormsController::class, 'updateDraftForm']);
+  Route::delete('/forms/{id}', [SchoolFormsController::class, 'destroy']);
 
 
-    Route::get('surveys', [SurveyController::class, 'index']);
-    Route::get('/survey-responses/{id}', [SurveyController::class, 'getSurveyResponses']);
-    Route::get('/surveys/{id}', [SurveyController::class, 'show']);
-    Route::get('/survey-submissions/check/{surveyId}', [SurveyController::class, 'checkSubmission']);
-    Route::get('/my-survey-response/{surveyId}', [SurveyController::class, 'getSurveyResponse']);
-      Route::get('/survey-response/{surveyResponseId}', [SurveyController::class, 'getSubmittedSurveyResponseWithQuestions']);
+  Route::get('surveys', [SurveyController::class, 'index']);
+  Route::get('/survey-responses/{id}', [SurveyController::class, 'getSurveyResponses']);
+  Route::get('/surveys/{id}', [SurveyController::class, 'show']);
+  Route::get('/survey-submissions/check/{surveyId}', [SurveyController::class, 'checkSubmission']);
+  Route::get('/my-survey-response/{surveyId}', [SurveyController::class, 'getSurveyResponse']);
+  Route::get('/survey-response/{surveyResponseId}', [SurveyController::class, 'getSubmittedSurveyResponseWithQuestions']);
 
-    Route::post('/survey', [SurveyController::class, 'storeSurveyWithQuestions']);
-    Route::post('/survey-responses', [SurveyController::class, 'submitResponse']);
-    Route::post('/upload-photo', [SurveyController::class, 'uploadImage']);
+  Route::post('/survey', [SurveyController::class, 'storeSurveyWithQuestions']);
+  Route::post('/survey-responses', [SurveyController::class, 'submitResponse']);
+  Route::post('/upload-photo', [SurveyController::class, 'uploadImage']);
 
-    Route::put('/surveys/{id}', [SurveyController::class, 'updateSurveyWithQuestions']);
+  Route::put('/surveys/{id}', [SurveyController::class, 'updateSurveyWithQuestions']);
 
-    Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
+  Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
 
-    Route::get('enrollees', [EnrollmentController::class, 'index']);
+  Route::get('/enrollees', [EnrollmentController::class, 'index']);
+  Route::get('/enrollment-schedule', [EnrollmentController::class, 'showEnrollmentSchedule']);
+
+  Route::post('/enrollment/bulk-approve', [EnrollmentController::class, 'bulkApprove']);
+  Route::post('/enrollment/bulk-delete', [EnrollmentController::class, 'bulkDelete']);
+  Route::post('/enrollment/bulk-export', [EnrollmentController::class, 'bulkExport']);
+  Route::post('/enrollment/bulk-remind', [EnrollmentController::class, 'bulkRemind']);
+  Route::post('/enrollment-schedule/toggle', [EnrollmentController::class, 'toggleEnrollmentSchedule']);
+
+  Route::post('/academic-years', [AcademicYearController::class, 'store']);
+  Route::get('/academic-years', [AcademicYearController::class, 'index']);
+
+
 });
 
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);

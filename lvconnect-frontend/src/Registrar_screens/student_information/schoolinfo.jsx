@@ -1,6 +1,6 @@
 
 import FormField from "./formfield"
-import "../registrar_styling/student_information.css"
+import "./../registrar_styling/student_information.css"
 
 export default function SchoolInfoSection({ educationInfo, isEditing, onChange }) {
   const handleChange = (e) => {

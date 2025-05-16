@@ -9,7 +9,7 @@ import {
   getPaginationRowModel
 } from "@tanstack/react-table"
 
-export function DataTable({ columns, data, globalFilter, bulkActions = [], showSelection = true,}) {
+export function DataTable({ columns, data, globalFilter, bulkActions = [], showSelection = true, }) {
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [rowSelection, setRowSelection] = useState({})
@@ -44,17 +44,17 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
 
       {/* Bulk actions */}
       {bulkActions.length > 0 && selectedRows.length > 0 && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 p-4 bg-white">
           {bulkActions.map(({ label, onClick, message }) => (
             <div className="flex justify-between">
-            <span>{message}</span>
-            <button
-              key={label}
-              className="px-3 py-2 bg-blue-600 text-white rounded"
-              onClick={() => onClick(selectedRows.map((row) => row.original))}
-            >
-              {label}
-            </button>
+              <span>{message}</span>
+              <button
+                key={label}
+                className="px-3 py-2 bg-blue-600 text-white rounded"
+                onClick={() => onClick(selectedRows.map((row) => row.original))}
+              >
+                {label}
+              </button>
             </div>
           ))}
         </div>
