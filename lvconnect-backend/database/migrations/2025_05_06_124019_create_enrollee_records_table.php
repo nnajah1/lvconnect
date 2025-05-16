@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('enrollee_records', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('student_information_id');
-            $table->unsignedBigInteger('program_id');
-            $table->unsignedBigInteger('enrollment_schedule_id');
+            $table->foreignId('student_information_id')->constrained('student_information')->onDelete('cascade');
+            $table->foreignId('program_id')->constrained('pragrams')->onDelete('cascade');
+            $table->foreignId('enrollment_schedule_id')->constrained('enrollment_schedules')->onDelete('cascade');
             $table->integer('year_level');
             $table->boolean('privacy_policy');
             $table->enum('enrollment_status', ['pending', 'enrolled', 'not_enrolled', 'rejected', 'archived']);

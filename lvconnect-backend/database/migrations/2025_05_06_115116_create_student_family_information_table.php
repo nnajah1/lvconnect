@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('student_family_information', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('student_information_id');
+            $table->foreignId('student_information_id')->constrained('student_information')->onDelete('cascade');
             $table->integer('num_children_in_family');
             $table->integer('birth_order');
             $table->string('has_sibling_in_lvcc');

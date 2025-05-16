@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->enum('semester',['1st_semester', 'second_semester']);
             $table->boolean('is_active')->default(false);
-    $table->date('start_date')->nullable();
-    $table->date('end_date')->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->timestamps();
         });
     }
