@@ -3,8 +3,130 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\StudentInformation;
+use Illuminate\Support\Facades\Http;
+use App\Models\StudentFamilyInformation;
+use Illuminate\Support\Carbon;
 
 class DummyDataSyncController extends Controller
 {
-    //
+    public function sync()
+    {
+        try {
+            $response = Http::withToken(env('DUMMY_API_TOKEN'))
+                ->get(env('DUMMY_API_URL') . '/api/applicants');
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'Failed to fetch data from Dummy System'], 500);
+            }
+
+            $data = $response->json();
+
+            foreach ($data as $applicant) {
+                // Skip if first_name or last_name is missing
+                if (empty($applicant['first_name']) || empty($applicant['last_name'])) {
+                    continue;
+                }
+
+                // Validate and normalize civil_status
+                $validCivilStatus = ['single', 'married', 'divorced', 'widowed'];
+                $civilStatus = strtolower($applicant['marital_status'] ?? 'single');
+                if (!in_array($civilStatus, $validCivilStatus)) {
+                    $civilStatus = 'single';
+                }
+
+                // Validate and normalize gender
+                $validGenders = ['male', 'female'];
+                $gender = strtolower($applicant['gender'] ?? 'male');
+                if (!in_array($gender, $validGenders)) {
+                    $gender = 'male';
+                }
+
+                // Parse date safely
+                try {
+                    $birthDate = Carbon::parse($applicant['date_of_birth'])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    continue;
+                }
+
+                // Set defaults for optional values
+                $fbLink = $applicant['fb_account'] ?? 'N/A';
+                $governmentSubsidy = $applicant['government_subsidy'] ?? 'N/A';
+                $zipCode = is_numeric($applicant['zip_code'] ?? null) ? $applicant['zip_code'] : 0;
+
+                // Now safe to insert/update
+                $student = StudentInformation::updateOrCreate(
+                    [
+                        'first_name'  => $applicant['first_name'],
+                        'last_name'   => $applicant['last_name'],
+                    ],
+                    [
+                        'middle_name' => $applicant['middle_name'],
+                        'civil_status' => $civilStatus,
+                        'gender'       => $gender,
+                        'birth_date' => $birthDate,
+                        'birth_place' => $applicant['place_of_birth'],
+                        'mobile_number' => $applicant['mobile_number'],
+                        'religion' => $applicant['religion'],
+                        'lrn' => $applicant['lrn_num'],
+                        'fb_link' => $fbLink,
+                        'government_subsidy' => $governmentSubsidy,
+                        'last_school_attended' => $applicant['previous_school_name'],
+                        'previous_school_address' => $applicant['previous_school_address'],
+                        'school_type' => $applicant['type_of_school'],
+                        'academic_awards' => $applicant['academic_awards_achievements'],
+                        'house_no/street' => $applicant['street'],
+                        'barangay' => $applicant['barangay'],
+                        'city_municipality' => $applicant['city'],
+                        'province' => $applicant['province'],
+                        'zip_code' => $zipCode,
+                    ]
+                );
+
+                // Save or update family information if guardian exists
+                if (isset($applicant['guardian'])) {
+                    StudentFamilyInformation::updateOrCreate(
+                        [
+                            'student_information_id' => $student->id,
+                        ],
+                        [
+                            'num_children_in_family' => (int) $applicant['no_of_children'],
+                            'birth_order' => (int) $applicant['birth_order'],
+                            'has_sibling_in_lvcc' => $applicant['is_bro_sis_curr_applying_studying'] ? 'yes' : 'no',
+                            'mother_first_name'  => $applicant['guardian']['mother_first_name'],
+                            'mother_last_name'   => $applicant['guardian']['mother_last_name'],
+                            'mother_middle_name' => $applicant['guardian']['mother_middle_name'],
+                            'mother_religion' => $applicant['guardian']['mother_religion'],
+                            'mother_occupation' => $applicant['guardian']['mother_occupation'],
+                            'mother_monthly_income' => $applicant['guardian']['mother_monthly_income'],
+                            'mother_mobile_number' => $applicant['guardian']['mother_mobile_number'],
+                            'father_first_name'  => $applicant['guardian']['father_first_name'],
+                            'father_last_name'   => $applicant['guardian']['father_last_name'],
+                            'father_middle_name' => $applicant['guardian']['father_middle_name'],
+                            'father_religion' => $applicant['guardian']['father_religion'],
+                            'father_occupation' => $applicant['guardian']['father_occupation'],
+                            'father_monthly_income' => $applicant['guardian']['father_monthly_income'],
+                            'father_mobile_number' => $applicant['guardian']['father_mobile_number'],
+                            'guardian_first_name'  => $applicant['guardian']['legal_guardian_first_name'],
+                            'guardian_last_name'   => $applicant['guardian']['legal_guardian_last_name'],
+                            'guardian_middle_name' => $applicant['guardian']['legal_guardian_middle_name'],
+                            'guardian_religion' => $applicant['guardian']['legal_guardian_religion'],
+                            'guardian_occupation' => $applicant['guardian']['legal_guardian_occupation'],
+                            'guardian_monthly_income' => $applicant['guardian']['legal_guardian_monthly_income'],
+                            'guardian_mobile_number' => $applicant['guardian']['legal_guardian_mobile_number'],
+                            'guardian_relationship' => $applicant['guardian']['legal_guardian_relationship'],
+                        ]
+                    );
+                }
+            }
+
+            return response()->json(['message' => 'Applicants synced successfully.']);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error'   => 'Sync failed',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
