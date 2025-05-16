@@ -7,6 +7,8 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Models\SchoolUpdate;
 use App\Models\FormSubmission;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -32,6 +34,24 @@ class Kernel extends ConsoleKernel
                 ->where('rejected_at', '<', Carbon::now()->subDays(3))
                 ->delete();
         })->daily();
+
+        // Sync data from Dummy System API
+        $schedule->call(function () {
+            try {
+                $response = Http::withToken(env('DUMMY_API_TOKEN'))
+                    ->get(env('DUMMY_API_URL') . '/api/applicants');
+
+                if ($response->successful()) {
+                    app(\App\Http\Controllers\DummyDataSyncController::class)->sync();
+                    Log::info('Dummy data synced successfully.');
+                } else {
+                    Log::warning('Dummy sync failed: ' . $response->body());
+                }
+            } catch (\Exception $e) {
+                Log::error('Exception during dummy sync: ' . $e->getMessage());
+            }
+        })->monthly();
+
     }
 
     /**
