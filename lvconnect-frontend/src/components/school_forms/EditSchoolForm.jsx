@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { getFormById, updateForm, updateFormFields } from '@/services/school-formAPI';
 import FormBuilder from './FormBuilder'; 
-import Loader from '../dynamic/loader';
+import { Loader } from "@/components/dynamic/loader";
+import { toast } from 'react-toastify';
+import { useForms } from '@/context/FormsContext';
 
-const EditForm = ({ formId, onSuccess}) => {
+const EditForm = ({ formId, onDelete, closeModal }) => {
+   const { fetchForms, fetchSubmitted } = useForms();
   const [formData, setFormData] = useState(null);
   const [formFields, setFormFields] = useState([]);
   const [error, setError] = useState(null);
@@ -16,7 +19,7 @@ const EditForm = ({ formId, onSuccess}) => {
         setFormData(response.data.form);
         setFormFields(response.data.fields);
       } catch (err) {
-        setError('Failed to load form');
+        console.log('Failed to load form');
       }
     };
     loadForm( formId);
@@ -27,10 +30,11 @@ const EditForm = ({ formId, onSuccess}) => {
     try {
       await updateForm(formId, updatedData); 
       await updateFormFields(formId, updatedFields, deletedFieldIds); 
-     
-      if (onSuccess) onSuccess();
+      await fetchForms();
+      await fetchSubmitted();
+     toast.success('School Form updated successfully');
     } catch (err) {
-      setError('Error updating form');
+      console.log('Error updating form');
     }
   };
 
@@ -40,8 +44,8 @@ const EditForm = ({ formId, onSuccess}) => {
       initialData={formData}
       initialFields={formFields}
       onSubmit={handleUpdate}
-      error={error}
-      onSuccess={onSuccess}
+      onDelete={onDelete}
+      closeModal={closeModal}
     />
   );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { MdOutlineArrowOutward } from 'react-icons/md';
-import '../student_styling/studentservice.css';
+import '@/styles/studentservice.css';
 
 const statusStyles = {
   Approved: 'status-approved',

@@ -10,16 +10,19 @@ import CreateSurveyModal from "./CreateSurvey";
 import EditSurveyModal from "./EditSurvey";
 import { Navigate } from "react-router-dom";
 import { ConfirmationModal } from "@/components/dynamic/alertModal";
+import SearchBar from "@/components/dynamic/searchBar";
+import { toast } from "react-toastify";
 
 const Surveys = ({ userRole }) => {
   const [survey, setSurvey] = useState([]);
-  // const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [formItem, setFormItem] = useState(null);
   const [responseItem, setresponseItem] = useState(null);
-  
+
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const openModal = (item) => {
     setFormItem(item);
@@ -37,17 +40,25 @@ const Surveys = ({ userRole }) => {
 
   });
 
-  useEffect(() => {
+ useEffect(() => {
     const loadSurveys = async () => {
-      const data = await getSurveys();
-      setSurvey(data);
+      try {
+        const data = await getSurveys();
+        setSurvey(data);
+      } catch (err) {
+        console.error("Failed to load surveys", err);
+        toast.error("Failed to load surveys.");
+      } finally {
+        setLoading(false); 
+      }
     };
-    loadSurveys();
+
+    loadSurveys(); 
   }, []);
 
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>;
-  }
+  // if (error) {
+  //   return <p className="text-red-500">Error: {error}</p>;
+  // }
 
 
   return (
@@ -70,17 +81,10 @@ const Surveys = ({ userRole }) => {
         </div>
 
         {/* Search Input */}
-        <div className="relative w-96">
-          <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-md pl-10 pr-4 py-2 w-full outline-none focus:ring-2 focus:ring-gray-50"
-          />
-        </div>
+        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
-      <DataTable columns={columns} data={survey} context="Surveys" />
+      <DataTable columns={columns} data={survey} context="Surveys" globalFilter={globalFilter} />
 
       {/* Modals */}
       <CreateSurveyModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />

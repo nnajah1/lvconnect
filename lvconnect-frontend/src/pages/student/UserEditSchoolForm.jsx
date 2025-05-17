@@ -1,6 +1,6 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import Loader from "@/components/dynamic/loader";
+import {Loader} from "@/components/dynamic/loader";
 import ConfirmationModal from "@/components/dynamic/alertModal";
 import StudentEditForm from "@/components/school_forms/userSubmitForm";
 

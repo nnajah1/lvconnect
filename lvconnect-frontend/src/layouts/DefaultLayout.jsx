@@ -4,6 +4,7 @@ import preventBackNavigation from "@/utils/preventBackNavigation";
 import OTPVerification from "@/pages/authentication/OTPVerification";
 import MustChangePassword from "@/pages/authentication/MustChangePassword";
 import Sidebar from "./sidebar";
+import { Loader2 } from "@/components/dynamic/loader";
 
 export default function DefaultLayout() {
     preventBackNavigation(OTPVerification || MustChangePassword);
@@ -11,7 +12,7 @@ export default function DefaultLayout() {
     const {user, loading, logout } = useAuthContext();
 
     if (loading) {
-        return <p>Loading...</p>;  // Show loading until authentication check is complete
+        return <Loader2 />;  // Show loading until authentication check is complete
     }
 
     if (!user) {

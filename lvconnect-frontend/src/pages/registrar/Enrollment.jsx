@@ -30,7 +30,7 @@ const Enrollment = ({ userRole }) => {
     const loadSurveys = async () => {
       const data = await getEnrollees();
       setEnrollment(data);
-    };
+    }
     loadSurveys();
   }, []);
 

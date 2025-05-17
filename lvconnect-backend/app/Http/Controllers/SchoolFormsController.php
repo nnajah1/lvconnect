@@ -9,6 +9,7 @@ use App\Models\FormField;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Mews\Purifier\Facades\Purifier;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
@@ -98,12 +99,12 @@ class SchoolFormsController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'PDF upload failed', 'error' => $e->getMessage()], 500);
         }
-
+        
         // Create FormType record
         $formType = FormType::create([
             'title' => $request->title,
             'description' => $request->description,
-            'content' => $request->content,
+            'content' => Purifier::clean($request['content']),
             'pdf_path' => $pdfPath,
             'has_pdf' => $hasPdf,
             'is_visible' => $request->is_visible ?? true,
@@ -298,7 +299,7 @@ class SchoolFormsController extends Controller
 
             if (str_starts_with($value, '<img')) {
                 // Put the image on the next line
-                $html .= '<br>' . $value . '<br>' ;
+                $html .= '<br>' . $value . '<br>';
             } else {
                 $html .= ' ' . e($value);
             }
@@ -415,7 +416,10 @@ class SchoolFormsController extends Controller
 
         $form->title = $request->title ?? $form->title;
         $form->description = $request->description ?? $form->description;
-        $form->content = $request->content ?? $form->content;
+        $form->content = $request->content
+            ? Purifier::clean($request->content)
+            : $form->content;
+
         $form->is_visible = $request->is_visible ?? $form->is_visible;
         $form->save();
 

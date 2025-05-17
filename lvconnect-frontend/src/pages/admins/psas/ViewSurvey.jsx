@@ -1,6 +1,6 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import Loader from "@/components/dynamic/loader";
+import {Loader} from "@/components/dynamic/loader";
 import SurveyAdminView from "@/components/survey/ViewSurvey";
 import { getSubmittedSurveyResponses } from "@/services/surveyAPI";
 import { useEffect, useState } from "react";

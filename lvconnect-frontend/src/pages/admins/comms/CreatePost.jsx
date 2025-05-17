@@ -1,6 +1,6 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import Loader from "@/components/dynamic/loader";
+import {Loader} from "@/components/dynamic/loader";
 import CreatePostForm from "@/components/school_updates/createPostForm";
 import DraftModal from "@/components/school_updates/modals/draftModal";
 import PendingModal from "@/components/school_updates/modals/pendingModal";

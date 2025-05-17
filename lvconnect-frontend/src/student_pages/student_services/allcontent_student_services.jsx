@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import SubmittedForms from './submitted';
-import GuidelinesAndPolicies from './guidelines_policies';
-import SchoolServices from './school_services';
+// import GuidelinesAndPolicies from './guidelines_policies';
+// import SchoolServices from './school_services';
 import Template from './template';
 import Pagination from '@/components/pagination';
-import '../student_pages/student_styling/studentservice.css';
+import '@/styles/studentservice.css';
 
-const StudentServices = () => {
+const StudentServices = ({forms}) => {
   const [activeTab, setActiveTab] = useState('Templates');
 
   return (
@@ -52,16 +52,16 @@ const StudentServices = () => {
           <Pagination />
         </div>
       </div>
-
-      {/* School Services Section */}
+{/* 
+    
       <div className="student-service-school-services-section">
         <SchoolServices />
       </div>
 
-      {/* Guidelines and Policies Section */}
+      
       <div className="student-service-guidelines-policies-section">
         <GuidelinesAndPolicies />
-      </div>
+      </div> */}
     </div>
   );
 };

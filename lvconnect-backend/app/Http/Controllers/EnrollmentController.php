@@ -22,7 +22,7 @@ class EnrollmentController extends Controller
                 ->get();
         }
 
-        if ($user->hasRole('psas')) { //change to registrar
+        if ($user->hasRole('registrar')) { //change to registrar
             return StudentInformation::with('enrolleeRecord')
                 ->get();
         }
@@ -37,7 +37,7 @@ class EnrollmentController extends Controller
     public function store(Request $request)
     {
         $user = JWTAuth::authenticate();
-        if (!$user->hasRole(['student', 'psas'])) {
+        if (!$user->hasRole(['student', 'registrar'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -149,7 +149,7 @@ class EnrollmentController extends Controller
         $user = JWTAuth::authenticate();
         $studentRecord = EnrolleeRecord::with('studentInfo')->findOrFail($id);
 
-        if (!$user->hasRole(['student', 'psas'])) { //change to registrar
+        if (!$user->hasRole(['student', 'registrar'])) { //change to registrar
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

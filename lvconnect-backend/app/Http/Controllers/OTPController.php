@@ -47,8 +47,8 @@ class OTPController extends Controller
 
 
         // Generate OTP
-        // $otpCode = rand(100000, 999999);
-        $otpCode = 123456;
+        $otpCode = rand(100000, 999999);
+        // $otpCode = 123456;
 
 
         // Store OTP in otps table with expiration
@@ -59,7 +59,7 @@ class OTPController extends Controller
         ]);
 
         // Send OTP via notification (dynamic purpose)
-        // $user->notify(new OTPNotification($otpCode, $request->purpose));
+        $user->notify(new OTPNotification($otpCode, $request->purpose));
 
 
         // Reset attempt count on success
@@ -185,7 +185,7 @@ class OTPController extends Controller
 
         // Fetch latest OTP record
         $otpRecord = OTP::where('user_id', $user->id)
-            ->where('otp', $request->otp = "123456");
+            ->where('otp', $request->otp);
 
         if (!$otpRecord) {
             return response()->json(['error' => 'Invalid or expired OTP'], 401);

@@ -13,21 +13,25 @@ export const roleMenus = {
   ],
   comms: [
     { name: "Dashboard", path: "/comms-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Updates", path: "comms-admin/posts", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
-    { name: "Archive", path: "comms-admin/archive", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
+    { name: "Updates", path: "/comms-admin/posts", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Archive", path: "/comms-admin/archive", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
   ],
   scadmin: [
     { name: "Dashboard", path: "/school-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Review Posts", path: "school-admin/posts/review", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Review Posts", path: "/school-admin/posts/review", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
   ],
   psas: [
     { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Survey", path: "psas-admin/surveys", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
-    { name: "School Forms", path: "psas-admin/forms", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Survey", path: "/psas-admin/surveys", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "School Forms", path: "/psas-admin/forms", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
   ],
   registrar: [
-    { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Enrollment", path: "psas-admin/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
-    { name: "Student Information Management", path: "psas-admin/student-information", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Dashboard", path: "/registrar", solidIcon: HiHome, outlineIcon: HiOutlineHome },
+    { name: "Enrollment", path: "/registrar/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Students", path: "/registrar/student-information", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
+    { name: "SOA", path: "/registrar/soa", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+  ],
+   superadmin: [
+    { name: "Dashboard", path: "/system-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
   ],
 };

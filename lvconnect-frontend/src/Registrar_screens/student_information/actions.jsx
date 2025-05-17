@@ -1,6 +1,6 @@
+// src/components/ActionButtons.js
 
-
-import "../registrar_styling/student_information.css";
+import "./../registrar_styling/student_information.css";
 
 export default function ActionButtons({
   isEditing,

@@ -62,6 +62,12 @@ const ShowSubmission = ({ formId, userRole }) => {
       setIsReviewing(false);
     }
   };
+  const htmlEncode = (str) => {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+};
+
   const renderContentWithAnswers = (content, submissionData) => {
     if (!content) return '';
 
@@ -69,7 +75,7 @@ const ShowSubmission = ({ formId, userRole }) => {
     let updatedContent = content;
 
     submissionData.forEach(field => {
-      const placeholder = `{{${field.field_name}}}`;
+      const placeholder = `{{${htmlEncode(field.field_name)}}}`;
       const rawAnswer = field.answer_data || '';
       const fieldType = field.form_field_data?.type;
 
@@ -109,7 +115,7 @@ const ShowSubmission = ({ formId, userRole }) => {
   const { renderedContent, title, description, created_at, status } = form;
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="w-[50vw] p-4 space-y-4">
 
       {isEditing ? (
         <StudentEditForm

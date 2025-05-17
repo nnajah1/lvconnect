@@ -13,6 +13,10 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [rowSelection, setRowSelection] = useState({})
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 5,
+  })
 
   const table = useReactTable({
     data: data || [],
@@ -26,14 +30,12 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
       columnFilters,
       globalFilter,
       rowSelection,
-      pagination: {
-        pageIndex: 0,
-        pageSize: 5,
-      },
+      pagination,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
+    onPaginationChange: setPagination,
     enableRowSelection: showSelection,
   })
 

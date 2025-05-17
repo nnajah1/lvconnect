@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Loader from '../dynamic/loader';
+import { Loader } from "@/components/dynamic/loader";
 import { getSurveyById, updateSurvey } from '@/services/surveyAPI';
 import SurveyBuilder from './SurveyBuilder';
 

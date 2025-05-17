@@ -1,27 +1,23 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import Loader from "@/components/dynamic/loader";
+import {Loader} from "@/components/dynamic/loader";
 import EditForm from "@/components/school_forms/EditSchoolForm";
 import ConfirmationModal from "@/components/dynamic/alertModal";
 import { useState } from "react";
 
-const EditFormModal = ({ isOpen, closeModal, formItem, }) => {
+const EditFormModal = ({ isOpen, closeModal, formItem, onDeleteModal}) => {
 
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSuccess = () => {
+    const handleDelete = () => {
         setIsLoading(true);
-
         setTimeout(() => {
-            // closeModal();
-            // if (formId) {
-            setIsSuccessModalOpen(true);
-            // }
+            closeModal();
+            onDeleteModal();
             setIsLoading(false);
         }, 2000);
     };
-
     return (
         <>
             {isLoading ? (
@@ -37,22 +33,10 @@ const EditFormModal = ({ isOpen, closeModal, formItem, }) => {
                     showDescription={false}
                     className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <EditForm closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
+                    <EditForm closeModal={closeModal}  onDelete={handleDelete} formId={formItem.id} />
 
                 </DynamicModal>
             )}
-
-                <ConfirmationModal
-                
-                    isOpen={isSuccessModalOpen}
-                    closeModal={() => setIsSuccessModalOpen(false)}
-                    title="The School Form is updated"
-                    description="The School Form has been successfully updated."
-                >
-                    Manage School Forms
-                </ConfirmationModal>
-            
-
 
         </>
     );

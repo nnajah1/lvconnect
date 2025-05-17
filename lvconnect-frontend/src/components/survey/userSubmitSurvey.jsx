@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CheckIcon, AlertCircle } from "lucide-react"
 
 import React, { useEffect, useState } from 'react';
-import Loader from '../dynamic/loader';
+import { Loader } from "@/components/dynamic/loader";
 import { checkSubmission, getSurveyById, getSurveyResponse, getSurveyResponses, submitSurveyResponse } from '@/services/surveyAPI';
 import { toast } from 'react-toastify';
 import WebcamCapture from './captureCamera';

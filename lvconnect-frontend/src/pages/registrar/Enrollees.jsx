@@ -10,6 +10,7 @@ import { useForms } from '@/context/FormsContext';
 import { getSurveyResponses } from "@/services/surveyAPI";
 // import ViewSurveyResponseModal from "./../ViewSurvey";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import SearchBar from "@/components/dynamic/searchBar";
 
 const Enrollees = ({ userRole }) => {
   const { schoolForms, submittedSurvey, error, fetchForms, fetchSubmitted } = useForms();
@@ -18,6 +19,9 @@ const Enrollees = ({ userRole }) => {
   // const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
   const [submittedItem, setSubmittedItem] = useState(null);
+
+  const [activeTab, setActiveTab] = useState("summary");
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const { surveyId } = useParams();
   const location = useLocation();
@@ -60,12 +64,12 @@ const handleBack = () => navigate(from);
     {
       label: "Summary",
       value: "summary",
-      content: <DataTable columns={templateColumns} data={schoolForms} />
+      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
     },
     {
       label: "Individual",
       value: "Individual",
-      content: <DataTable columns={submittedColumns} data={survey} />
+      content: <DataTable columns={submittedColumns} data={survey} globalFilter={globalFilter} />
     },
   ];
 
@@ -79,18 +83,13 @@ const handleBack = () => navigate(from);
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-4">Responses</h1>
         {/* Search Input */}
-        <div className="relative w-96">
-          <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-md pl-10 pr-4 py-2 w-full outline-none focus:ring-2 focus:ring-gray-50"
-          />
-        </div>
+        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
 
-      <DynamicTabs tabs={tabs} />
+      <DynamicTabs tabs={tabs} activeTab={activeTab}
+        onTabChange={setActiveTab}
+        className="mb-2"/>
 
       {/* Modals */}
 

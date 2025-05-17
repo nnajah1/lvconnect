@@ -21,11 +21,16 @@ const generateFormFromContent = (content, fields, control) => {
   });
 
   const parts = content.split(/({{[^}]+}})/g);
-
+  function decodeHtml(html) {
+    const txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
+  }
   return parts.map((part, index) => {
     const match = part.match(/{{([^}]+)}}/);
     if (match) {
-      const fieldName = match[1].trim();  // This should match field.name
+      const rawFieldName = match[1].trim();
+      const fieldName = decodeHtml(rawFieldName);   // This should match field.name
       const field = fieldMap[fieldName];
 
       if (!field) {
@@ -320,23 +325,26 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
 
 
   return (
-    <form onSubmit={handleSubmit((data) => onSubmit(data, 'pending'))} className="max-w-3xl mx-auto p-6 space-y-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-semibold text-center">{title}</h2>
-      <p className="text-gray-600 text-center">{description}</p>
+    <div className="w-[50vw] mx-auto p-6 space-y-6 bg-white rounded shadow">
+      <form onSubmit={handleSubmit((data) => onSubmit(data, 'pending'))}>
+        <h2 className="text-2xl font-semibold text-center">{title}</h2>
+        <p className="text-gray-600 text-center">{description}</p>
 
-      <div className='ql-editor border-1 mt-2'>
-        {generateFormFromContent(content, fields, control)}
-      </div>
+        <div className='ql-editor border-1 mt-2'>
+          {generateFormFromContent(content, fields, control)}
+        </div>
 
-      <div className="flex gap-4 justify-end">
-        <Button className=' bg-amber-500' type="button" onClick={() => onSubmit(getValues(), 'draft')}>
-          Save as Draft
-        </Button>
-        <Button type="submit">
-          Submit for Review
-        </Button>
-      </div>
-    </form>
+        <div className="flex mt-4 gap-4 justify-end">
+          <Button className=' bg-amber-500' type="button" onClick={() => onSubmit(getValues(), 'draft')}>
+            Save as Draft
+          </Button>
+          <Button type="submit">
+            Submit for Review
+          </Button>
+        </div>
+      </form>
+    </div>
+
   );
 };
 

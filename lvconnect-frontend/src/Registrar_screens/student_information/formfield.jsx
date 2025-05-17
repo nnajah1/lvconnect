@@ -14,11 +14,11 @@ export default function FormField({ label, value, maxWidth, isEditing, onChange,
             onChange={onChange}
             className="form-input"
           >
-            {options.map((option, index) => (
+            {/* {options.map((option, index) => (
               <option key={index} value={option}>
                 {option}
               </option>
-            ))}
+            ))} */}
           </select>
         ) : (
           <input

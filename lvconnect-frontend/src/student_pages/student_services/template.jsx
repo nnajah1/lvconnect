@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiEdit3 } from 'react-icons/fi';
-import '../student_styling/studentservice.css'; 
+import '@/styles/studentservice.css';
 
 const TemplatesTab = ({ forms = [] }) => {
   return (

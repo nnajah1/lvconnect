@@ -25,7 +25,7 @@ class AcademicYearController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole(['psas'])) {
+        if (!$user->hasRole(['registrar'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

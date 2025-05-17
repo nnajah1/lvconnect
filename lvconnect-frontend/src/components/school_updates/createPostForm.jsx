@@ -12,7 +12,8 @@ const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState(""); // Holds ReactQuill editor content
   const [images, setImages] = useState([]);
-  const [isUrgent, setIsUrgent] = useState(false);
+  const [isNotified, setIsNotified] = useState(false);
+  // const [isUrgent, setIsUrgent] = useState(false);
   const [syncWithFacebook, setSyncWithFacebook] = useState(false);
   const [postId, setPostId] = useState(existingPost?.id || null);
 
@@ -36,9 +37,9 @@ const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
         formData.append("type", selectedType.toLowerCase());
       }
       formData.append("status", status);
-      formData.append("isUrgent", isUrgent ? "1" : "0");
-      formData.append("syncWithFacebook", syncWithFacebook ? "1" : "0");
-
+      formData.append("is_notified", isNotified ? "1" : "0");
+      formData.append("is_urgent", isUrgent ? "1" : "0");
+      formData.append("post_to_facebook", syncWithFacebook ? "1" : "0");
 
 
       images.forEach((image) => {
@@ -145,8 +146,8 @@ const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
           {/* Urgent Toggle */}
           <SwitchComponent
             label="Notification"
-            checked={isUrgent}
-            onCheckedChange={setIsUrgent}
+            checked={isNotified}
+            onCheckedChange={setIsNotified}
           />
           <TooltipComponent text="notipikasyon"><BsFillInfoCircleFill className="tooltip-icon" size={14} /></TooltipComponent>
         </div>
