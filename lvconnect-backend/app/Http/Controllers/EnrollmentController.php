@@ -38,7 +38,7 @@ class EnrollmentController extends Controller
     /**
      * Enrollment for student.
      */
-    public function store(Request $request)
+    public function studentEnrollment(Request $request)
     {
         try {
             $user = JWTAuth::authenticate();
@@ -74,7 +74,13 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'Student information not found.'], 404);
             }
 
-            // Prevent duplicate enrollment for same schedule
+            // Check if enrollment schedule is active
+            $schedule = EnrollmentSchedule::find($validated['enrollment_schedule_id']);
+            if (!$schedule->is_active) {
+                return response()->json(['message' => 'Enrollment for the selected schedule is currently closed.'], 403);
+            }
+
+            // Prevent duplicate enrollment
             $alreadyEnrolled = EnrolleeRecord::where('student_information_id', $studentInfo->id)
                 ->where('enrollment_schedule_id', $validated['enrollment_schedule_id'])
                 ->exists();
@@ -84,18 +90,18 @@ class EnrollmentController extends Controller
             }
 
             DB::transaction(function () use ($validated, $studentInfo) {
-                // Update student address and contact
+                // Update address/contact only if changed
                 $studentInfo->update([
-                    'floor/unit/building_no' => $validated['address']['building_no'],
-                    'house_no/street' => $validated['address']['street'],
-                    'barangay' => $validated['address']['barangay'],
-                    'city_municipality' => $validated['address']['city'],
-                    'province' => $validated['address']['province'],
-                    'zip_code' => $validated['address']['zip'],
-                    'mobile_number' => $validated['contact_number'],
+                    'floor/unit/building_no' => $validated['address']['building_no'] ?? $studentInfo['floor/unit/building_no'],
+                    'house_no/street' => $validated['address']['street'] ?? $studentInfo['house_no/street'],
+                    'barangay' => $validated['address']['barangay'] ?? $studentInfo->barangay,
+                    'city_municipality' => $validated['address']['city'] ?? $studentInfo->city_municipality,
+                    'province' => $validated['address']['province'] ?? $studentInfo->province,
+                    'zip_code' => $validated['address']['zip'] ?? $studentInfo->zip_code,
+                    'mobile_number' => $validated['contact_number'] ?? $studentInfo->mobile_number,
                 ]);
 
-                // Update guardian info
+                // Update or create guardian information
                 StudentFamilyInformation::updateOrCreate(
                     ['student_information_id' => $studentInfo->id],
                     [
@@ -110,7 +116,7 @@ class EnrollmentController extends Controller
                     ]
                 );
 
-                // Create enrollee record
+                // Create new enrollment record
                 EnrolleeRecord::create([
                     'student_information_id' => $studentInfo->id,
                     'program_id' => $validated['program_id'],
@@ -139,6 +145,23 @@ class EnrollmentController extends Controller
         }
     }
 
+    /**
+     * Show Information for pre-filled enrollment for student.
+     */
+    public function showEnrollmentData()
+    {
+        $user = JWTAuth::authenticate();
+        $studentInfo = StudentInformation::where('user_id', $user->id)->with('guardian')->first();
+
+        if (!$studentInfo) {
+            return response()->json(['message' => 'Student information not found.'], 404);
+        }
+
+        return response()->json([
+            'student_info' => $studentInfo,
+            'guardian' => $studentInfo->guardian,
+        ]);
+    }
     /**
      * Manual enrollment for student.
      */    

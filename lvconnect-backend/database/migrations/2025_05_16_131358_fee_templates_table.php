@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('fee_templates', function(Blueprint $table){
             $table->id();
             $table->string('term');
+            $table->enum('status', ['saved', 'archived']);
+            
             $table->timestamps();
         });
     }
