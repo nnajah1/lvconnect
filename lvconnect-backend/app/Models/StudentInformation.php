@@ -15,7 +15,7 @@ class StudentInformation extends Model
     ];
 
     public function studentFamilyInfo() {
-         return $this->hasMany(StudentFamilyInformation::class);
+        return $this->hasOne(StudentFamilyInformation::class);
     }
 
     public function enrolleeRecord() {

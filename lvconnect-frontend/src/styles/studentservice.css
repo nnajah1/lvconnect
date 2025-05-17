@@ -214,3 +214,153 @@
   border: none;
   cursor: pointer;
 }
+
+
+
+/* school services */
+
+.school-service-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  margin-top: 1.5rem;
+}
+
+.school-service-header {
+  background-color: #1291ce;
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding: 1rem;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.school-service-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .school-service-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .school-service-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.school-service-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease;
+  text-decoration: none;
+}
+
+.school-service-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+.school-service-icon {
+  font-size: 1.5rem;
+}
+
+.custom-color-icon {
+  color: #1291ce;
+}
+
+.school-service-title {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+/* Guidelines and Policies */
+
+.guidelines-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  margin-top: 1.5rem;
+}
+
+.guidelines-header {
+  background-color: #1291ce;
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding: 1rem;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.guidelines-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .guidelines-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .guidelines-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.guidelines-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease;
+  text-decoration: none;
+}
+
+.guidelines-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
+.guidelines-title {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.guidelines-icon {
+  font-size: 1.5rem;
+  color: #1291ce;
+
+}
+
+
+
+
+
+
