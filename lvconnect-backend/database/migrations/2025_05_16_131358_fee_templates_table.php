@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('term');
             $table->enum('status', ['saved', 'archived']);
-            
+            $table->boolean('is_visible')->default('false');
             $table->timestamps();
         });
     }

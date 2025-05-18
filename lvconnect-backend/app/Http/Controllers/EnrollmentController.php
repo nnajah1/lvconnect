@@ -408,21 +408,26 @@ class EnrollmentController extends Controller
         ]);
     }
 
-
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $enrollment = EnrolleeRecord::find($id);
+
+            if (!$enrollment) {
+                return response()->json(['message' => 'Enrollment record not found.'], 404);
+            }
+
+            $enrollment->delete();
+
+            return response()->json(['message' => 'Enrollment record deleted successfully.']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete enrollment record.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
