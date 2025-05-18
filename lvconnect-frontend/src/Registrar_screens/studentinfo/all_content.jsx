@@ -1,7 +1,4 @@
-"use client"
-
 import { useState } from "react"
-import { ChevronLeft } from "lucide-react"
 import ProfileSection from "./profile"
 import StudentInfoSection from ".student_info"
 import AddressSection from ".address"
@@ -15,66 +12,103 @@ export default function StudentInformationForm() {
   const [profileImage, setProfileImage] = useState("")
   const [isEditing, setIsEditing] = useState(false)
 
+  // Sample data for dropdown options
+  const incomeOptions = [
+    "Below ₱10,000",
+    "₱10,000 - ₱20,000",
+    "₱20,001 - ₱30,000",
+    "₱30,001 - ₱40,000",
+    "₱40,001 - ₱50,000",
+    "₱50,001 - ₱60,000",
+    "₱60,001 - ₱70,000",
+    "₱70,001 - ₱80,000",
+    "₱80,001 - ₱90,000",
+    "₱90,001 - ₱100,000",
+    "Above ₱100,000",
+  ]
+
+  const religionOptions = [
+    "Catholic",
+    "Islam",
+    "Protestant",
+    "Iglesia ni Cristo",
+    "Seventh Day Adventist",
+    "Born Again Christian",
+    "Buddhist",
+    "Hindu",
+    "Judaism",
+    "Other",
+  ]
+
+  // Sample data for the student information form
   const [studentData, setStudentData] = useState({
     profile: {
-      name: "Juan Dela Cruz",
-      lrn: "123456789012",
-      gradeSection: "Grade 12 - ICT",
+      program: "Bachelor of Science in Information Technology",
+      year: "3rd Year",
+      studentNumber: "2021-00123",
+      email: "student@example.edu.ph",
     },
     personal: {
       firstName: "Juan",
-      middleName: "Santos",
-      lastName: "Dela Cruz",
+      middleName: "Dela",
+      lastName: "Cruz",
       suffix: "Jr.",
-      birthdate: "2005-05-15",
-      birthplace: "Manila",
+      birthdate: "January 15, 2000",
+      birthplace: "Manila City",
       gender: "Male",
       civilStatus: "Single",
       religion: "Catholic",
-      contactNumber: "09171234567",
-      facebookProfile: "https://facebook.com/juandelacruz",
+      contactNumber: "09123456789",
+      facebookProfile: "facebook.com/juandelacruz",
     },
     address: {
-      street: "123 Mabuhay St.",
-      barangay: "San Isidro",
-      city: "Quezon City",
       province: "Metro Manila",
-      zipCode: "1100",
+      cityMunicipality: "Quezon City",
+      barangay: "Barangay Commonwealth",
+      address: "123 Main Street, Block 5 Lot 12",
+      zipCode: "1121",
     },
     family: {
-      siblings: 3,
-      birthOrder: "2nd",
-      parentsStatus: "Married",
+      numberOfChildren: "3",
+      birthOrder: "1",
+      hasSiblingsInLVCC: true,
     },
     education: {
-      previousSchool: "LVCC Junior High",
-      lastYearAttended: "2023",
-      awards: "With Honors",
+      schoolLastAttended: "National High School",
+      schoolAddress: "456 Education Avenue, Quezon City",
+      schoolType: "Public",
     },
     mother: {
-      fullName: "Maria Dela Cruz",
-      occupation: "Housewife",
-      income: "Less than ₱10,000",
+      firstName: "Maria",
+      middleName: "Santos",
+      lastName: "Dela Cruz",
+      contactNumber: "09187654321",
+      occupation: "Teacher",
+      monthlyIncome: "₱20,001 - ₱30,000",
       religion: "Catholic",
     },
     father: {
-      fullName: "Jose Dela Cruz",
-      occupation: "Driver",
-      income: "₱10,000 - ₱20,000",
+      firstName: "Pedro",
+      middleName: "Garcia",
+      lastName: "Cruz",
+      contactNumber: "09198765432",
+      occupation: "Engineer",
+      monthlyIncome: "₱30,001 - ₱40,000",
       religion: "Catholic",
     },
     guardian: {
-      fullName: "Ana Santos",
-      occupation: "Teacher",
-      income: "₱20,000 - ₱30,000",
-      religion: "Christian",
+      firstName: "Elena",
+      middleName: "Reyes",
+      lastName: "Santos",
+      contactNumber: "09123456780",
+      occupation: "Business Owner",
+      monthlyIncome: "₱40,001 - ₱50,000",
+      religion: "Catholic",
     },
   })
 
-  const religionOptions = ["Catholic", "Christian", "Muslim", "Others"]
-  const incomeOptions = ["Less than ₱10,000", "₱10,000 - ₱20,000", "₱20,000 - ₱30,000", "₱30,000 and above"]
-
   const handleChangeImage = () => {
+    
     console.log("Change image clicked")
   }
 
@@ -83,16 +117,19 @@ export default function StudentInformationForm() {
   }
 
   const handleSave = () => {
+
     console.log("Saving data:", studentData)
     setIsEditing(false)
   }
 
   const handleArchive = () => {
+    
     console.log("Archiving student record")
     setIsEditing(false)
   }
 
   const handleCancel = () => {
+ 
     setIsEditing(false)
   }
 
@@ -107,22 +144,17 @@ export default function StudentInformationForm() {
   }
 
   return (
-    <div className="flex flex-col items-start w-full min-h-screen bg-[#F3F4F6]">
+      <div className="flex flex-col items-start w-full min-h-screen bg-[#F3F4F6]">
       <div className="w-full bg-[#F3F4F6] pt-10 px-10">
-        <div className="flex items-center w-full">
-          <button className="flex justify-center items-center p-2 border border-[#CED4DA] rounded bg-white">
-            <ChevronLeft className="w-4 h-4 text-[#212529]" />
-          </button>
+        <ActionButtons
+          isEditing={isEditing}
+          handleSave={handleSave}
+          handleArchive={handleArchive}
+          handleCancel={handleCancel}
+          handleEditToggle={handleEditToggle}
+        />
 
-          <ActionButtons
-            isEditing={isEditing}
-            onSave={handleSave}
-            onArchive={handleArchive}
-            onCancel={handleCancel}
-            onEditToggle={handleEditToggle}
-          />
-        </div>
-
+       
         <ProfileSection
           profileData={studentData.profile}
           profileImage={profileImage}
@@ -132,6 +164,7 @@ export default function StudentInformationForm() {
         />
       </div>
 
+      
       <div className="w-full p-10 pt-6">
         <StudentInfoSection
           personalInfo={studentData.personal}
@@ -139,27 +172,20 @@ export default function StudentInformationForm() {
           onChange={handleFieldChange}
           religionOptions={religionOptions}
         />
+    
+        <AddressSection addressInfo={studentData.address} isEditing={isEditing} onChange={handleFieldChange} />
 
-        <AddressSection
-          addressInfo={studentData.address}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-        />
+      
+        <FamilyInfoSection familyInfo={studentData.family} isEditing={isEditing} onChange={handleFieldChange} />
 
-        <FamilyInfoSection
-          familyInfo={studentData.family}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-        />
+        
+        <SchoolInfoSection educationInfo={studentData.education} isEditing={isEditing} onChange={handleFieldChange} />
 
-        <SchoolInfoSection
-          educationInfo={studentData.education}
-          isEditing={isEditing}
-          onChange={handleFieldChange}
-        />
-
+       
         <div className="w-full">
           <SectionHeader title="GUARDIAN INFORMATION" />
+
+          
           <GuardianInfoComponent
             title="Mother's Information"
             guardianData={studentData.mother}
@@ -169,6 +195,8 @@ export default function StudentInformationForm() {
             religionOptions={religionOptions}
             prefix="mother"
           />
+
+         
           <GuardianInfoComponent
             title="Father's Information"
             guardianData={studentData.father}
@@ -178,6 +206,8 @@ export default function StudentInformationForm() {
             religionOptions={religionOptions}
             prefix="father"
           />
+
+          
           <GuardianInfoComponent
             title="Guardian's Information"
             guardianData={studentData.guardian}

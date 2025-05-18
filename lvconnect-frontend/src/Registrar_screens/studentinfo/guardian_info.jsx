@@ -1,7 +1,8 @@
 
-import FormField from "../studentinfo/form_field"
-import SectionHeader from "../studentinfo/header_section"
-import "./student_information.css";
+
+import FormField from "./form_field"
+import SectionHeader from "./header_section"
+import "./student_information.css"
 
 export default function GuardianInfoComponent({
   title,
@@ -18,10 +19,10 @@ export default function GuardianInfoComponent({
   }
 
   return (
-    <div className="guardian-wrapper">
+    <div className="guardian_container">
       <SectionHeader title={title} isSubsection={true} />
 
-      <div className="guardian-grid">
+      <div className="guardian_grid">
         <FormField
           label="First Name"
           value={guardianData.firstName}
@@ -52,7 +53,7 @@ export default function GuardianInfoComponent({
         />
       </div>
 
-      <div className="guardian-grid">
+      <div className="guardian_grid">
         <FormField
           label="Occupation"
           value={guardianData.occupation}
@@ -76,7 +77,7 @@ export default function GuardianInfoComponent({
           name="religion"
           options={religionOptions}
         />
-        <div className="guardian-empty-cell">{/* Empty column */}</div>
+        <div className="guardian_empty_column">{/* Empty column */}</div>
       </div>
     </div>
   )

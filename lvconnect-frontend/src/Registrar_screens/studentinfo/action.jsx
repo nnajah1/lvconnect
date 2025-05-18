@@ -1,31 +1,39 @@
-import "./student_information.css";
+
+import { ChevronLeft } from "lucide-react"
+import "./student_information.css"
 
 export default function ActionButtons({
   isEditing,
-  onSave,
-  onArchive,
-  onCancel,
-  onEditToggle,
+  handleSave,
+  handleArchive,
+  handleCancel,
+  handleEditToggle,
 }) {
   return (
-    <div className="actions-container-button">
-      {isEditing ? (
-        <>
-          <button onClick={onSave} className="action-btn-button save-btn-button">
-            <span>Save</span>
+    <div className="add_actions_container">
+      <button className="add_back_btn">
+        <ChevronLeft className="add_back_icon" />
+      </button>
+
+      <div className="add_btn_group">
+        {isEditing ? (
+          <>
+            <button onClick={handleSave} className="add_action_btn save">
+              Save
+            </button>
+            <button onClick={handleArchive} className="add_action_btn archive">
+              Archive
+            </button>
+            <button onClick={handleCancel} className="add_action_btn cancel">
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button onClick={handleEditToggle} className="add_action_btn edit">
+            Edit
           </button>
-          <button onClick={onArchive} className="action-btn-button archive-btn-button">
-            <span>Archive</span>
-          </button>
-          <button onClick={onCancel} className="action-btn-button cancel-btn-button">
-            <span>Cancel</span>
-          </button>
-        </>
-      ) : (
-        <button onClick={onEditToggle} className="action-btn-button edit-btn-button">
-          <span>Edit</span>
-        </button>
-      )}
+        )}
+      </div>
     </div>
-  );
+  )
 }

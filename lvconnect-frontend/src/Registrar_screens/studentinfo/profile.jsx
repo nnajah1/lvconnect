@@ -1,6 +1,7 @@
 
-import FormField from "../studentinfo/form_field"
-import "./student_information.css";
+
+import FormField from "./form_field"
+import './student_information.css'
 
 export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange }) {
   const handleChange = (e) => {
@@ -9,25 +10,25 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
   }
 
   return (
-    <div className="profile-container">
-      <div className="profile-left">
-        <p className="profile-label">Profile Picture</p>
-        <div className="profile-image-wrapper">
-          <div className="profile-image-container">
+    <div className="profile_section">
+      <div className="profile_left">
+        <p className="profile_label">Profile Picture</p>
+        <div className="profile_image_wrapper">
+          <div className="profile_image_box">
             <img
-              src={profileImage || ""}
+              src={profileImage || "/placeholder.svg?height=100&width=100"}
               alt="Profile"
-              className="profile-image"
+              className="profile_image"
             />
           </div>
-          <button onClick={onChangeImage} className="profile-change-button">
+          <button onClick={onChangeImage} className="profile_change_btn">
             Change
           </button>
         </div>
       </div>
 
-      <div className="profile-right">
-        <div className="profile-grid">
+      <div className="profile_right">
+        <div className="profile_row">
           <FormField
             label="Program"
             value={profileData.program}
@@ -45,7 +46,7 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
           />
         </div>
 
-        <div className="profile-subgrid">
+        <div className="profile_row profile_row_secondary">
           <FormField
             label="Student Number"
             value={profileData.studentNumber}

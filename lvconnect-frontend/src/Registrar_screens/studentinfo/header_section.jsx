@@ -1,12 +1,12 @@
-import "./student_information.css";
+import "./student_information.css"
 
 export default function SectionHeader({ title, isSubsection = false }) {
   return (
-    <div className="header-container">
+    <div className="header_container">
       {isSubsection ? (
-        <p className="header-subtitle">{title}</p>
+        <p className="header_subtitle">{title}</p>
       ) : (
-        <h2 className="header-title">{title}</h2>
+        <h2 className="header_title">{title}</h2>
       )}
     </div>
   )

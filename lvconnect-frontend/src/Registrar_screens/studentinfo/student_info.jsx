@@ -1,7 +1,8 @@
 
-import FormField from "../studentinfo/form_field"
-import SectionHeader from "../studentinfo/header_section"
-import "./student_information.css";
+
+import "./student_information.css"
+import FormField from "./form_field"
+import SectionHeader from "./header_section"
 
 export default function StudentInfoSection({ personalInfo, isEditing, onChange, religionOptions }) {
   const handleChange = (e) => {
@@ -10,21 +11,57 @@ export default function StudentInfoSection({ personalInfo, isEditing, onChange, 
   }
 
   return (
-    <div className="student-section-container">
+    <div className="student_section_container">
       <SectionHeader title="STUDENT INFORMATION" />
 
       {/* Name Fields */}
-      <div className="student-grid">
-        <FormField label="First Name" value={personalInfo.firstName} isEditing={isEditing} onChange={handleChange} name="firstName" />
-        <FormField label="Middle Name" value={personalInfo.middleName} isEditing={isEditing} onChange={handleChange} name="middleName" />
-        <FormField label="Last Name" value={personalInfo.lastName} isEditing={isEditing} onChange={handleChange} name="lastName" />
-        <FormField label="Suffix" value={personalInfo.suffix} isEditing={isEditing} onChange={handleChange} name="suffix" />
+      <div className="student_grid">
+        <FormField
+          label="First Name"
+          value={personalInfo.firstName}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="firstName"
+        />
+        <FormField
+          label="Middle Name"
+          value={personalInfo.middleName}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="middleName"
+        />
+        <FormField
+          label="Last Name"
+          value={personalInfo.lastName}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="lastName"
+        />
+        <FormField
+          label="Suffix"
+          value={personalInfo.suffix}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="suffix"
+        />
       </div>
 
-      {/* Birth Information */}
-      <div className="student-grid">
-        <FormField label="Birthdate" value={personalInfo.birthdate} isEditing={isEditing} onChange={handleChange} name="birthdate" />
-        <FormField label="Birthplace" value={personalInfo.birthplace} isEditing={isEditing} onChange={handleChange} name="birthplace" />
+      {/* Birth Info, Gender, Civil Status */}
+      <div className="student_grid">
+        <FormField
+          label="Birthdate"
+          value={personalInfo.birthdate}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="birthdate"
+        />
+        <FormField
+          label="Birthplace"
+          value={personalInfo.birthplace}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="birthplace"
+        />
         <FormField
           label="Gender"
           value={personalInfo.gender}
@@ -46,7 +83,7 @@ export default function StudentInfoSection({ personalInfo, isEditing, onChange, 
       </div>
 
       {/* Religion, Contact, Facebook */}
-      <div className="student-grid">
+      <div className="student_grid">
         <FormField
           label="Religion"
           value={personalInfo.religion}

@@ -1,10 +1,9 @@
 
-
-import "./student_information.css";
+import "./student_information.css"
 
 export default function FormField({ label, value, maxWidth, isEditing, onChange, name, options }) {
   return (
-    <div className={`form-container ${maxWidth || ""}`}>
+    <div className={`form-field-container ${maxWidth || ""}`}>
       <label className="form-label">{label}</label>
       {isEditing ? (
         options ? (
@@ -12,7 +11,7 @@ export default function FormField({ label, value, maxWidth, isEditing, onChange,
             name={name}
             value={value}
             onChange={onChange}
-            className="form-input"
+            className="form-select"
           >
             {options.map((option, index) => (
               <option key={index} value={option}>
@@ -30,8 +29,8 @@ export default function FormField({ label, value, maxWidth, isEditing, onChange,
           />
         )
       ) : (
-        <div className="form-display-box">
-          <span className="form-text">{value}</span>
+        <div className="form-display">
+          <span className="form-value">{value}</span>
         </div>
       )}
     </div>
