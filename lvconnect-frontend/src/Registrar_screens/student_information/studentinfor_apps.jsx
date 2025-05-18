@@ -1,19 +1,21 @@
 "use client"
 
+
 import { useState } from "react"
 import { ChevronLeft } from "lucide-react"
-import ProfileSection from "./student_information/profile"
-import StudentInfoSection from "./student_info"
-import AddressSection from "./address"
-import FamilyInfoSection from "./profile"
-import SchoolInfoSection from "./schoolinfo"
-import GuardianInfoComponent from "./guardianinfo"
-import SectionHeader from "./header_section"
-import ActionButtons from "./student_information/actions" 
+import ProfileSection from "./../student_information/profile"
+import StudentInfoSection from "./../student_information/student_info"
+import AddressSection from "./../student_information/address"
+import FamilyInfoSection from "./../student_information/family_info"
+import SchoolInfoSection from "./../student_information/schoolinfo"
+import GuardianInfoComponent from "./../student_information/guardianinfo"
+import SectionHeader from "./../student_information/header_section"
+import ActionButtons from "./../student_information/actions"
 
 export default function StudentInformationForm() {
   const [profileImage, setProfileImage] = useState("")
   const [isEditing, setIsEditing] = useState(false)
+
 
   const handleChangeImage = () => {
     console.log("Change image clicked")
@@ -46,6 +48,25 @@ export default function StudentInformationForm() {
       },
     }))
   }
+
+  const studentData = {
+        profile: {program: "q1"},
+        family: "What is your name?",
+        address: "text",
+        education: "true",
+        personal: "w",
+        mother: "w",
+        father: "w",
+        guardian: "w",
+      }
+  
+  const religionOptions = {
+      yow: "why"
+  }
+  const incomeOptions = {
+      yow: "why"
+  }
+
 
   return (
     <div className="flex flex-col items-start w-full min-h-screen bg-[#F3F4F6]">

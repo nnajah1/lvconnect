@@ -30,25 +30,25 @@ export const actionConditions = {
 };
 
 export const archiveSchema = {
-    select: {
-        header: ({ table }) => (
-            <input
-                type="checkbox"
-                onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    table.toggleAllRowsSelected(isChecked);
-                }}
-            />
-        ),
-        cell: ({ row }) => (
-            <input
-            type="checkbox"
-            checked={row.getIsSelected()}
-            onChange={() => row.toggleSelected()}
-        />
-    ),
-    enableSorting: false, 
-    },
+    // select: {
+    //     header: ({ table }) => (
+    //         <input
+    //             type="checkbox"
+    //             onChange={(e) => {
+    //                 const isChecked = e.target.checked;
+    //                 table.toggleAllRowsSelected(isChecked);
+    //             }}
+    //         />
+    //     ),
+    //     cell: ({ row }) => (
+    //         <input
+    //         type="checkbox"
+    //         checked={row.getIsSelected()}
+    //         onChange={() => row.toggleSelected()}
+    //     />
+    // ),
+    // enableSorting: false, 
+    // },
     content: {
         header: "Updates",
         display: true,

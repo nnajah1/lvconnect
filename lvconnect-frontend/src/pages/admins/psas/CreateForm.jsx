@@ -1,6 +1,6 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import Loader from "@/components/dynamic/loader";
+import { Loader } from "@/components/dynamic/loader";
 import FormBuilder from "@/components/school_forms/FormBuilder";
 import ConfirmationModal from "@/components/dynamic/alertModal";
 import { useState } from "react";
@@ -52,7 +52,13 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
                 title="The School Form is created"
                 description="The School Form has been successfully created."
             >
-                Manage School Forms
+                <button
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    onClick={() => setIsSuccessModalOpen(false)}
+                >
+                    Manage School Forms
+                </button>
+
             </ConfirmationModal>
 
         </>

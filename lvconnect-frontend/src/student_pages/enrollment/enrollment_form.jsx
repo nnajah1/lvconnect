@@ -3,15 +3,74 @@
 import { useState } from "react"
 import { ChevronLeft } from "lucide-react"
 import "../student_styling/student_enrollment_form.css"
-import StudentInfoSection from "../Registrar_screens/student_information/student_info"
-import AddressSection from "../Registrar_screens/student_information/address"
-import FamilyInfoSection from "../Registrar_screens/student_information/family_info"
-import SchoolInfoSection from "../Registrar_screens/student_information/schoolinfo"
-import GuardianInfoComponent from "../Registrar_screens/student_information/guardianinfo"
-import SectionHeader from "../Registrar_screens/student_information/header_section"
+import StudentInfoSection from "@/Registrar_screens/student_information/student_info"
+import AddressSection from "@/Registrar_screens/student_information/address"
+import FamilyInfoSection from "@/Registrar_screens/student_information/family_info"
+import SchoolInfoSection from "@/Registrar_screens/student_information/schoolinfo"
+import GuardianInfoComponent from "@/Registrar_screens/student_information/guardianinfo"
+import SectionHeader from "@/Registrar_screens/student_information/header_section"
 
-export default function StudentInformationForm() {
-  const [studentData, setStudentData] = useState
+export default function StudentInformationForms() {
+    const schoolyear = () => {
+      "2025-2026"
+    }
+    const semester = () => {
+      "1st semester"
+    }
+    const scholarshipStatus = () => {
+      "pending"
+    }
+    const religionOptions = () => {
+      "MCGI"
+    }
+   const [studentData, setStudentData] = useState({
+    personal: {
+      firstName: "Juan",
+      lastName: "Dela Cruz",
+      birthDate: "2005-08-15",
+      gender: "Male",
+      religion: "Catholic",
+      contactNumber: "09171234567",
+    },
+    address: {
+      street: "123 Mabini St.",
+      city: "Quezon City",
+      province: "Metro Manila",
+      zipCode: "1100",
+    },
+    family: {
+      siblings: "3",
+      birthOrder: "2",
+      livingWith: "Parents",
+    },
+    education: {
+      lastSchoolAttended: "Barangay High School",
+      lastSchoolAddress: "Pasig City",
+      lastSchoolYear: "2023-2024",
+    },
+    mother: {
+      fullName: "Maria Dela Cruz",
+      occupation: "Housewife",
+      income: "Below ₱10,000",
+      contactNumber: "09181234567",
+      religion: "Catholic",
+    },
+    father: {
+      fullName: "Jose Dela Cruz",
+      occupation: "Driver",
+      income: "₱10,000 - ₱20,000",
+      contactNumber: "09181234568",
+      religion: "Catholic",
+    },
+    guardian: {
+      fullName: "Tita Ana",
+      occupation: "Vendor",
+      income: "₱10,000 - ₱20,000",
+      contactNumber: "09181234569",
+      religion: "Iglesia ni Cristo",
+    },
+  })
+
   const [isEditing, setIsEditing] = useState(true)
   const [step, setStep] = useState(1)
   const [isAgreed, setIsAgreed] = useState(false)

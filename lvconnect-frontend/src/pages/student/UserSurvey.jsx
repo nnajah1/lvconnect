@@ -5,6 +5,7 @@ import { surveyActionConditions, surveyActions, surveyTemplateSchema } from "@/t
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import UserCreateSurveyModal from './UserCreateSurvey';
 import { getSurveys } from '@/services/surveyAPI';
+import SearchBar from '@/components/dynamic/searchBar';
 
 const VisibleSurveys = ({ userRole }) => {
 
@@ -13,7 +14,7 @@ const VisibleSurveys = ({ userRole }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [formItem, setFormItem] = useState(null);
   const [sorting, setSorting] = useState([])
-
+  const [globalFilter, setGlobalFilter] = useState("");
 
   useEffect(() => {
     const loadSurveys = async () => {
@@ -47,17 +48,10 @@ const VisibleSurveys = ({ userRole }) => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-4">Surveys</h1>
         {/* Search Input */}
-        <div className="relative w-96">
-          <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-md pl-10 pr-4 py-2 w-full outline-none focus:ring-2 focus:ring-gray-50"
-          />
-        </div>
+       <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
-       <DataTable columns={Columns} data={survey} context="Surveys" />
+       <DataTable columns={Columns} data={survey} context="Surveys" globalFilter={globalFilter} />
       
       {/* Modals */}
       {formItem && (

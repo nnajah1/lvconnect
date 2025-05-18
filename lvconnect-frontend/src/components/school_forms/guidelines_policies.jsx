@@ -1,8 +1,7 @@
 import React from 'react';
 import { FaBook } from 'react-icons/fa6';
 import { IoIosLock } from 'react-icons/io';
-
-import '../student_styling/studentservice.css';
+import '@/styles/studentservice.css';
 
 const GuidelinesAndPolicies = () => {
   return (

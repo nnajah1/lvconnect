@@ -1,26 +1,26 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import Loader from "@/components/dynamic/loader";
+import {Loader} from "@/components/dynamic/loader";
 import ConfirmationModal from "@/components/dynamic/alertModal";
 import ShowSubmission from "@/components/school_forms/userViewSchoolForm";
 import { useAuthContext } from "@/context/AuthContext";
 
 import { useState } from "react";
 
-const UserViewFormModal = ({ isOpen, closeModal, submittedItem, }) => {
+const UserViewFormModal = ({ isOpen, closeModal, submittedItem, setIsSuccessModalOpen}) => {
 
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { user } = useAuthContext();
     const userRole = user?.roles?.[0]?.name;
-    const handleSuccess = () => {
+
+     const handleSuccess = (formId) => {
         setIsLoading(true);
 
         setTimeout(() => {
-            // closeModal();
-            // if (formId) {
-            setIsSuccessModalOpen(true);
-            // }
+            closeModal();
+            if (formId) {
+                setIsSuccessModalOpen(true);
+            }
             setIsLoading(false);
         }, 2000);
     };
@@ -45,7 +45,7 @@ const UserViewFormModal = ({ isOpen, closeModal, submittedItem, }) => {
                 </DynamicModal>
             )}
 
-                <ConfirmationModal
+                {/* <ConfirmationModal
                 
                     isOpen={isSuccessModalOpen}
                     closeModal={() => setIsSuccessModalOpen(false)}
@@ -53,7 +53,7 @@ const UserViewFormModal = ({ isOpen, closeModal, submittedItem, }) => {
                     description="The School Form has been successfully updated."
                 >
                     Manage School Forms
-                </ConfirmationModal>
+                </ConfirmationModal> */}
             
 
 

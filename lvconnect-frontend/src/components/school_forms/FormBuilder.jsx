@@ -15,12 +15,12 @@ if (typeof window !== 'undefined') {
 
 import { useForms } from '@/context/FormsContext';
 import ConfirmationModal from '@/components/dynamic/DeleteModal';
+import { toast } from 'react-toastify';
+import { DeleteModal } from '../dynamic/alertModal';
 
-const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, error, onSuccess }) => {
+const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, onSuccess, onDelete, closeModal }) => {
 
   const { fetchForms, fetchSubmitted } = useForms();
-
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [pdfFile, setPdfFile] = useState(null);
   const [ocrText, setOcrText] = useState('');
@@ -43,6 +43,10 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
 
   const [isLoading, setIsLoading] = useState(false)
   const [localError, setLocalError] = useState();
+
+  const [isAlertModal, setIsAlertModal] = useState(false);
+  const openAlertModal = () => setIsAlertModal(true);
+  const closeAlertModal = () => setIsAlertModal(false);
 
   useEffect(() => {
 
@@ -161,9 +165,11 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
     const oldName = previousFieldNames[field.id];
     const newPlaceholder = `{{${field.name}}}`;
 
+    const editorText = quill.getText();
+
     if (oldName && oldName !== field.name) {
       const oldPlaceholder = `{{${oldName}}}`;
-      const editorText = quill.getText();
+      // const editorText = quill.getText();
       const startIndex = editorText.indexOf(oldPlaceholder);
 
       if (startIndex !== -1) {
@@ -175,11 +181,14 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
     }
 
     // If not previously inserted or already replaced, insert at cursor
-    const editorText = quill.getText();
     if (!editorText.includes(newPlaceholder)) {
-      const cursorIndex = quill.getSelection()?.index || editorText.length;
-      quill.insertText(cursorIndex, newPlaceholder, 'user');
-    }
+    const selection = quill.getSelection();
+    const insertAt = selection?.index ?? editorText.trimEnd().length;
+
+    // Insert without a newline
+    quill.insertText(insertAt, newPlaceholder, 'user');
+    quill.setSelection(insertAt + newPlaceholder.length);
+  }
   };
 
   const removeField = (id) => {
@@ -275,7 +284,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
       }
     } catch (error) {
       console.error('Form submission error:', error);
-      setLocalError(
+      toast.error(
         mode === 'edit'
           ? 'There was an error updating the form.'
           : 'There was an error creating the form.'
@@ -285,37 +294,22 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
     }
   };
 
-  // const handleDeleteForm = async (formId) => {
-  //   try {
-  //     if (onDelete) onDelete(formId);
-  //   } catch (err) {
-  //     setError('Error deleting form');
-  //   }
-  // };
-
-
-  const handleOpenDeleteModal = () => {
-    setShowDeleteModal(true);
-  };
-  const handleDeleteConfirm = async (formId) => {
+  const handleDeleteForm = async () => {
+    if (!initialData.id) return;
     try {
-      await deleteForm(formId, (formId));
+      await deleteForm(initialData.id);
       await fetchForms();
       await fetchSubmitted();
-    } catch (error) {
-      console.error("Error deleting form:", error);
+      if (onDelete) onDelete(initialData.id);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete form.');
     }
-    finally {
-      setShowDeleteModal(false);
-    }
+    closeAlertModal();
   };
-
 
   return (
     <div className="p-4">
-      {(error || localError) && (
-        <p className="text-red-500 text-center mb-4">{error || localError}</p>
-      )}
 
       <form onSubmit={handleSubmit(handleCreateForm)} className="space-y-4">
         <div className="flex items-center justify-between">
@@ -458,34 +452,49 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, er
           </div>
         </div>
         <div className=' space-x-2 flex justify-end'>
-          {/* {mode !== 'edit' &&  */}
-          <button type="submit" disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}>
+      
+          {mode === 'edit' ? (
+            <div>
+              <button
+                type="button"
+                onClick={openAlertModal}
+                className="text-red-600 border border-red-600 hover:bg-red-50 px-4 py-2 rounded-lg"
+              >
+                Delete
+              </button>
+              <DeleteModal
+                isOpen={isAlertModal}
+                closeModal={closeAlertModal}
+              >
+                {/* Action buttons inside the modal */}
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+                  onClick={closeAlertModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleDeleteForm}
+                >
+                  Delete
+                </button>
+              </DeleteModal>
+            </div>
+          ) :
+            (
+              <button
+                onClick={closeModal}
+                className="btn-cancel px-4 py-2 border rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            )
+          }
+            <button type="submit" disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}>
             {isLoading ? 'Saving...' : 'Save Form'}
           </button>
-          {/* } */}
-
-          {/* {mode === 'edit' && <button type="submit" disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}>
-            {isLoading ? 'Saving...' : 'Save Form'}
-          </button>} */}
-
-          {mode === 'edit' &&
-
-
-            <button onClick={handleOpenDeleteModal} disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-red-500 text-white'}`}>
-              Delete Form
-            </button>
-          }
-          {showDeleteModal && (
-            <ConfirmationModal
-              isOpen={showDeleteModal}
-              closeModal={() => setShowDeleteModal(false)}
-              onConfirm={() => handleDeleteConfirm(formId)}
-              title="Are you sure?"
-              description="This action cannot be undone."
-            >
-              Confirm Deletion
-            </ConfirmationModal>
-          )}
 
         </div>
       </form>

@@ -9,6 +9,7 @@ import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
 import EditFormModal from "@/pages/admins/psas/EditForm";
 import UserViewFormModal from "@/pages/student/UserViewSchoolForm";
+import SearchBar from "@/components/dynamic/searchBar";
 
 const StudentInformation = ({ userRole }) => {
   // const [loading, setLoading] = useState(true);
@@ -17,6 +18,8 @@ const StudentInformation = ({ userRole }) => {
 
   const [formItem, setFormItem] = useState(null);
   const [submittedItem, setSubmittedItem] = useState(null);
+  const [activeTab, setActiveTab] = useState("form Template");
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const openFormModal = (item) => {
     setFormItem(item); // full item, not just id
@@ -48,12 +51,12 @@ const StudentInformation = ({ userRole }) => {
     {
       label: "Form Templates",
       value: "form Template",
-      content: <DataTable columns={templateColumns} data={schoolForms} />
+      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
     },
     {
       label: "Submitted Forms",
       value: "submitted form",
-      content: <DataTable columns={submittedColumns} data={submittedForms} />
+      content: <DataTable columns={submittedColumns} data={submittedForms} globalFilter={globalFilter} />
     },
   ];
 
@@ -63,14 +66,7 @@ const StudentInformation = ({ userRole }) => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-4">School Forms</h1>
         {/* Search Input */}
-        <div className="relative w-96">
-          <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-md pl-10 pr-4 py-2 w-full outline-none focus:ring-2 focus:ring-gray-50"
-          />
-        </div>
+        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
       {/* Create Form Button */}
@@ -87,7 +83,9 @@ const StudentInformation = ({ userRole }) => {
         </button>
       </div>
 
-      <DynamicTabs tabs={tabs} />
+      <DynamicTabs tabs={tabs} activeTab={activeTab}
+        onTabChange={setActiveTab}
+        className="mb-2"/>
 
       {/* Modals */}
       <CreateFormModal isOpen={isOpen} closeModal={() => setIsOpen(false)} fetchForms={fetchForms} fetchSubmitted={fetchSubmitted} />

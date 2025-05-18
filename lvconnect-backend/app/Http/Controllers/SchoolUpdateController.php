@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+// use Mews\Purifier\Facades\Purifier;
+use Mews\Purifier\Facades\Purifier;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -53,7 +55,7 @@ class SchoolUpdateController extends Controller
             $schoolUpdate = SchoolUpdate::where('id', $id)
                 ->where('created_by', $user->id)
                 ->first();
-        } 
+        }
 
         if (!$schoolUpdate) {
             return response()->json(['message' => 'Post not found'], 404);
@@ -68,9 +70,10 @@ class SchoolUpdateController extends Controller
      */
     public function store(Request $request)
     {
-        // Ensure only 'comms' can create a post
-        if (!auth()->user()->hasRole('comms')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole(['comms'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         // Validate request data
@@ -80,9 +83,10 @@ class SchoolUpdateController extends Controller
             'type' => 'required|in:announcement,event',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_notified' => 'sometimes|boolean',
             'is_urgent' => 'sometimes|boolean',
             'status' => 'required|in:draft,pending',
-            'post_to_facebook' => 'somtimes|boolean',
+            'post_to_facebook' => 'sometimes|boolean',
 
         ]);
 
@@ -99,7 +103,7 @@ class SchoolUpdateController extends Controller
             }
 
             // Extract and replace Base64 images with actual URLs
-            $content = $request->content;
+            $content = Purifier::clean($request->content);
             preg_match_all('/<img[^>]+src="data:image\/[^;]+;base64,([^"]+)"[^>]*>/', $content, $matches);
 
             if (!empty($matches[0])) {
@@ -110,19 +114,33 @@ class SchoolUpdateController extends Controller
                     }
                 }
             }
+
+            $status = $request->status === 'pending' && $request->boolean('is_urgent')
+                ? SchoolUpdate::STATUS_PUBLISHED
+                : ($request->status === 'draft'
+                    ? SchoolUpdate::STATUS_DRAFT
+                    : SchoolUpdate::STATUS_PENDING);
+
             // Create the post
             $schoolUpdate = SchoolUpdate::create([
                 'title' => $request->title,
                 'content' => $content,
                 'type' => $request->type,
                 'image_url' => $imageUrls ? json_encode($imageUrls) : null,
-                'created_by' => auth()->id(),
-                'status' => $request->status,
-                'is_urgent' => $request->boolean('is_urgent') 
-                    ? SchoolUpdate::STATUS_PUBLISHED //if urgent, automatically published
-                    : SchoolUpdate::STATUS_DRAFT,
+                'created_by' => $user->id,
+                'status' => $status,
+                'is_notified' => $request->boolean('is_notified'),
+                'is_urgent' => $request->boolean('is_urgent'),
                 'post_to_facebook' => $request->boolean('post_to_facebook'),
             ]);
+
+            // if ($schoolUpdate->status === SchoolUpdate::STATUS_PUBLISHED && $schoolUpdate->is_notified) {
+            //     $students = User::where('role', 'student')->get();
+
+            //     foreach ($students as $student) {
+            //         $student->notify(new PostNotification($schoolUpdate));
+            //     }
+            // }
 
             return response()->json([
                 'message' => 'Post created successfully',
@@ -132,7 +150,13 @@ class SchoolUpdateController extends Controller
         } catch (ValidationException $e) {
             return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to create Post'], 500);
+            \Log::error('Failed to create Post', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'Failed to create Post', 'trace' => $e->getTraceAsString(), 'message' => $e->getMessage(),], 500);
         }
     }
     public function uploadImages(Request $request)
@@ -169,41 +193,86 @@ class SchoolUpdateController extends Controller
      */
     public function update(Request $request, SchoolUpdate $schoolupdate)
     {
-        if (!auth()->user()->hasRole('comms')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole(['comms'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Only allow updates if the status is "draft"
-        if ($schoolupdate->status !== SchoolUpdate::STATUS_DRAFT && $schoolupdate->status !== SchoolUpdate::STATUS_REVISION) {
-            return response()->json(['error' => 'Only draft posts can be edited'], 403);
+        // Only allow update if current status is draft or revision
+        if (!in_array($schoolupdate->status, [SchoolUpdate::STATUS_DRAFT, SchoolUpdate::STATUS_REVISION])) {
+            return response()->json(['error' => 'Only draft or revision posts can be edited'], 403);
         }
 
         $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required',
+            'content' => 'required|string',
             'type' => 'required|in:announcement,event',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_notified' => 'sometimes|boolean',
+            'is_urgent' => 'sometimes|boolean',
+            'status' => 'required|in:draft,pending,published',
+            'post_to_facebook' => 'sometimes|boolean',
         ]);
 
         try {
-            $imagePath = $request->hasFile('image')
-                ? $request->file('image')->store('SchoolUpdates', 'public')
-                : null;
+            $imageUrls = json_decode($schoolupdate->image_url ?? '[]', true);
+
+            if ($request->hasFile('images')) {
+                $imageUrls = [];
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('SchoolUpdates', 'public');
+                    $imageUrls[] = asset('storage/' . $path);
+                }
+            }
+
+            // Replace base64 images in content
+            $content = Purifier::clean($request->content);
+            preg_match_all('/<img[^>]+src="data:image\/[^;]+;base64,([^"]+)"[^>]*>/', $content, $matches);
+
+            if (!empty($matches[0])) {
+                foreach ($matches[0] as $index => $base64ImageTag) {
+                    $imageUrl = $imageUrls[$index] ?? null;
+                    if ($imageUrl) {
+                        $content = str_replace($base64ImageTag, '<img src="' . $imageUrl . '" />', $content);
+                    }
+                }
+            }
+
+            $isUrgent = $request->boolean('is_urgent');
+            $finalStatus = $isUrgent ? SchoolUpdate::STATUS_PUBLISHED : $request->status;
 
             $schoolupdate->update([
                 'title' => $request->title,
-                'content' => $request->content,
+                'content' => $content,
                 'type' => $request->type,
-                'image_url' => $imagePath ? Storage::url($imagePath) : null,
+                'image_url' => $imageUrls ? json_encode($imageUrls) : null,
+                'is_notified' => $request->boolean('is_notified'),
+                'is_urgent' => $isUrgent,
+                'status' => $finalStatus,
+                'post_to_facebook' => $request->boolean('post_to_facebook'),
             ]);
 
-            return response()->json(['message' => 'Post updated successfully']);
-        } catch (AuthorizationException $e) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            // //Notify students if published and notified
+            // if ($finalStatus === SchoolUpdate::STATUS_PUBLISHED && $schoolupdate->is_notified) {
+            //     $comms = new \App\Services\StudentCommService(); // or inject it
+            //     $comms->notify(new \App\Notifications\PostNotification($schoolupdate));
+            // }
+
+            // // Facebook sync logic (if needed)
+            // if ($finalStatus === SchoolUpdate::STATUS_PUBLISHED && $schoolupdate->post_to_facebook) {
+            //     dispatch(new \App\Jobs\SyncToFacebookJob($schoolupdate));
+            // }
+
+            return response()->json(['message' => 'Post updated successfully', 'post' => $schoolupdate]);
+
         } catch (\Exception $e) {
+            \Log::error('Post update failed', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Failed to update post'], 500);
         }
     }
+
 
     public function archive(SchoolUpdate $schoolupdate)
     {
@@ -483,9 +552,12 @@ class SchoolUpdateController extends Controller
 
     public function destroy(SchoolUpdate $schoolUpdate)
     {
-        Gate::authorize('delete', $schoolUpdate);
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole(['comms'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         try {
-            Gate::authorize('delete', $schoolUpdate);
             $schoolUpdate->delete();
             return response()->json(['message' => 'Post deleted successfully']);
         } catch (AuthorizationException $e) {

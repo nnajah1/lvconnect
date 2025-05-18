@@ -10,6 +10,8 @@ import DynamicTabs from "@/components/dynamic/dynamicTabs";
 import EditFormModal from "@/pages/admins/psas/EditForm";
 import { useForms } from '@/context/FormsContext';
 import UserViewFormModal from "@/pages/student/UserViewSchoolForm";
+import SearchBar from "@/components/dynamic/searchBar";
+import { ConfirmationModal } from "@/components/dynamic/alertModal";
 
 const Forms = ({ userRole }) => {
   const { schoolForms, submittedForms, error, fetchForms, fetchSubmitted } = useForms();
@@ -19,8 +21,10 @@ const Forms = ({ userRole }) => {
 
   const [formItem, setFormItem] = useState(null);
   const [submittedItem, setSubmittedItem] = useState(null);
-  
-    const [activeTab, setActiveTab] = useState("form Template");
+
+  const [activeTab, setActiveTab] = useState("form Template");
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const openFormModal = (item) => {
     setFormItem(item); // full item, not just id
@@ -52,29 +56,22 @@ const Forms = ({ userRole }) => {
     {
       label: "Form Templates",
       value: "form Template",
-      content: <DataTable columns={templateColumns} data={schoolForms} />
+      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
     },
     {
       label: "Submitted Forms",
       value: "submitted form",
-      content: <DataTable columns={submittedColumns} data={submittedForms} />
+      content: <DataTable columns={submittedColumns} data={submittedForms} globalFilter={globalFilter} />
     },
   ];
 
   return (
     <div className="container mx-auto p-4">
-      {error && <p>{error}</p>}
+      {/* {error && <p>{error}</p>} */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-4">School Forms</h1>
         {/* Search Input */}
-        <div className="relative w-96">
-          <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-md pl-10 pr-4 py-2 w-full outline-none focus:ring-2 focus:ring-gray-50"
-          />
-        </div>
+        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
       {/* Create Form Button */}
@@ -93,7 +90,7 @@ const Forms = ({ userRole }) => {
 
       <DynamicTabs tabs={tabs} activeTab={activeTab}
         onTabChange={setActiveTab}
-        className="mb-2"/>
+        className="mb-2" />
 
       {/* Modals */}
       <CreateFormModal isOpen={isOpen} closeModal={() => setIsOpen(false)} fetchForms={fetchForms} fetchSubmitted={fetchSubmitted} />
@@ -103,15 +100,32 @@ const Forms = ({ userRole }) => {
           isOpen={!!formItem}
           closeModal={() => setFormItem(false)}
           formItem={formItem}
+          onDeleteModal={() => setIsSuccessModalOpen(true)}
         />
       )}
       {submittedItem && (
-          <UserViewFormModal
-            isOpen={!!submittedItem}
-            closeModal={() => setSubmittedItem(false)}
-            submittedItem={submittedItem}
-          />
-        )}
+        <UserViewFormModal
+          isOpen={!!submittedItem}
+          closeModal={() => setSubmittedItem(false)}
+          submittedItem={submittedItem}
+        />
+      )}
+
+        <ConfirmationModal
+                isOpen={isSuccessModalOpen}
+                closeModal={() => setIsSuccessModalOpen(false)}
+                title="The School Form is created"
+                description="The School Form has been successfully created."
+            >
+                <button
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    onClick={() => setIsSuccessModalOpen(false)}
+                >
+                    Manage School Forms
+                </button>
+
+            </ConfirmationModal>
+
 
     </div>
   );

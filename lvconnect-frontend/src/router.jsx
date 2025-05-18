@@ -27,6 +27,11 @@ import InclementWeatherForm from "./student_pages/student_response/weather_respo
 import SurveyResponses from "./pages/admins/psas/SurveyResponses";
 import Enrollment from "./pages/registrar/Enrollment";
 import Enrollees from "./pages/registrar/Enrollees";
+import StudentServices from "./student_pages/student_services/allcontent_student_services";
+import StudentSoa from "./pages/student/UserSOA";
+import UserEnrollment from "./pages/student/UserEnrollment";
+import AdminSoa from "./pages/registrar/Soa";
+import StudentInformationForms from "./student_pages/enrollment/enrollment_form";
 import StudentInformationForm from "./Registrar_screens/student_information/studentinfor_apps";
 
 
@@ -69,58 +74,80 @@ const router = createBrowserRouter([
             { path: 'change-current-password', element: <ChangePassword /> },
 
             {
-                path: "/", element: <ProtectedRoute allowedRoles={['student']} />, // Only users can access
+                element: <ProtectedRoute />,
                 children: [
-                    { index: true, path: "dashboard", element: <UserDashboard /> }, 
-                    { path: "surveys", element: <VisibleSurveys/> }, 
-                    { path: "student-services", element: <VisibleForms /> }, 
+                    {
+                        path: "dashboard",
+                        handle: { roles: ['student'] },
+                        children: [
+                            { index: true, element: <UserDashboard /> },
+                            { path: "enrollment", element: <UserEnrollment /> },
+                            { path: "grades", element: <UserDashboard /> },
+                            { path: "soa", element: <StudentSoa /> },
+                            { path: "surveys", element: <VisibleSurveys /> },
+                            { path: "student-services", element: <VisibleForms /> },
+                        ],
+                    },
+                    {
+                        path: "comms-admin",
+                        handle: { roles: ['comms'] },
+                        children: [
+                            { index: true, element: <AdminDashboard /> },
+                            { path: "posts", element: <Posts /> },
+                            { path: "archive", element: <ArchivePosts /> },
+
+                        ],
+                    },
+                    {
+                        path: "school-admin",
+                        handle: { roles: ['scadmin'] },
+                        children: [
+                            { index: true, element: <AdminDashboard /> },
+                            { path: "posts", element: <Posts /> },
+                            { path: "archive", element: <ArchivePosts /> },
+
+                        ],
+                    },
+                    {
+                        path: "psas-admin",
+                        handle: { roles: ['psas'] },
+                        children: [
+                            { index: true, element: <PsasDashboard /> },
+                            { path: "forms", element: <Forms /> },
+                            { path: "surveys", element: <Surveys /> },
+                            { path: "survey-responses/:surveyId", element: <SurveyResponses /> },
+
+                        ],
+                    },
+                    {
+                        path: "registrar",
+                        handle: { roles: ['registrar'] },
+                        children: [
+                            { index: true, element: <AdminDashboard /> },
+                            { path: "enrollment", element: <Enrollment /> },
+                            { path: "student-information", element: <AdminDashboard /> },
+                            { path: "student-information/:surveyId", element: <Enrollees /> },
+                            { path: "soa", element: <AdminSoa /> },
+                        ],
+                    },
+                    {
+                        path: "system-admin",
+                        handle: { roles: ['superadmin'] },
+                        children: [
+                            { index: true, path: "super-admin", element: <AdminDashboard /> },
+
+                        ],
+                    },
                 ],
             },
 
-            {
-                path: "comms-admin",
-                element: <ProtectedRoute allowedRoles={["comms"]} />,
-                children: [
-                    { index: true, element: <AdminDashboard /> },
-                    { path: "posts", element: <Posts /> },
-                    { path: "archive", element: <ArchivePosts /> },
-                ],
-            },
-            {
-                path: "school-admin",
-                element: <ProtectedRoute allowedRoles={["scadmin"]} />,
-                children: [
-                    { index: true, element: <AdminDashboard /> },
-                    { path: "posts", element: <Posts /> },
-                    { path: "archive", element: <ArchivePosts /> },
-                ],
-            },
-            {
-                path: "psas-admin",
-                element: <ProtectedRoute allowedRoles={["psas"]} />,
-                children: [
-                    { index: true, element: <PsasDashboard /> },
-                    { path: "forms", element: <Forms /> },
-                    { path: "surveys", element: <Surveys /> },
-                    { path: "survey-responses/:surveyId", element: <SurveyResponses /> },
-                ],
-            },
-             {
-                path: "psas-admin",
-                element: <ProtectedRoute allowedRoles={["psas"]} />,
-                children: [
-                    { index: true, element: <AdminDashboard /> },
-                    { path: "enrollment", element: <Enrollment /> },
-                    { path: "student-information", element: <ArchivePosts /> },
-                    { path: "student-information/:surveyId", element: <Enrollees /> },
-                ],
-            },
 
         ],
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
     { path: "/trial", element: <StudentView /> },
-    { path: "/app", element: <StudentInformationForm/> }
+    // { path: "/app", element: <StudentInformationForm/> }
+    { path: "/app", element: <StudentInformationForms /> }
 
 
 

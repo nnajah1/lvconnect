@@ -20,6 +20,8 @@ return new class extends Migration
             $table->text('content');
             $table->string('image_url')->nullable();
             $table->string('status')->default('draft'); // draft, pending, approved, rejected, for_revision, published
+            $table->boolean('is_notified')->default(false);
+            $table->boolean('is_urgent')->default(false);
             $table->json('revision_fields')->nullable();
             $table->text('revision_remarks')->nullable();
             $table->boolean('post_to_facebook')->default(false);
@@ -27,7 +29,6 @@ return new class extends Migration
             $table->timestamp('rejected_at')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamp('archived_at')->nullable();
-            $table->boolean('is_urgent')->default(false);
             $table->timestamps();
         });
         

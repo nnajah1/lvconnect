@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('survey_responses', function (Blueprint $table) {
+        Schema::create('fees', function(Blueprint $table){
             $table->id();
-            $table->foreignId('student_information_id')->constrained('student_information')->onDelete('cascade');
-            $table->foreignId('survey_id')->constrained('surveys')->onDelete('cascade');
-            $table->timestamp('submitted_at');
+            $table->foreignId('fee_template_id')->constrained('fee_templates')->onDelete('cascade');
+            $table->foreignId('fee_category_id')->constrained('fee_categories')->onDelete('cascade');
+            $table->string('fee_name');
+            $table->decimal('amount', 10, 2);
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('survey_responses');
+        //
     }
 };

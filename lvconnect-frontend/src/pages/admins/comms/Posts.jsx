@@ -4,10 +4,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { getPosts } from "@/services/axios";
-import { actionConditions, actions, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate" ;
+import { actionConditions, actions, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreatePostModal from "@/pages/admins/comms/CreatePost";
 import ViewPostModal from "./ViewPost";
+import SearchBar from "@/components/dynamic/searchBar";
 
 const Posts = ({ userRole }) => {
   const [schoolUpdates, setSchoolUpdates] = useState([]);
@@ -16,9 +17,9 @@ const Posts = ({ userRole }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
+  const [globalFilter, setGlobalFilter] = useState("");
 
 
-  
   const handleViewPost = (id, item) => {
     setSelectedPostId(id);
     setViewModalOpen(true);
@@ -66,17 +67,9 @@ const Posts = ({ userRole }) => {
         </div>
 
         {/* Search Input */}
-        <div className="relative w-96">
-          <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border border-gray-300 rounded-md pl-10 pr-4 py-2 w-full outline-none focus:ring-2 focus:ring-gray-50"
-          />
-        </div>
-      </div>
+        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>      </div>
 
-      <DataTable columns={columns} data={schoolUpdates} context="Posts" />
+      <DataTable columns={columns} data={schoolUpdates} context="Posts" globalFilter={globalFilter} />
 
       {/* Modals */}
       <CreatePostModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />

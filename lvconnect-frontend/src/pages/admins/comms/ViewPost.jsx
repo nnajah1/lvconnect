@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getPostById } from "@/services/axios";
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import DOMPurify from "dompurify"; // For safe HTML rendering
-import Loader from "@/components/dynamic/loader";
+import {Loader} from "@/components/dynamic/loader";
 
 const ViewPostModal = ({ isOpen, closeModal, postId }) => {
   const [post, setPost] = useState(null);

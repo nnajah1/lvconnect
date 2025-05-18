@@ -9,7 +9,7 @@ class SchoolUpdate extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'is_urgent', 'facebook_post_id', 'post_to_facebook',];
+    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'facebook_post_id', 'post_to_facebook', 'is_notified', 'is_urgent'];
 
     protected $casts = [
         'revision_fields' => 'array', // Automatically cast JSON to array

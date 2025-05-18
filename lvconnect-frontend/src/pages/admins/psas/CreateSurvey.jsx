@@ -1,6 +1,6 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import Loader from "@/components/dynamic/loader";
+import {Loader} from "@/components/dynamic/loader";
 import ConfirmationModal, { InfoModal } from "@/components/dynamic/alertModal";
 import SurveyBuilder from "@/components/survey/SurveyBuilder";
 import { useState } from "react";

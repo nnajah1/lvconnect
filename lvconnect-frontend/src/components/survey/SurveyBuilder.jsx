@@ -11,6 +11,7 @@ import SwitchComponent from '../dynamic/switch';
 import WebcamCapture from './captureCamera';
 import { DeleteModal, ErrorModal } from '../dynamic/alertModal';
 import { toast } from 'react-toastify';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function SurveyBuilder({
     mode = 'create',
@@ -189,31 +190,39 @@ export default function SurveyBuilder({
         }
     };
 
-   const handleDeleteSurvey = async () => {
-  if (!initialData.id) return;
-  try {
-    await deleteSurvey(initialData.id);
-    if (onDelete) onDelete(initialData.id);
-  } catch (err) {
-    console.error(err);
-    toast.error('Failed to delete survey.');
-  }
-  closeAlertModal(); 
-};
+    const handleDeleteSurvey = async () => {
+        if (!initialData.id) return;
+        try {
+            await deleteSurvey(initialData.id);
+            if (onDelete) onDelete(initialData.id);
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to delete survey.');
+        }
+        closeAlertModal();
+    };
     return (
         <div className="flex flex-col p-4 max-w-4xl mx-auto">
 
-            <div className="flex items-end justify-end space-x-4 mb-4">
-                <label htmlFor="visibilityMode">Survey Visibility</label>
-                <select
-                    id="visibilityMode"
-                    value={visibilityMode}
-                    onChange={(e) => setVisibilityMode(e.target.value)}
-                >
-                    <option value="hidden">Hidden (Not shown to users)</option>
-                    <option value="optional">Optional (Visible in survey list)</option>
-                    <option value="mandatory">Mandatory (Shown on login, required)</option>
-                </select>
+            <div className="flex items-center justify-end">
+                <div className="flex items-center w-fit justify-center gap-2 sm:gap-4 mb-6 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <label htmlFor="visibilityMode" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Survey Visibility
+                    </label>
+                    <Select value={visibilityMode} onValueChange={setVisibilityMode}>
+                        <SelectTrigger
+                            id="visibilityMode"
+                            className=" sm:w-64 bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 text-sm"
+                        >
+                            <SelectValue placeholder="Select visibility mode" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white text-sm">
+                            <SelectItem value="hidden">Hidden (Not shown to users)</SelectItem>
+                            <SelectItem value="optional">Optional (Visible in survey list)</SelectItem>
+                            <SelectItem value="mandatory">Mandatory (Shown on login, required)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="form-title mb-4">
@@ -368,7 +377,7 @@ export default function SurveyBuilder({
                         <DeleteModal
                             isOpen={isAlertModal}
                             closeModal={closeAlertModal}
-                            >
+                        >
                             {/* Action buttons inside the modal */}
                             <button
                                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
