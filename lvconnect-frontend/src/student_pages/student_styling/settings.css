@@ -1,0 +1,276 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+/* ============================
+   PERSONAL INFORMATION TAB
+============================ */
+
+.profile-wrapper {
+  padding: 1.5rem;
+}
+
+.profile-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #212529;
+  margin-bottom: 0.25rem;
+}
+
+.profile-subtitle {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.profile-section-wrapper {
+  border-top: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1.25rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.profile-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-picture-group,
+.profile-info-group {
+  flex: 1;
+  min-width: 220px;
+}
+
+.profile-image {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 9999px;
+  border: 2px solid #adb5bd;
+}
+
+.profile-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+
+/* ============================
+        NOTIFICATION TAB
+============================ */
+
+.notification_tab_container {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.625rem;
+}
+
+.notification_tab_header {
+  border-bottom: 1px solid #BBBBBB;
+  padding-bottom: 1rem;
+}
+
+.notification_tab_title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.notification_tab_description {
+  font-size: 0.75rem;
+  color: #686868;
+}
+
+.notification_tab_list {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.625rem;
+}
+
+.notification_tab_item {
+  padding: 0.625rem 0;
+  border-top: 1px solid #f3f4f6;
+}
+.notification_tab_item:first-child {
+  border-top: none;
+}
+
+.notification_tab_item_content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.625rem;
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .notification_tab_item_content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 28rem;
+  }
+}
+
+.notification_tab_text {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification_tab_item_title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #011222;
+}
+
+.notification_tab_item_desc {
+  font-size: 0.75rem;
+  color: #686868;
+}
+
+.notification_tab_switch_group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.notification_tab_switch {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.notification_tab_toggle_wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.notification_tab_toggle {
+  width: 21px;
+  height: 12px;
+  background-color: #BBBBBB;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+.peer:checked ~ .notification_tab_toggle {
+  background-color: #2CA4DD;
+}
+
+.notification_tab_toggle::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  background-color: white;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  height: 10px;
+  width: 10px;
+  transition: transform 0.2s;
+}
+
+.peer:checked ~ .notification_tab_toggle::after {
+  transform: translateX(9px);
+}
+
+.notification_tab_switch_label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+
+/* ============================
+     SETTINGS CONTENT AREA
+============================ */
+
+.settings_content_container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.625rem;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  background-color: #f3f4f6;
+}
+
+.settings_content_inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0.625rem;
+}
+
+.settings_content_header {
+  display: flex;
+  flex-direction: column;
+  padding: 0.625rem 0;
+}
+
+.settings_content_title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #1f3463;
+}
+
+.settings_content_subtitle {
+  font-size: 1rem;
+  color: #686868;
+}
+
+.settings_content_tabs {
+  display: flex;
+  gap: 0.625rem;
+  padding: 0.625rem 0;
+  flex-wrap: wrap;
+}
+
+.settings_content_tab_button {
+  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.settings_content_tab_active {
+  background-color: rgba(44, 164, 221, 0.52);
+  color: white;
+}
+
+.settings_content_tab_inactive {
+  color: #979595;
+}
+
+.settings_content_tab_panel {
+  width: 100%;
+  background-color: white;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .settings_content_tab_panel {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .settings_content_title {
+    font-size: 1.5rem;
+  }
+
+  .settings_content_tab_panel {
+    padding: 1rem;
+  }
+}
