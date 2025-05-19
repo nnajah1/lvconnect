@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\StudentInformation;
 use Illuminate\Support\Facades\Http;
 use App\Models\StudentFamilyInformation;
+use App\Models\Program;
+use App\Models\EnrolleeRecord;
 use Illuminate\Support\Carbon;
 
 class DummyDataSyncController extends Controller
@@ -92,7 +94,7 @@ class DummyDataSyncController extends Controller
                         [
                             'num_children_in_family' => (int) $applicant['no_of_children'],
                             'birth_order' => (int) $applicant['birth_order'],
-                            'has_sibling_in_lvcc' => $applicant['is_bro_sis_curr_applying_studying'] ? 'yes' : 'no',
+                            'has_sibling_in_lvcc' => (bool) $applicant['is_bro_sis_curr_applying_studying'],
                             'mother_first_name'  => $applicant['guardian']['mother_first_name'],
                             'mother_last_name'   => $applicant['guardian']['mother_last_name'],
                             'mother_middle_name' => $applicant['guardian']['mother_middle_name'],
@@ -117,6 +119,21 @@ class DummyDataSyncController extends Controller
                             'guardian_relationship' => $applicant['guardian']['legal_guardian_relationship'],
                         ]
                     );
+                }
+                // Sync only program_id in enrollee_records
+                if (!empty($applicant['grade_level_course_to_be_taken'])) {
+                    $program = Program::where('program_name', $applicant['grade_level_course_to_be_taken'])->first();
+
+                    if ($program) {
+                        EnrolleeRecord::updateOrCreate(
+                            [
+                                'student_information_id' => $student->id,
+                            ],
+                            [
+                                'program_id' => $program->id
+                            ]
+                        );
+                    }
                 }
             }
 
