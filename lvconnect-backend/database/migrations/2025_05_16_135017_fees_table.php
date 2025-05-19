@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('fees', function(Blueprint $table){
+        Schema::create('fees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('fee_template_id')->constrained('fee_templates')->onDelete('cascade');
             $table->foreignId('fee_category_id')->constrained('fee_categories')->onDelete('cascade');
-            $table->string('fee_name');
+            $table->string('fee_name'); // e.g., Library Fee
             $table->decimal('amount', 10, 2);
             $table->timestamps();
         });
+
     }
 
     /**

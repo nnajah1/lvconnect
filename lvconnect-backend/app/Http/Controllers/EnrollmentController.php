@@ -10,6 +10,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\StudentFamilyInformation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 
 class EnrollmentController extends Controller
@@ -47,25 +48,32 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'Unauthorized. Only students can enroll.'], 403);
             }
 
+            $isEnrollmentOpen = EnrollmentSchedule::where('is_active', true)->exists();
+
+            if (!$isEnrollmentOpen) {
+                return response()->json(['message' => 'Enrollment is currently closed.'], 403);
+            }
+
             $validated = $request->validate([
                 'program_id' => 'required|exists:programs,id',
                 'year_level' => 'required|integer|min:1',
                 'privacy_policy' => 'required|boolean',
-                'enrollment_schedule_id' => 'required|exists:enrollment_schedules,id',
                 'address' => 'required|array',
                 'contact_number' => 'required|string',
                 'guardian' => 'required|array',
+                'mother' => 'required|array',
+                'father' => 'required|array',
             ], [
                 'program_id.required' => 'Program is required.',
                 'program_id.exists' => 'Selected program is invalid.',
                 'year_level.required' => 'Year level is required.',
                 'year_level.integer' => 'Year level must be a number.',
                 'privacy_policy.required' => 'You must agree to the privacy policy.',
-                'enrollment_schedule_id.required' => 'Enrollment schedule is required.',
-                'enrollment_schedule_id.exists' => 'Selected enrollment schedule is invalid.',
                 'address.required' => 'Address is required.',
                 'contact_number.required' => 'Contact number is required.',
                 'guardian.required' => 'Guardian information is required.',
+                'mother.required' => 'Mother information is required.',
+                'father.required' => 'Father information is required.',
             ]);
 
             $studentInfo = StudentInformation::where('user_id', $user->id)->first();
@@ -74,23 +82,16 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'Student information not found.'], 404);
             }
 
-            // Check if enrollment schedule is active
-            $schedule = EnrollmentSchedule::find($validated['enrollment_schedule_id']);
-            if (!$schedule->is_active) {
-                return response()->json(['message' => 'Enrollment for the selected schedule is currently closed.'], 403);
-            }
-
-            // Prevent duplicate enrollment
             $alreadyEnrolled = EnrolleeRecord::where('student_information_id', $studentInfo->id)
-                ->where('enrollment_schedule_id', $validated['enrollment_schedule_id'])
+                ->where('program_id', $validated['program_id'])
+                ->where('year_level', $validated['year_level'])
                 ->exists();
 
             if ($alreadyEnrolled) {
-                return response()->json(['message' => 'You already submitted an enrollment for this schedule.'], 409);
+                return response()->json(['message' => 'You have already submitted an enrollment for this program and year level.'], 409);
             }
 
             DB::transaction(function () use ($validated, $studentInfo) {
-                // Update address/contact only if changed
                 $studentInfo->update([
                     'floor/unit/building_no' => $validated['address']['building_no'] ?? $studentInfo['floor/unit/building_no'],
                     'house_no/street' => $validated['address']['street'] ?? $studentInfo['house_no/street'],
@@ -101,7 +102,6 @@ class EnrollmentController extends Controller
                     'mobile_number' => $validated['contact_number'] ?? $studentInfo->mobile_number,
                 ]);
 
-                // Update or create guardian information
                 StudentFamilyInformation::updateOrCreate(
                     ['student_information_id' => $studentInfo->id],
                     [
@@ -113,10 +113,17 @@ class EnrollmentController extends Controller
                         'guardian_monthly_income' => $validated['guardian']['monthly_income'],
                         'guardian_mobile_number' => $validated['guardian']['mobile_number'],
                         'guardian_relationship' => $validated['guardian']['relationship'],
+                        'mother_religion' => $validated['mother']['religion'] ?? null,
+                        'mother_occupation' => $validated['mother']['occupation'] ?? null,
+                        'mother_monthly_income' => $validated['mother']['monthly_income'] ?? null,
+                        'mother_mobile_number' => $validated['mother']['mobile_number'] ?? null,
+                        'father_religion' => $validated['father']['religion'] ?? null,
+                        'father_occupation' => $validated['father']['occupation'] ?? null,
+                        'father_monthly_income' => $validated['father']['monthly_income'] ?? null,
+                        'father_mobile_number' => $validated['father']['mobile_number'] ?? null,
                     ]
                 );
 
-                // Create new enrollment record
                 EnrolleeRecord::create([
                     'student_information_id' => $studentInfo->id,
                     'program_id' => $validated['program_id'],
@@ -133,7 +140,7 @@ class EnrollmentController extends Controller
 
             return response()->json(['message' => 'Enrollment submitted successfully.']);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation failed.',
                 'errors' => $e->errors(),
@@ -180,8 +187,11 @@ class EnrollmentController extends Controller
             'program_id' => 'required|exists:programs,id',
             'year_level' => 'required|integer|min:1',
             'privacy_policy' => 'required|boolean',
-            'enrollment_schedule_id' => 'required|exists:enrollment_schedules,id',
             'admin_remarks' => 'nullable|string|max:1000',
+            'contact_number' => 'nullable|string',
+            'guardian' => 'nullable|array',
+            'mother' => 'nullable|array',
+            'father' => 'nullable|array',
         ], [
             'user_id.required' => 'Please select a student.',
             'user_id.exists' => 'Selected student does not exist.',
@@ -190,8 +200,6 @@ class EnrollmentController extends Controller
             'year_level.required' => 'Year level is required.',
             'year_level.integer' => 'Year level must be a number.',
             'privacy_policy.required' => 'Privacy policy agreement is required.',
-            'enrollment_schedule_id.required' => 'Enrollment schedule is required.',
-            'enrollment_schedule_id.exists' => 'Selected enrollment schedule is invalid.',
         ]);
 
         $studentInfo = StudentInformation::where('user_id', $validated['user_id'])->first();
@@ -200,23 +208,75 @@ class EnrollmentController extends Controller
             return response()->json(['message' => 'Student information not found for the selected user.'], 404);
         }
 
-        // Prevent duplicate enrollment record for same schedule
+        // Prevent duplicate enrollment record for same program and year level
         $alreadyEnrolled = EnrolleeRecord::where('student_information_id', $studentInfo->id)
-            ->where('enrollment_schedule_id', $validated['enrollment_schedule_id'])
+            ->where('program_id', $validated['program_id'])
+            ->where('year_level', $validated['year_level'])
             ->exists();
 
         if ($alreadyEnrolled) {
-            return response()->json(['message' => 'Student is already enrolled for the selected schedule.'], 409);
+            return response()->json(['message' => 'Student is already enrolled for the selected program and year level.'], 409);
         }
 
         try {
             DB::transaction(function () use ($validated, $studentInfo) {
+                // Update contact number if provided
+                if (isset($validated['contact_number'])) {
+                    $studentInfo->update([
+                        'mobile_number' => $validated['contact_number']
+                    ]);
+                }
+
+                // Update guardian info if provided (all fields editable)
+                if (!empty($validated['guardian'])) {
+                    StudentFamilyInformation::updateOrCreate(
+                        ['student_information_id' => $studentInfo->id],
+                        [
+                            'guardian_first_name' => $validated['guardian']['first_name'] ?? null,
+                            'guardian_middle_name' => $validated['guardian']['middle_name'] ?? null,
+                            'guardian_last_name' => $validated['guardian']['last_name'] ?? null,
+                            'guardian_religion' => $validated['guardian']['religion'] ?? null,
+                            'guardian_occupation' => $validated['guardian']['occupation'] ?? null,
+                            'guardian_monthly_income' => $validated['guardian']['monthly_income'] ?? null,
+                            'guardian_mobile_number' => $validated['guardian']['mobile_number'] ?? null,
+                            'guardian_relationship' => $validated['guardian']['relationship'] ?? null,
+                        ]
+                    );
+                }
+
+                // Update mother info 
+                if (!empty($validated['mother'])) {
+                    $motherInfo = $studentInfo->mother; 
+
+                    if ($motherInfo) {
+                        $motherInfo->update([
+                            'mother_religion' => $validated['mother']['religion'] ?? $motherInfo->mother_religion,
+                            'mother_occupation' => $validated['mother']['occupation'] ?? $motherInfo->mother_occupation,
+                            'mother_monthly_income' => $validated['mother']['monthly_income'] ?? $motherInfo->mother_monthly_income,
+                            'mother_mobile_number' => $validated['mother']['mobile_number'] ?? $motherInfo->mother_mobile_number,
+                        ]);
+                    }
+                }
+
+                // Update father info
+                if (!empty($validated['father'])) {
+                    $fatherInfo = $studentInfo->father; 
+
+                    if ($fatherInfo) {
+                        $fatherInfo->update([
+                            'father_religion' => $validated['father']['religion'] ?? $fatherInfo->father_religion,
+                            'father_occupation' => $validated['father']['occupation'] ?? $fatherInfo->father_occupation,
+                            'father_monthly_income' => $validated['father']['monthly_income'] ?? $fatherInfo->father_monthly_income,
+                            'father_mobile_number' => $validated['father']['mobile_number'] ?? $fatherInfo->father_mobile_number,
+                        ]);
+                    }
+                }
+
                 EnrolleeRecord::create([
                     'student_information_id' => $studentInfo->id,
                     'program_id' => $validated['program_id'],
                     'year_level' => $validated['year_level'],
                     'privacy_policy' => $validated['privacy_policy'],
-                    'enrollment_schedule_id' => $validated['enrollment_schedule_id'],
                     'enrollment_status' => 'enrolled', // Directly enrolled
                     'admin_remarks' => $validated['admin_remarks'] ?? '',
                     'submission_date' => now(),
