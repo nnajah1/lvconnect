@@ -119,8 +119,6 @@ export const InfoModal = (props) => {
   return <DynamicAlertDialog type={AlertTypes.INFO} {...props} />;
 };
 
-// Add this to your existing alert-dialog.jsx file
-
 export const DeleteModal = ({ 
   title = "Confirm Deletion", 
   description = "Are you sure you want to delete this item? This action cannot be undone.", 

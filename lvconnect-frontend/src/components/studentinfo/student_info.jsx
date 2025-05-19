@@ -1,6 +1,5 @@
 
-
-import "./student_information.css"
+import "@/styles/student_information.css"
 import FormField from "./form_field"
 import SectionHeader from "./header_section"
 

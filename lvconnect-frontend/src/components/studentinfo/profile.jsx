@@ -1,7 +1,7 @@
 
 
 import FormField from "./form_field"
-import './student_information.css'
+import '@/styles/student_information.css'
 
 export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange }) {
   const handleChange = (e) => {
@@ -21,9 +21,11 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
               className="profile_image"
             />
           </div>
-          <button onClick={onChangeImage} className="profile_change_btn">
+          {isEditing && (
+            <button onClick={onChangeImage} className="profile_change_btn">
             Change
           </button>
+          )}
         </div>
       </div>
 

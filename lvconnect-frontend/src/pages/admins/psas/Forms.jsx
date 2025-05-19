@@ -14,7 +14,7 @@ import SearchBar from "@/components/dynamic/searchBar";
 import { ConfirmationModal } from "@/components/dynamic/alertModal";
 
 const Forms = ({ userRole }) => {
-  const { schoolForms, submittedForms, error, fetchForms, fetchSubmitted } = useForms();
+  const { schoolForms, submittedForms, isLoading , fetchForms, fetchSubmitted } = useForms();
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
@@ -56,7 +56,7 @@ const Forms = ({ userRole }) => {
     {
       label: "Form Templates",
       value: "form Template",
-      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
+      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} isLoading={isLoading}/>
     },
     {
       label: "Submitted Forms",

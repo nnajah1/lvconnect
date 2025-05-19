@@ -114,6 +114,25 @@ class SOAController extends Controller
             'fees.*.fee_name' => 'required|string',
             'fees.*.amount' => 'required|numeric|min:0',
         ]);
+//         $request->validate([
+//     'schoolYear' => 'required|string|exists:academic_years,year',
+//     'tuitionFee.ratePerUnit' => 'required|numeric|min:0',
+//     'tuitionFee.units' => 'required|numeric|min:0',
+//     'tuitionFee.total' => 'required|numeric|min:0',
+
+//     'miscFees' => 'required|array',
+//     'miscFees.*.name' => 'required|string',
+//     'miscFees.*.amount' => 'required|numeric|min:0',
+
+//     'scholarshipDiscount' => 'nullable|numeric|min:0',
+//     'programInfo' => 'nullable|string',
+
+//     'miscTotal' => 'required|numeric|min:0',
+//     'semesterTotal' => 'required|numeric|min:0',
+//     'yearTotal' => 'required|numeric|min:0',
+//     'totalPayment' => 'required|numeric|min:0',
+// ]);
+
 
         $template = FeeTemplate::findOrFail($id);
 

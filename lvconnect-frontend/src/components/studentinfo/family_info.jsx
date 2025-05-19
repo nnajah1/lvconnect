@@ -1,7 +1,6 @@
 
 
-import "../registrar_styling/student_information.css"
-
+import "@/styles/student_information.css"
 export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -14,9 +13,9 @@ export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
 
   return (
     <div className="family-container">
-      <div className="family-wrapper">
+      <div className="family-content">
         {/* Number of Children */}
-        <div className="family-group">
+        <div className="family-item">
           <label className="family-label">Number of Children in Family:</label>
           {isEditing ? (
             <input
@@ -27,14 +26,14 @@ export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
               className="family-input"
             />
           ) : (
-            <div className="family-display-box">
-              <span className="family-text">{familyInfo.numberOfChildren}</span>
+            <div className="family-static">
+              <span className="family-value">{familyInfo.numberOfChildren}</span>
             </div>
           )}
         </div>
 
         {/* Birth Order */}
-        <div className="family-group">
+        <div className="family-item">
           <label className="family-label">Birth Order:</label>
           {isEditing ? (
             <input
@@ -45,39 +44,37 @@ export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
               className="family-input"
             />
           ) : (
-            <div className="family-display-box">
-              <span className="family-text">{familyInfo.birthOrder}</span>
+            <div className="family-static">
+              <span className="family-value">{familyInfo.birthOrder}</span>
             </div>
           )}
         </div>
 
         {/* Siblings in LVCC */}
-        <div className="family-group">
+        <div className="family-item">
           <label className="family-label">Siblings studying in LVCC:</label>
           <div className="family-radio-group">
-            {/* Yes */}
             <div className="family-radio-option">
               <div
-                className={`family-radio-outer ${familyInfo.hasSiblingsInLVCC ? "family-radio-active" : ""} ${
-                  isEditing ? "cursor-pointer" : ""
+                className={`family-radio-circle ${familyInfo.hasSiblingsInLVCC ? "selected" : ""} ${
+                  isEditing ? "clickable" : ""
                 }`}
                 onClick={isEditing ? () => handleRadioChange(true) : undefined}
               >
-                {familyInfo.hasSiblingsInLVCC && <div className="family-radio-inner"></div>}
+                {familyInfo.hasSiblingsInLVCC && <div className="family-radio-dot"></div>}
               </div>
-              <span className="family-text">Yes</span>
+              <span className="family-value">Yes</span>
             </div>
-            {/* No */}
             <div className="family-radio-option">
               <div
-                className={`family-radio-outer ${!familyInfo.hasSiblingsInLVCC ? "family-radio-active" : ""} ${
-                  isEditing ? "cursor-pointer" : ""
+                className={`family-radio-circle ${!familyInfo.hasSiblingsInLVCC ? "selected" : ""} ${
+                  isEditing ? "clickable" : ""
                 }`}
                 onClick={isEditing ? () => handleRadioChange(false) : undefined}
               >
-                {!familyInfo.hasSiblingsInLVCC && <div className="family-radio-inner"></div>}
+                {!familyInfo.hasSiblingsInLVCC && <div className="family-radio-dot"></div>}
               </div>
-              <span className="family-text">No</span>
+              <span className="family-value">No</span>
             </div>
           </div>
         </div>

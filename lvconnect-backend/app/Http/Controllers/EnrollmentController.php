@@ -123,6 +123,8 @@ class EnrollmentController extends Controller
                     'year_level' => $validated['year_level'],
                     'privacy_policy' => $validated['privacy_policy'],
                     'enrollment_schedule_id' => $validated['enrollment_schedule_id'],
+
+                    
                     'enrollment_status' => 'pending',
                     'admin_remarks' => '',
                     'submission_date' => now(),
@@ -329,7 +331,7 @@ class EnrollmentController extends Controller
         $user = JWTAuth::authenticate();
         $studentRecord = EnrolleeRecord::with('studentInfo')->findOrFail($id);
 
-        if (!$user->hasRole(['student', 'registrar'])) { //change to registrar
+        if (!$user->hasRole(['student', 'registrar'])) { 
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -399,7 +401,7 @@ class EnrollmentController extends Controller
         ]);
 
         $record->enrollment_status = 'rejected';
-        $record->admin_remarks = $request->admin_remarks;
+        $record->admin_remarks = $request->input('admin_remarks');
         $record->save();
 
         return response()->json([

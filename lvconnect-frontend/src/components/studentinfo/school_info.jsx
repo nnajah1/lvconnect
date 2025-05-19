@@ -1,6 +1,7 @@
 
-import FormField from "./formfield"
-import "./../registrar_styling/student_information.css"
+
+import "@/styles/student_information.css"
+import FormField from "./form_field"
 
 export default function SchoolInfoSection({ educationInfo, isEditing, onChange }) {
   const handleChange = (e) => {
@@ -9,8 +10,8 @@ export default function SchoolInfoSection({ educationInfo, isEditing, onChange }
   }
 
   return (
-    <div className="school-section-container">
-      <div className="school-grid">
+    <div className="school_section_container">
+      <div className="school_form_grid">
         <FormField
           label="School Last Attended"
           value={educationInfo.schoolLastAttended}

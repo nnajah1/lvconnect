@@ -1,5 +1,5 @@
 export const roleRedirectMap = {
-  student: "/dashboard",
+  student: "/my",
   comms: "/comms-admin",
   psas: "/psas-admin",
   scadmin: "/school-admin",

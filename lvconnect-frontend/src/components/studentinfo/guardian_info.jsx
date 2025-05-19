@@ -2,7 +2,7 @@
 
 import FormField from "./form_field"
 import SectionHeader from "./header_section"
-import "./student_information.css"
+import "@/styles/student_information.css"
 
 export default function GuardianInfoComponent({
   title,
@@ -77,7 +77,15 @@ export default function GuardianInfoComponent({
           name="religion"
           options={religionOptions}
         />
-        <div className="guardian_empty_column">{/* Empty column */}</div>
+        {prefix === "guardian" && (
+          <FormField
+            label="Relationship"
+            value={guardianData.relationship}
+            isEditing={isEditing}
+            onChange={handleChange}
+            name="relationship"
+          />
+        )}
       </div>
     </div>
   )

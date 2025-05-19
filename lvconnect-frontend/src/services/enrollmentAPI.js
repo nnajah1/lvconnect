@@ -1,10 +1,5 @@
 import api from "@/services/axios"
 
-export const getEnrollees = async () => {
-  const response = await api.get("/enrollees");
-  return response.data;
-};
-
 export const getSurveyById = (surveyId) => {
   return api.get(`/surveys/${surveyId}`);
 };
@@ -47,10 +42,28 @@ export async function deleteSurvey(id) {
     }
 }
 
+
+export const getEnrollees = async () => {
+  const response = await api.get("/enrollees");
+  return response.data;
+};
+export const getEnrollee = async (id) => {
+  const response = await api.get(`/enrollee/${id}`);
+  return response.data;
+};
+export const submitEnrollment = async (data) => {
+  return api.post("/student/enroll", data);
+};
+
 export const getAcademicYears = () => api.get("/academic-years");
 
 export const createAcademicYear = (schoolYear) =>
   api.post("/academic-years", { school_year: schoolYear });
+
+export const approveEnrollment = (id) =>
+  api.post(`/enrollment-approve/${id}`);
+export const rejectEnrollment = (id, data) =>
+  api.post(`/enrollment-reject/${id}`, data);
 
 export const bulkApproveEnrollment = (ids) =>
   api.post('/enrollment/bulk-approve', { ids });
@@ -71,3 +84,15 @@ export const getEnrollmentSchedule = ({ academic_year_id, semester }) =>
 
 export const toggleEnrollmentSchedule = (payload) =>
   api.post("/enrollment-schedule/toggle", payload);
+
+export const getSoa = (schoolYear) => {
+  return api.get(`/soa/${schoolYear}`);
+};
+
+export const createSoa = (data) => {
+  return api.post("/soa", data);
+};
+
+export const updateSoa = (schoolYear, data) => {
+  return api.put(`/soa/${schoolYear}`, data);
+};

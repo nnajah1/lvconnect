@@ -32,7 +32,7 @@ import StudentSoa from "./pages/student/UserSOA";
 import UserEnrollment from "./pages/student/UserEnrollment";
 import AdminSoa from "./pages/registrar/Soa";
 import StudentInformationForms from "./student_pages/enrollment/enrollment_form";
-import StudentInformationForm from "./Registrar_screens/student_information/studentinfor_apps";
+import StudentInformationFormk from "./student_pages/enrollment/enrollment_form";
 
 
 
@@ -77,7 +77,7 @@ const router = createBrowserRouter([
                 element: <ProtectedRoute />,
                 children: [
                     {
-                        path: "dashboard",
+                        path: "my",
                         handle: { roles: ['student'] },
                         children: [
                             { index: true, element: <UserDashboard /> },
@@ -125,8 +125,8 @@ const router = createBrowserRouter([
                         children: [
                             { index: true, element: <AdminDashboard /> },
                             { path: "enrollment", element: <Enrollment /> },
-                            { path: "student-information", element: <AdminDashboard /> },
-                            { path: "student-information/:surveyId", element: <Enrollees /> },
+                            { path: "student-information-management", element: <AdminDashboard /> },
+                            { path: "enrollment/student-information/:studentId", element: <Enrollees /> },
                             { path: "soa", element: <AdminSoa /> },
                         ],
                     },
@@ -147,7 +147,7 @@ const router = createBrowserRouter([
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
     { path: "/trial", element: <StudentView /> },
     // { path: "/app", element: <StudentInformationForm/> }
-    { path: "/app", element: <StudentInformationForms /> }
+    { path: "/app", element: <StudentInformationFormk /> }
 
 
 
