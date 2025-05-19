@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -11,6 +10,7 @@ import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
 import ActionButtons from "@/components/studentinfo/action"
 import { getEnrollee } from "@/services/enrollmentAPI";
+import { program, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
 
 const Enrollees = ({ userRole }) => {
   const location = useLocation();
@@ -22,103 +22,63 @@ const Enrollees = ({ userRole }) => {
   const [profileImage, setProfileImage] = useState("")
   const [isEditing, setIsEditing] = useState(false)
 
-  // Sample data for dropdown options
-  const incomeOptions = [
-    "Below ₱10,000",
-    "₱10,000 - ₱20,000",
-    "₱20,001 - ₱30,000",
-    "₱30,001 - ₱40,000",
-    "₱40,001 - ₱50,000",
-    "₱50,001 - ₱60,000",
-    "₱60,001 - ₱70,000",
-    "₱70,001 - ₱80,000",
-    "₱80,001 - ₱90,000",
-    "₱90,001 - ₱100,000",
-    "Above ₱100,000",
-  ]
 
-  const religionOptions = [
-    "Catholic",
-    "Islam",
-    "Protestant",
-    "Iglesia ni Cristo",
-    "Seventh Day Adventist",
-    "Born Again Christian",
-    "Buddhist",
-    "Hindu",
-    "Judaism",
-    "Other",
-  ]
-
-  // Sample data for the student information form
   const [studentData, setStudentData] = useState({
-    profile: {
-      program: "Bachelor of Science in Information Technology",
-      year: "3rd Year",
-      studentNumber: "2021-00123",
-      email: "student@example.edu.ph",
-    },
-    personal: {
-      firstName: "Juan",
-      middleName: "Dela",
-      lastName: "Cruz",
-      suffix: "Jr.",
-      birthdate: "January 15, 2000",
-      birthplace: "Manila City",
-      gender: "Male",
-      civilStatus: "Single",
-      religion: "Catholic",
-      contactNumber: "09123456789",
-      facebookProfile: "facebook.com/juandelacruz",
-    },
-    address: {
-      province: "Metro Manila",
-      cityMunicipality: "Quezon City",
-      barangay: "Barangay Commonwealth",
-      address: "123 Main Street, Block 5 Lot 12",
-      zipCode: "1121",
-    },
-    family: {
-      numberOfChildren: "3",
-      birthOrder: "1",
-      hasSiblingsInLVCC: true,
-    },
-    education: {
-      schoolLastAttended: "National High School",
-      schoolAddress: "456 Education Avenue, Quezon City",
-      schoolType: "Public",
-    },
-    mother: {
-      firstName: "Maria",
-      middleName: "Santos",
-      lastName: "Dela Cruz",
-      contactNumber: "09187654321",
-      occupation: "Teacher",
-      monthlyIncome: "₱20,001 - ₱30,000",
-      religion: "Catholic",
-    },
-    father: {
-      firstName: "Pedro",
-      middleName: "Garcia",
-      lastName: "Cruz",
-      contactNumber: "09198765432",
-      occupation: "Engineer",
-      monthlyIncome: "₱30,001 - ₱40,000",
-      religion: "Catholic",
-    },
-    guardian: {
-      firstName: "Elena",
-      middleName: "Reyes",
-      lastName: "Santos",
-      contactNumber: "09123456780",
-      occupation: "Business Owner",
-      monthlyIncome: "₱40,001 - ₱50,000",
-      religion: "Catholic",
-      relationship: "sister"
-    },
-  })
+    student_id_number: "",
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    civil_status: "",
+    gender: "",
+    birth_date: "",
+    birth_place: "",
+    mobile_number: "",
+    religion: "",
+    lrn: "",
+    fb_link: "",
+    student_type: "",
+    government_subsidy: "",
+    scholarship_status: "",
+    last_school_attended: "",
+    previous_school_address: "",
+    school_type: "",
+    academic_awards: "",
+    floorUnitBuildingNo: "",
+    houseNoStreet: "",
+    barangay: "",
+    city_municipality: "",
+    province: "",
+    zip_code: "",
+    student_family_info: {
+      num_children_in_family: 4,
+      birth_order: 4,
+      has_siibling_in_lvcc: 0,
+      mother_first_name: "",
+      mother_middle_name: "",
+      mother_last_name: "",
+      mother_religion: "",
+      mother_occupation: "",
+      mother_monthly_income: "",
+      mother_mobile_number: "",
+      father_first_name: "",
+      father_middle_name: "",
+      father_last_name: "",
+      father_religion: "",
+      father_occupation: "",
+      father_monthly_income: "",
+      father_mobile_number: "",
+      guardian_first_name: "",
+      guardian_middle_name: "",
+      guardian_last_name: "",
+      guardian_religion: "",
+      guardian_occupation: "",
+      guardian_monthly_income: "",
+      guardian_mobile_number: "",
 
-    useEffect(() => {
+    }
+  });
+
+  useEffect(() => {
     const loadStudentInfo = async () => {
       const data = await getEnrollee(studentId);
       setStudentData(data);
@@ -167,7 +127,7 @@ const Enrollees = ({ userRole }) => {
     <div className="flex flex-col items-start w-full min-h-screen">
 
       <div className="w-full p-2 sticky top-0 bg-muted">
-       
+
         <ActionButtons
           isEditing={isEditing}
           handleSave={handleSave}
@@ -178,7 +138,7 @@ const Enrollees = ({ userRole }) => {
         />
 
         <ProfileSection
-          profileData={studentData.profile}
+          profileData={studentData}
           profileImage={profileImage}
           onChangeImage={handleChangeImage}
           isEditing={isEditing}
@@ -189,19 +149,19 @@ const Enrollees = ({ userRole }) => {
 
       <div className="w-full">
         <StudentInfoSection
-          personalInfo={studentData.personal}
+          personalInfo={studentData}
           isEditing={isEditing}
           onChange={handleFieldChange}
           religionOptions={religionOptions}
         />
 
-        <AddressSection addressInfo={studentData.address} isEditing={isEditing} onChange={handleFieldChange} />
+        <AddressSection addressInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
 
 
-        <FamilyInfoSection familyInfo={studentData.family} isEditing={isEditing} onChange={handleFieldChange} />
+        <FamilyInfoSection familyInfo={studentData.student_family_info} isEditing={isEditing} onChange={handleFieldChange} />
 
 
-        <SchoolInfoSection educationInfo={studentData.education} isEditing={isEditing} onChange={handleFieldChange} />
+        <SchoolInfoSection educationInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
 
 
         <div className="w-full">
@@ -210,7 +170,7 @@ const Enrollees = ({ userRole }) => {
 
           <GuardianInfoComponent
             title="Mother's Information"
-            guardianData={studentData.mother}
+            guardianData={studentData.student_family_info}
             isEditing={isEditing}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
@@ -221,7 +181,7 @@ const Enrollees = ({ userRole }) => {
 
           <GuardianInfoComponent
             title="Father's Information"
-            guardianData={studentData.father}
+            guardianData={studentData.student_family_info}
             isEditing={isEditing}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
@@ -232,7 +192,7 @@ const Enrollees = ({ userRole }) => {
 
           <GuardianInfoComponent
             title="Guardian's Information"
-            guardianData={studentData.guardian}
+            guardianData={studentData.student_family_info}
             isEditing={isEditing}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}

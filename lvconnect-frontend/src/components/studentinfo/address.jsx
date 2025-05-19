@@ -1,4 +1,4 @@
-"use client"
+
 
 import FormField from "./form_field"
 import SectionHeader from "./header_section"
@@ -24,7 +24,7 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
         />
         <FormField
           label="City/Municipality"
-          value={addressInfo.cityMunicipality}
+          value={addressInfo.city_municipality}
           isEditing={isEditing}
           onChange={handleChange}
           name="cityMunicipality"
@@ -40,7 +40,7 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
       </div>
 
       <div className="address-grid">
-        <div className="address-full-field">
+        {/* <div className="address-full-field">
           <label className="address-label">Address</label>
           {isEditing ? (
             <input
@@ -55,10 +55,25 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
               <span className="address-text">{addressInfo.address}</span>
             </div>
           )}
-        </div>
+        </div> */}
+        <FormField
+          label="Building No."
+          value={addressInfo["floor/unit/building_no"]}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="floor/unit/building_no"
+        />
+
+        <FormField
+          label="House No./street"
+          value={addressInfo["house_no/street"]}
+          isEditing={isEditing}
+          onChange={handleChange}
+          name="house_no/street"
+        />
         <FormField
           label="Zip Code"
-          value={addressInfo.zipCode}
+          value={addressInfo.zip_code}
           isEditing={isEditing}
           onChange={handleChange}
           name="zipCode"

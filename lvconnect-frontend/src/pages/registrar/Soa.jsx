@@ -1,4 +1,3 @@
-"use client";
 
 import { useEffect, useState } from "react";
 import "@/styles/admin_soa.css";

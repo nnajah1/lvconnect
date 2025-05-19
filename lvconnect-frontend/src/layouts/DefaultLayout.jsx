@@ -1,4 +1,4 @@
-"use client"
+
 import { useAuthContext } from "../context/AuthContext";
 import { Outlet, Navigate } from "react-router-dom";
 import preventBackNavigation from "@/utils/preventBackNavigation";

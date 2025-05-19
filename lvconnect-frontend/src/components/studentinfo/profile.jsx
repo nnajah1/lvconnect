@@ -33,14 +33,14 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
         <div className="profile_row">
           <FormField
             label="Program"
-            value={profileData.program}
+            value={profileData.program_id}
             isEditing={isEditing}
             onChange={handleChange}
             name="program"
           />
           <FormField
             label="Year"
-            value={profileData.year}
+            value={profileData.year_level}
             maxWidth="md:max-w-[200px]"
             isEditing={isEditing}
             onChange={handleChange}
@@ -51,7 +51,7 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
         <div className="profile_row profile_row_secondary">
           <FormField
             label="Student Number"
-            value={profileData.studentNumber}
+            value={profileData.student_id_number}
             maxWidth="md:max-w-[200px]"
             isEditing={isEditing}
             onChange={handleChange}
@@ -59,7 +59,7 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
           />
           <FormField
             label="Email address"
-            value={profileData.email}
+            value={profileData.barangay}
             isEditing={isEditing}
             onChange={handleChange}
             name="email"

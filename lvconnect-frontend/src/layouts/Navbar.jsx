@@ -1,4 +1,4 @@
-"use client"
+
 
 import { useState, useRef, useEffect } from "react"
 import { Bell, ChevronDown, LogOut, Menu, Search, Settings, User } from "lucide-react"

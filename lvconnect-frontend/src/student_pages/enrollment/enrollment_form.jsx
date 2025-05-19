@@ -1,4 +1,4 @@
-"use client"
+
 
 import { useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
@@ -9,6 +9,9 @@ import FamilyInfoSection from "@/components/studentinfo/family_info"
 import SchoolInfoSection from "@/components/studentinfo/school_info"
 import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
+
+import { program, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
+import { getEnrollee } from "@/services/enrollmentAPI"
 
 export default function StudentInformationFormk() {
   const schoolyear = () => {
@@ -24,99 +27,62 @@ export default function StudentInformationFormk() {
   const dataPrivacyPolicy = () => {
     // "lorem"
   }
-  // Sample data for dropdown options
-  const incomeOptions = [
-    "Below ₱10,000",
-    "₱10,000 - ₱20,000",
-    "₱20,001 - ₱30,000",
-    "₱30,001 - ₱40,000",
-    "₱40,001 - ₱50,000",
-    "₱50,001 - ₱60,000",
-    "₱60,001 - ₱70,000",
-    "₱70,001 - ₱80,000",
-    "₱80,001 - ₱90,000",
-    "₱90,001 - ₱100,000",
-    "Above ₱100,000",
-  ]
+ 
 
-  const religionOptions = [
-    "Catholic",
-    "Islam",
-    "Protestant",
-    "Iglesia ni Cristo",
-    "Seventh Day Adventist",
-    "Born Again Christian",
-    "Buddhist",
-    "Hindu",
-    "Judaism",
-    "Other",
-  ]
-
-  // Sample data for the student information form
-  const [studentData, setStudentData] = useState({
-    program_id: "",
-    year_level: "",
-    privacy_policy: false,
-    enrollment_schedule_id: "",
-    contact_number: "",
-    profile: {
-      program: "Bachelor of Science in Information Technology",
-      year: "3rd Year",
-      studentNumber: "2021-00123",
-      email: "student@example.edu.ph",
-    },
-    personal: {
-      lastName: "Cruz",
-      suffix: "Jr.",
-      birthdate: "January 15, 2000",
-      birthplace: "Manila City",
-      gender: "Male",
-      civilStatus: "Single",
-      religion: "Catholic",
-      contactNumber: "09123456789",
-      facebookProfile: "facebook.com/juandelacruz",
-    },
-    address: {
-      building_no: "",
-      street: "",
-      barangay: "",
-      city: "",
-      province: "",
-      zip: "",
-    },
-    family: {
-      numberOfChildren: "3",
-      birthOrder: "1",
-      hasSiblingsInLVCC: true,
-    },
-    education: {
-      schoolLastAttended: "National High School",
-      schoolAddress: "456 Education Avenue, Quezon City",
-      schoolType: "Public",
-    },
-    mother: {
-      contactNumber: "",
-      occupation: "",
-      monthlyIncome: "",
-      religion: "",
-    },
-    father: {
-      contactNumber: "",
-      occupation: "",
-      monthlyIncome: "",
-      religion: "",
-    },
-    guardian: {
+   const [studentData, setStudentData] = useState({
+      student_id_number: "",
       first_name: "",
       middle_name: "",
       last_name: "",
-      religion: "",
-      occupation: "",
-      monthly_income: "",
+      civil_status: "",
+      gender: "",
+      birth_date: "",
+      birth_place: "",
       mobile_number: "",
-      relationship: "",
-    },
-  })
+      religion: "",
+      lrn: "",
+      fb_link: "",
+      student_type: "",
+      government_subsidy: "",
+      scholarship_status: "",
+      last_school_attended: "",
+      previous_school_address: "",
+      school_type: "",
+      academic_awards: "",
+      floorUnitBuildingNo: "",
+      houseNoStreet: "",
+      barangay: "",
+      city_municipality: "",
+      province: "",
+      zip_code: "",
+      student_family_info: {
+        num_children_in_family: 4,
+        birth_order: 4,
+        has_siibling_in_lvcc: 0,
+        mother_first_name: "",
+        mother_middle_name: "",
+        mother_last_name: "",
+        mother_religion: "",
+        mother_occupation: "",
+        mother_monthly_income: "",
+        mother_mobile_number: "",
+        father_first_name: "",
+        father_middle_name: "",
+        father_last_name: "",
+        father_religion: "",
+        father_occupation: "",
+        father_monthly_income: "",
+        father_mobile_number: "",
+        guardian_first_name: "",
+        guardian_middle_name: "",
+        guardian_last_name: "",
+        guardian_religion: "",
+        guardian_occupation: "",
+        guardian_monthly_income: "",
+        guardian_mobile_number: "",
+  
+      }
+    });
 
   const [isEditing, setIsEditing] = useState(true)
   const [step, setStep] = useState(1)
@@ -125,7 +91,7 @@ export default function StudentInformationFormk() {
   useEffect(() => {
     const fetchStudentInfo = async () => {
       try {
-        const res = await studentInfo(); // You should have this route
+        const res = await getEnrollee(studentId);
         const data = res.data;
 
         setStudentData((prev) => ({
@@ -139,7 +105,6 @@ export default function StudentInformationFormk() {
             province: data.province,
             zip: data.zip_code,
           },
-          // optionally load guardian info too
         }));
 
       } catch (err) {
@@ -164,20 +129,16 @@ export default function StudentInformationFormk() {
   const goToPreviousStep = () => setStep((prev) => prev - 1)
 
   const formRef = useRef(null);
+const handleNextStep = (e) => {
+  e.preventDefault();
 
-  const isStepValid = (step) => {
-    const requiredFields = {
-      1: ["program_id", "year_level", "enrollment_schedule_id"],
-      2: ["contact_number", ...Object.keys(studentData.address)],
-      3: [...Object.keys(studentData.guardian), "privacy_policy"],
-    };
+  if (!formRef.current.checkValidity()) {
+    formRef.current.reportValidity();
+    return;
+  }
 
-    return requiredFields[step].every((field) => {
-      if (field.includes(".")) return true; // Skip nested checks for now
-      const value = studentData[field];
-      return value !== "" && value !== null && value !== undefined;
-    });
-  };
+  goToNextStep();
+};
 
 
   const handleSubmit = async () => {
@@ -212,23 +173,23 @@ export default function StudentInformationFormk() {
                 </div>
 
                 <StudentInfoSection
-                  personalInfo={studentData.personal}
+                  personalInfo={studentData}
                   isEditing={isEditing}
                   onChange={handleFieldChange}
                   religionOptions={religionOptions}
                 />
                 <AddressSection
-                  addressInfo={studentData.address}
+                  addressInfo={studentData}
                   isEditing={isEditing}
                   onChange={handleFieldChange}
                 />
                 <FamilyInfoSection
-                  familyInfo={studentData.family}
+                  familyInfo={studentData.student_family_info}
                   isEditing={isEditing}
                   onChange={handleFieldChange}
                 />
                 <SchoolInfoSection
-                  educationInfo={studentData.education}
+                  educationInfo={studentData}
                   isEditing={isEditing}
                   onChange={handleFieldChange}
                 />
@@ -240,7 +201,7 @@ export default function StudentInformationFormk() {
                 <SectionHeader title="GUARDIAN INFORMATION" />
                 <GuardianInfoComponent
                   title="Mother's Information"
-                  guardianData={studentData.mother}
+                  guardianData={studentData}
                   isEditing={isEditing}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
@@ -249,7 +210,7 @@ export default function StudentInformationFormk() {
                 />
                 <GuardianInfoComponent
                   title="Father's Information"
-                  guardianData={studentData.father}
+                  guardianData={studentData}
                   isEditing={isEditing}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
@@ -258,7 +219,7 @@ export default function StudentInformationFormk() {
                 />
                 <GuardianInfoComponent
                   title="Guardian's Information"
-                  guardianData={studentData.guardian}
+                  guardianData={studentData}
                   isEditing={isEditing}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
@@ -309,13 +270,7 @@ export default function StudentInformationFormk() {
             {step < 3 ? (
               <button
                 className="next-button"
-                onClick={() => {
-                  if (!isStepValid(step)) {
-                    alert("Please complete all required fields before proceeding.");
-                    return;
-                  }
-                  goToNextStep();
-                }}
+                onClick={handleNextStep}
               >
                 Next
               </button>

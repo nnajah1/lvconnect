@@ -389,9 +389,9 @@ class EnrollmentController extends Controller
     public function show(string $id)
     {
         $user = JWTAuth::authenticate();
-        $studentRecord = EnrolleeRecord::with('studentInfo')->findOrFail($id);
+        $studentRecord = StudentInformation::with(['studentFamilyInfo'])->findOrFail($id);
 
-        if (!$user->hasRole(['student', 'registrar'])) { 
+        if (!$user->hasRole('registrar')) { 
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

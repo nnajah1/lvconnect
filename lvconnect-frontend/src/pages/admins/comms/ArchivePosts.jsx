@@ -1,4 +1,4 @@
-"use client"; // Mark as a Client Component
+; // Mark as a Client Component
 
 import React, { useEffect, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";

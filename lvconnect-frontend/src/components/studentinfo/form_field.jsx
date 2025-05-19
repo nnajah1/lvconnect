@@ -1,7 +1,7 @@
 
 import "@/styles/student_information.css"
 
-export default function FormField({ label, value, maxWidth, isEditing, onChange, name, options}) {
+export default function FormField({ label, value, maxWidth, isEditing, onChange, name, options, type}) {
   return (
     <div className={`form-field-container ${maxWidth || ""}`}>
       <label className="form-label">{label}</label>
@@ -22,7 +22,7 @@ export default function FormField({ label, value, maxWidth, isEditing, onChange,
           </select>
         ) : (
           <input
-            type="text"
+            type={type ?? "text"}
             name={name}
             value={value}
             onChange={onChange}

@@ -14,21 +14,21 @@ export default function SchoolInfoSection({ educationInfo, isEditing, onChange }
       <div className="school_form_grid">
         <FormField
           label="School Last Attended"
-          value={educationInfo.schoolLastAttended}
+          value={educationInfo.last_school_attended}
           isEditing={isEditing}
           onChange={handleChange}
           name="schoolLastAttended"
         />
         <FormField
           label="Address"
-          value={educationInfo.schoolAddress}
+          value={educationInfo.previous_school_address}
           isEditing={isEditing}
           onChange={handleChange}
           name="schoolAddress"
         />
         <FormField
           label="Type"
-          value={educationInfo.schoolType}
+          value={educationInfo.school_type}
           maxWidth="md:max-w-[150px]"
           isEditing={isEditing}
           onChange={handleChange}

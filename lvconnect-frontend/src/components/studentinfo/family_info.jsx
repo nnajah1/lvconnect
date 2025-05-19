@@ -21,13 +21,13 @@ export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
             <input
               type="text"
               name="numberOfChildren"
-              value={familyInfo.numberOfChildren}
+              value={familyInfo.num_children_in_family}
               onChange={handleChange}
               className="family-input"
             />
           ) : (
             <div className="family-static">
-              <span className="family-value">{familyInfo.numberOfChildren}</span>
+              <span className="family-value">{familyInfo.num_children_in_family}</span>
             </div>
           )}
         </div>
@@ -39,13 +39,13 @@ export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
             <input
               type="text"
               name="birthOrder"
-              value={familyInfo.birthOrder}
+              value={familyInfo.birth_order}
               onChange={handleChange}
               className="family-input"
             />
           ) : (
             <div className="family-static">
-              <span className="family-value">{familyInfo.birthOrder}</span>
+              <span className="family-value">{familyInfo.birth_order}</span>
             </div>
           )}
         </div>
@@ -54,30 +54,23 @@ export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
         <div className="family-item">
           <label className="family-label">Siblings studying in LVCC:</label>
           <div className="family-radio-group">
-            <div className="family-radio-option">
-              <div
-                className={`family-radio-circle ${familyInfo.hasSiblingsInLVCC ? "selected" : ""} ${
-                  isEditing ? "clickable" : ""
-                }`}
-                onClick={isEditing ? () => handleRadioChange(true) : undefined}
-              >
-                {familyInfo.hasSiblingsInLVCC && <div className="family-radio-dot"></div>}
-              </div>
-              <span className="family-value">Yes</span>
-            </div>
-            <div className="family-radio-option">
-              <div
-                className={`family-radio-circle ${!familyInfo.hasSiblingsInLVCC ? "selected" : ""} ${
-                  isEditing ? "clickable" : ""
-                }`}
-                onClick={isEditing ? () => handleRadioChange(false) : undefined}
-              >
-                {!familyInfo.hasSiblingsInLVCC && <div className="family-radio-dot"></div>}
-              </div>
-              <span className="family-value">No</span>
-            </div>
+            {[{ label: "Yes", value: true }, { label: "No", value: false }].map((option) => {
+              const selected = familyInfo.has_sibling_in_lvcc === option.value;
+              return (
+                <div key={option.label} className="family-radio-option">
+                  <div
+                    className={`family-radio-circle ${selected ? "selected" : ""} ${isEditing ? "clickable" : ""}`}
+                    onClick={isEditing ? () => handleRadioChange(option.value) : undefined}
+                  >
+                    {selected && <div className="family-radio-dot"></div>}
+                  </div>
+                  <span className="family-value">{option.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
+
       </div>
     </div>
   )

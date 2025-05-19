@@ -15,7 +15,7 @@ export default function GuardianInfoComponent({
 }) {
   const handleChange = (e) => {
     const { name, value } = e.target
-    onChange(prefix, name, value)
+    onChange(`${prefix}_${name}`, name, value)
   }
 
   return (
@@ -25,28 +25,28 @@ export default function GuardianInfoComponent({
       <div className="guardian_grid">
         <FormField
           label="First Name"
-          value={guardianData.firstName}
+          value={guardianData?.[`${prefix}_first_name`] || ""}
           isEditing={isEditing}
           onChange={handleChange}
           name="firstName"
         />
         <FormField
           label="Middle Name"
-          value={guardianData.middleName}
+          value={guardianData?.[`${prefix}_middle_name`] || ""}
           isEditing={isEditing}
           onChange={handleChange}
           name="middleName"
         />
         <FormField
           label="Last Name"
-          value={guardianData.lastName}
+          value={guardianData?.[`${prefix}_last_name`] || ""}
           isEditing={isEditing}
           onChange={handleChange}
           name="lastName"
         />
         <FormField
           label="Contact Number"
-          value={guardianData.contactNumber}
+          lasvalue={guardianData?.[`${prefix}_contact_number`] || ""}
           isEditing={isEditing}
           onChange={handleChange}
           name="contactNumber"
@@ -56,14 +56,14 @@ export default function GuardianInfoComponent({
       <div className="guardian_grid">
         <FormField
           label="Occupation"
-          value={guardianData.occupation}
+          value={guardianData?.[`${prefix}_occupation`] || ""}
           isEditing={isEditing}
           onChange={handleChange}
           name="occupation"
         />
         <FormField
           label="Monthly Income"
-          value={guardianData.monthlyIncome}
+          value={guardianData?.[`${prefix}_monthly_income`] || ""}
           isEditing={isEditing}
           onChange={handleChange}
           name="monthlyIncome"
@@ -71,7 +71,7 @@ export default function GuardianInfoComponent({
         />
         <FormField
           label="Religion"
-          value={guardianData.religion}
+          value={guardianData?.[`${prefix}_religion`] || ""}
           isEditing={isEditing}
           onChange={handleChange}
           name="religion"

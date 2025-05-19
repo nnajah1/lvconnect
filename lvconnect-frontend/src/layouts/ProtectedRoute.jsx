@@ -1,4 +1,4 @@
-"use client"
+
 import { Navigate, Outlet, useLocation, useMatches } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { roleRedirectMap } from "@/utils/roleRedirectMap";

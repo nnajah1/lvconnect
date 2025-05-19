@@ -125,8 +125,8 @@ const router = createBrowserRouter([
                         children: [
                             { index: true, element: <AdminDashboard /> },
                             { path: "enrollment", element: <Enrollment /> },
-                            { path: "student-information-management", element: <AdminDashboard /> },
                             { path: "enrollment/student-information/:studentId", element: <Enrollees /> },
+                            { path: "student-information-management", element: <AdminDashboard /> },
                             { path: "soa", element: <AdminSoa /> },
                         ],
                     },

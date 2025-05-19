@@ -27,7 +27,8 @@ export const roleMenus = {
   ],
   registrar: [
     { name: "Dashboard", path: "/registrar", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Enrollment", path: "/registrar/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Enrollment", path: "/registrar/enrollment", matchPrefix: "/registrar/enrollment/student-information", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+  
     { name: "Students", path: "/registrar/student-information-management", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
     { name: "SOA", path: "/registrar/soa", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
   ],
