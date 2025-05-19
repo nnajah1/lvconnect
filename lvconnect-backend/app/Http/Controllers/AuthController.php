@@ -19,9 +19,8 @@ use App\Models\TrustedDevice;
 
 class AuthController extends Controller
 {
-    public function createUser(request $request)
+    public function createUser(Request $request)
     {
-
         $user = JWTAuth::authenticate();
 
         // Checks user if authorized
@@ -35,34 +34,39 @@ class AuthController extends Controller
             : ['student'];
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'role' => ['required', Rule::in($allowedRoles)], // Only allow valid roles
+            'role' => ['required', Rule::in($allowedRoles)],
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors(), 422]);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
         // Generate a random password
         $randomPassword = Str::random(10);
 
-        //create new user
+        // Create new user (store first and last name only)
         $newUser = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($randomPassword),
-
         ]);
 
-        // Assign role to user
+        // Assign role
         $newUser->assignRole($request->role);
 
-        // Send credentials to user
+        // Create full name for display purposes (not stored)
+        $name = $request->first_name . ' ' . $request->last_name;
+
+        // Send email with credentials
         Mail::to($newUser->email)->send(new UserCredentialsMail($newUser, $randomPassword));
 
         return response()->json([
-            'message' => 'User created successfully',
+            'message' => "User created successfully",
+            'name' => $name,
         ], 201);
     }
 

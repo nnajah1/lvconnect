@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('fee_categories', function(Blueprint $table){
             $table->id();
-            $table->string('name');
+            $table->string('name'); // e.g miscellaneous
             $table->timestamps();
         });
     }

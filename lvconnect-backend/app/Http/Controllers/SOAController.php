@@ -18,11 +18,12 @@ class SOAController extends Controller
         if ($user->hasRole('student')) {
             return FeeTemplate::where('status', 'saved')
                             ->where('is_visible', true)
+                            ->with('fees')
                             ->get();
         }
 
         if ($user->hasRole('registrar')) {
-            return FeeTemplate::all();
+            return FeeTemplate::with('fees')->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -40,7 +41,6 @@ class SOAController extends Controller
         }
 
         $request->validate([
-            'term' => 'required|string',
             'status' => 'required|in:saved,archived',
             'is_visible' => 'required|boolean',
             'fees' => 'required|array',
@@ -49,10 +49,17 @@ class SOAController extends Controller
             'fees.*.amount' => 'required|numeric|min:0',
         ]);
 
+        $termTotal = collect($request->fees)->sum('amount');
+        $wholeYear = $termTotal * 2;
+
         $template = FeeTemplate::create([
-            'term' => $request->term,
             'status' => $request->status,
             'is_visible' => $request->is_visible,
+            'first_term_total' => $termTotal,
+            'second_term_total' => $termTotal,
+            'whole_academic_year' => $wholeYear,
+            'scholarship_discount' => $wholeYear,
+            'total_payment' => 0,
         ]);
 
         foreach ($request->fees as $fee) {
@@ -73,7 +80,7 @@ class SOAController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        $template = FeeTemplate::with('fees')->find($id);
+        $template = FeeTemplate::with(['fees'])->find($id);
 
         if (!$template) {
             return response()->json(['message' => 'SOA not found'], 404);
@@ -106,7 +113,6 @@ class SOAController extends Controller
         }
 
         $request->validate([
-            'term' => 'required|string',
             'status' => 'required|in:saved,archived',
             'is_visible' => 'required|boolean',
             'fees' => 'required|array',
@@ -117,10 +123,17 @@ class SOAController extends Controller
 
         $template = FeeTemplate::findOrFail($id);
 
+        $termTotal = collect($request->fees)->sum('amount');
+        $wholeYear = $termTotal * 2;
+
         $template->update([
-            'term' => $request->term,
             'status' => $request->status,
             'is_visible' => $request->is_visible,
+            'first_term_total' => $termTotal,
+            'second_term_total' => $termTotal,
+            'whole_academic_year' => $wholeYear,
+            'scholarship_discount' => $wholeYear,
+            'total_payment' => 0,
         ]);
 
         $template->fees()->delete();

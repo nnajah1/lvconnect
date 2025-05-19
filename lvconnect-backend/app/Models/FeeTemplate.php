@@ -10,13 +10,22 @@ class FeeTemplate extends Model
     use HasFactory;
 
     protected $fillable = [
-        'term',
         'status',
         'is_visible',
+        'first_term_total',
+        'second_term_total',
+        'whole_academic_year',
+        'scholarship_discount',
+        'total_payment',
     ];
 
     protected $casts = [
         'is_visible' => 'boolean',
+        'first_term_total' => 'string',
+        'second_term_total' => 'string',
+        'whole_academic_year' => 'string',
+        'scholarship_discount' => 'string',
+        'total_payment' => 'string',
     ];
 
     /**
