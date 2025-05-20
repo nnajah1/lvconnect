@@ -12,8 +12,10 @@ import { useForms } from '@/context/FormsContext';
 import UserViewFormModal from "@/pages/student/UserViewSchoolForm";
 import SearchBar from "@/components/dynamic/searchBar";
 import { ConfirmationModal } from "@/components/dynamic/alertModal";
+import { useUserRole } from "@/utils/userRole";
 
-const Forms = ({ userRole }) => {
+const Forms = () => {
+  const userRole = useUserRole();
   const { schoolForms, submittedForms, isLoading , fetchForms, fetchSubmitted } = useForms();
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);

@@ -6,9 +6,10 @@ import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import UserCreateSurveyModal from './UserCreateSurvey';
 import { getSurveys } from '@/services/surveyAPI';
 import SearchBar from '@/components/dynamic/searchBar';
+import { useUserRole } from '@/utils/userRole';
 
-const VisibleSurveys = ({ userRole }) => {
-
+const VisibleSurveys = () => {
+  const userRole = useUserRole();
   const [survey, setSurvey] = useState([]);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)

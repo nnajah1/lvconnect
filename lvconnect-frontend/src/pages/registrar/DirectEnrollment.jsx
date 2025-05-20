@@ -11,10 +11,8 @@ import SectionHeader from "@/components/studentinfo/header_section"
 import ActionButtons from "@/components/studentinfo/action"
 import { getEnrollee } from "@/services/enrollmentAPI";
 import { programOptions, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
-import { useUserRole } from "@/utils/userRole";
 
-const Enrollees = ({ mode, editType }) => {
-  const userRole = useUserRole();
+const DirectEnrollment = ({ mode, manualEdit }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || '/';
@@ -22,10 +20,10 @@ const Enrollees = ({ mode, editType }) => {
   const handleBack = () => navigate(from);
 
   const [profileImage, setProfileImage] = useState("")
-  const [isEditing, setIsEditing] = useState(mode === "edit")
+  const [isEditing, setIsEditing] = useState(mode ==="edit")
+
 
   const [studentData, setStudentData] = useState({
-    program_id: "",
     student_id_number: "",
     first_name: "",
     middle_name: "",
@@ -45,8 +43,8 @@ const Enrollees = ({ mode, editType }) => {
     previous_school_address: "",
     school_type: "",
     academic_awards: "",
-    "floor/unit/building_no": "",
-    "house_no/street": "",
+    floorUnitBuildingNo: "",
+    houseNoStreet: "",
     barangay: "",
     city_municipality: "",
     province: "",
@@ -80,23 +78,23 @@ const Enrollees = ({ mode, editType }) => {
     }
   });
 
-  const [isLoading, setIsLoading] = useState(true);
+ const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (!studentId) return;
+useEffect(() => {
+  if (!studentId) return;
 
-    const loadStudentInfo = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getEnrollee(studentId);
-        setStudentData(data);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadStudentInfo = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getEnrollee(studentId);
+      setStudentData(data);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    loadStudentInfo();
-  }, [studentId]);
+  loadStudentInfo();
+}, [studentId]);
 
   const handleChangeImage = () => {
 
@@ -124,29 +122,16 @@ const Enrollees = ({ mode, editType }) => {
     setIsEditing(false)
   }
 
-  const handleFieldChange = (field, value) => {
+  const handleFieldChange = (section, field, value) => {
     setStudentData((prevData) => ({
       ...prevData,
-      [field]: value,
-    }));
-  };
+      [section]: {
+        ...prevData[section],
+        [field]: value,
+      },
+    }))
+  }
 
-
-  const partialFields = ["religion", "fb_link", "mobile_number", "student_id_number"];
-
-  const canEditField = (fieldName) => {
-    if (!isEditing) return false;
-
-    if (userRole === "registrar") {
-      return editType === "full" || (editType === "partial" && partialFields.includes(fieldName));
-    }
-
-    if (userRole === "student") {
-      return partialFields.includes(fieldName);
-    }
-
-    return false;
-  };
 
   return (
     <div className="flex flex-col items-start w-full min-h-screen">
@@ -161,41 +146,34 @@ const Enrollees = ({ mode, editType }) => {
           handleEditToggle={handleEditToggle}
           handleBack={handleBack}
           mode={mode}
-          userRole={userRole}
-          editType={editType}
         />
 
         <ProfileSection
-          isEditing={isEditing}
           profileData={studentData}
           profileImage={profileImage}
           onChangeImage={handleChangeImage}
-          canEditField={canEditField}
+          isEditing={isEditing}
+          editable={false}
           onChange={handleFieldChange}
-          programOptions={programOptions}
         />
       </div>
 
 
       <div className="w-full">
         <StudentInfoSection
-          isEditing={isEditing}
           personalInfo={studentData}
-          canEditField={canEditField}
+          isEditing={isEditing}
           onChange={handleFieldChange}
           religionOptions={religionOptions}
         />
 
-        <AddressSection addressInfo={studentData}
-          canEditField={canEditField} onChange={handleFieldChange} />
+        <AddressSection addressInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
 
 
-        <FamilyInfoSection familyInfo={studentData.student_family_info}
-          canEditField={canEditField} onChange={handleFieldChange} />
+        <FamilyInfoSection familyInfo={studentData.student_family_info} isEditing={isEditing} onChange={handleFieldChange} />
 
 
-        <SchoolInfoSection educationInfo={studentData}
-          canEditField={canEditField} onChange={handleFieldChange} />
+        <SchoolInfoSection educationInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
 
 
         <div className="w-full">
@@ -205,7 +183,7 @@ const Enrollees = ({ mode, editType }) => {
           <GuardianInfoComponent
             title="Mother's Information"
             guardianData={studentData.student_family_info}
-            canEditField={canEditField}
+            isEditing={isEditing}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
             religionOptions={religionOptions}
@@ -216,7 +194,7 @@ const Enrollees = ({ mode, editType }) => {
           <GuardianInfoComponent
             title="Father's Information"
             guardianData={studentData.student_family_info}
-            canEditField={canEditField}
+            isEditing={isEditing}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
             religionOptions={religionOptions}
@@ -227,7 +205,7 @@ const Enrollees = ({ mode, editType }) => {
           <GuardianInfoComponent
             title="Guardian's Information"
             guardianData={studentData.student_family_info}
-            canEditField={canEditField}
+            isEditing={isEditing}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
             religionOptions={religionOptions}
@@ -239,4 +217,4 @@ const Enrollees = ({ mode, editType }) => {
   );
 }
 
-export default Enrollees;
+export default DirectEnrollment;

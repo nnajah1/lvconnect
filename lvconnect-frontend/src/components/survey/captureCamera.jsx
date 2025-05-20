@@ -1,6 +1,7 @@
 import { useAuthContext } from '@/context/AuthContext';
 import React, { useEffect, useRef, useState } from 'react';
 import { CameraOff } from "lucide-react";
+import { useUserRole } from '@/utils/userRole';
 
 const WebcamCapture = ({ onCapture, photo }) => {
     const videoRef = useRef(null);
@@ -11,8 +12,7 @@ const WebcamCapture = ({ onCapture, photo }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [cameraError, setCameraError] = useState(null);
 
-    const { user } = useAuthContext();
-    const userRole = user?.roles?.[0]?.name;
+    const userRole = useUserRole();
     
     // Effect to handle initial photo state
     useEffect(() => {

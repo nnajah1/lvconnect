@@ -3,12 +3,12 @@
 import "@/styles/student_information.css"
 export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
   const handleChange = (e) => {
-    const { name, value } = e.target
-    onChange("family", name, value)
-  }
+    const { name, value } = e.target;
+    onChange(name, value);
+  };
 
   const handleRadioChange = (value) => {
-    onChange("family", "hasSiblingsInLVCC", value)
+    onChange("hasSiblingsInLVCC", value)
   }
 
   return (
@@ -54,7 +54,7 @@ export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
         <div className="family-item">
           <label className="family-label">Siblings studying in LVCC:</label>
           <div className="family-radio-group">
-            {[{ label: "Yes", value: true }, { label: "No", value: false }].map((option) => {
+            {[{ label: "Yes", value: 1 }, { label: "No", value: 0 }].map((option) => {
               const selected = familyInfo.has_sibling_in_lvcc === option.value;
               return (
                 <div key={option.label} className="family-radio-option">

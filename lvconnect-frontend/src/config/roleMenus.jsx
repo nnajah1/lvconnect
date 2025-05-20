@@ -22,12 +22,12 @@ export const roleMenus = {
   ],
   psas: [
     { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Survey", path: "/psas-admin/surveys", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Survey", path: "/psas-admin/surveys",match: "/psas-admin/surveys", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
     { name: "School Forms", path: "/psas-admin/forms", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
   ],
   registrar: [
     { name: "Dashboard", path: "/registrar", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Enrollment", path: "/registrar/enrollment", matchPrefix: "/registrar/enrollment/student-information", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Enrollment", path: "/registrar/enrollment", match: "/registrar/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
   
     { name: "Students", path: "/registrar/student-information-management", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
     { name: "SOA", path: "/registrar/soa", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },

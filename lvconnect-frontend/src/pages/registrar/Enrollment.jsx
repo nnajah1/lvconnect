@@ -14,15 +14,17 @@ import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
 import AcademicYear from "@/components/enrollment/academicYear";
 import { toast } from "react-toastify";
+import { useUserRole } from "@/utils/userRole";
 
 
-const Enrollment = ({ userRole }) => {
+const Enrollment = () => {
+  const userRole = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
   const [enrollment, setEnrollment] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [item, setItem] = useState(null);
-  const [id, setId] = useState(null);
+  const [directItem, setDirectItem] = useState(null);
   const [acceptItem, setAcceptItem] = useState(null);
   const [rejectItem, setRejectItem] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -30,6 +32,7 @@ const Enrollment = ({ userRole }) => {
   const [remarks, setRemarks] = useState("");
 
   useEffect(() => {
+
     const loadSurveys = async () => {
       const data = await getEnrollees();
       setEnrollment(data);
@@ -40,8 +43,9 @@ const Enrollment = ({ userRole }) => {
   const openModal = (item) => setItem(item);
   const openAcceptModal = (item) => setAcceptItem(item);
   const openRejectModal = (item) => setRejectItem(item);
+  const openDirectModal = (item) => setDirectItem(item);
 
-  const actionMap = actions(openModal, openAcceptModal, openRejectModal, activeTab);
+  const actionMap = actions(openModal, openAcceptModal, openRejectModal, openDirectModal, activeTab);
   const filteredData = useMemo(() => {
 
     switch (activeTab) {
@@ -91,6 +95,7 @@ const Enrollment = ({ userRole }) => {
     openModal,
     openAcceptModal,
     openRejectModal,
+    openDirectModal,
     showSelectionColumn: activeTab !== "all",
   });
 
@@ -129,6 +134,7 @@ const Enrollment = ({ userRole }) => {
       await approveEnrollment(id);
       toast.success("Enrollment approved!");
       setAcceptItem(null);
+      await loadSurveys();
 
     } catch (error) {
       console.error(error);
@@ -157,6 +163,8 @@ const Enrollment = ({ userRole }) => {
       toast.success("Enrollment rejected!");
       setRejectItem(null)
       setRemarks("");
+      await loadSurveys();
+
     } catch (error) {
       console.error(error);
       toast.error("Failed to reject enrollment.");
@@ -198,6 +206,13 @@ const Enrollment = ({ userRole }) => {
           state: { from: location.pathname }
         })
       )}
+
+      {directItem && (
+        navigate(`student-information/${directItem.id}/edit`, {
+          state: { from: location.pathname }
+        })
+      )}
+
       {acceptItem && (
         <ConfirmationModal
           isOpen={!!acceptItem}

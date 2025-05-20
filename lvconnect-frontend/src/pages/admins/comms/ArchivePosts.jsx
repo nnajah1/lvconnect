@@ -5,9 +5,11 @@ import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { getArchivePosts } from "@/services/axios";
 import { archiveSchema } from "@/tableSchemas/schoolUpdate";
+import { useUserRole } from "@/utils/userRole";
 
 
-const ArchivePosts = ({ userRole }) => {
+const ArchivePosts = () => {
+  const userRole = useUserRole();
   const [archive, setArchive] = useState([]);
   // const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
