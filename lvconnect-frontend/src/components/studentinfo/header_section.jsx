@@ -1,5 +1,4 @@
-import "./student_information.css"
-
+import "@/styles/student_information.css"
 export default function SectionHeader({ title, isSubsection = false }) {
   return (
     <div className="header_container">

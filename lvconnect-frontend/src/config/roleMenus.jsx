@@ -4,12 +4,12 @@ import { RiGraduationCapFill, RiGraduationCapLine } from "react-icons/ri";
 
 export const roleMenus = {
   student: [
-    { name: "Dashboard", path: "/dashboard", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Enrollment", path: "/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
-    { name: "Grades", path: "/grades", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
-    { name: "SOA", path: "/soa", solidIcon: HiClipboardDocumentList, outlineIcon: HiOutlineClipboardDocumentList },
-    { name: "Student Services", path: "/student-services", solidIcon: RiGraduationCapFill, outlineIcon: RiGraduationCapLine },
-    { name: "Surveys", path: "/surveys", solidIcon: RiGraduationCapFill, outlineIcon: RiGraduationCapLine },
+    { name: "Dashboard", path: "/my", solidIcon: HiHome, outlineIcon: HiOutlineHome },
+    { name: "Enrollment", path: "/my/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+    { name: "Grades", path: "/my/grades", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
+    { name: "SOA", path: "/my/soa", solidIcon: HiClipboardDocumentList, outlineIcon: HiOutlineClipboardDocumentList },
+    { name: "Student Services", path: "/my/student-services", solidIcon: RiGraduationCapFill, outlineIcon: RiGraduationCapLine },
+    { name: "Surveys", path: "/my/surveys", solidIcon: RiGraduationCapFill, outlineIcon: RiGraduationCapLine },
   ],
   comms: [
     { name: "Dashboard", path: "/comms-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
@@ -27,8 +27,9 @@ export const roleMenus = {
   ],
   registrar: [
     { name: "Dashboard", path: "/registrar", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Enrollment", path: "/registrar/enrollment", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
-    { name: "Students", path: "/registrar/student-information", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
+    { name: "Enrollment", path: "/registrar/enrollment", matchPrefix: "/registrar/enrollment/student-information", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
+  
+    { name: "Students", path: "/registrar/student-information-management", solidIcon: FaFileAlt, outlineIcon: FaRegFileAlt },
     { name: "SOA", path: "/registrar/soa", solidIcon: FaAddressCard, outlineIcon: FaRegAddressCard },
   ],
    superadmin: [

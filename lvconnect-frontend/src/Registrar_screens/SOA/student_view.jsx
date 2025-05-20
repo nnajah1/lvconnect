@@ -1,4 +1,4 @@
-"use client"
+
 
 import { useState, useEffect } from "react"
 import "../Registrar_screens/registrar_styling/student_soa.css"

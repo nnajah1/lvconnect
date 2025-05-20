@@ -5,18 +5,16 @@ import { Link } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
 import { roleMenus } from "@/config/roleMenus";
 
-const Sidebar = () => {
+const Sidebar = ({ isExpanded, setIsExpanded }) => {
   const { user } = useAuthContext(); 
-  const [isExpanded, setIsExpanded] = useState(true);
 
- 
     // Get user role and set menu dynamically
     const userRole = user?.roles?.[0]?.name || "student"; // Default to student
     const menuItems = roleMenus[userRole] || [];
   
   return (
     <div
-      className={`bg-[#1a2b50] text-white p-4 flex flex-col transition-all duration-300 ${
+      className={`fixed h-screen bg-sidebar-foreground text-white p-4 flex flex-col transition-all duration-300 ${
         isExpanded ? "w-64" : "w-20"
       }`}
     >

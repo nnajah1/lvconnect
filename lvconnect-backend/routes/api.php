@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\SchoolFormsController;
+use App\Http\Controllers\SOAController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChangePasswordController;
@@ -91,17 +92,26 @@ Route::middleware('auth.jwt')->group(function () {
   Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
 
   Route::get('/enrollees', [EnrollmentController::class, 'index']);
+  Route::get('/enrollee/{id}', [EnrollmentController::class, 'show']);
   Route::get('/enrollment-schedule', [EnrollmentController::class, 'showEnrollmentSchedule']);
-
+  Route::post('/enrollment-approve/{id}', [EnrollmentController::class, 'approve']);
+  Route::post('/enrollment-reject/{id}', [EnrollmentController::class, 'reject']);
   Route::post('/enrollment/bulk-approve', [EnrollmentController::class, 'bulkApprove']);
   Route::post('/enrollment/bulk-delete', [EnrollmentController::class, 'bulkDelete']);
   Route::post('/enrollment/bulk-export', [EnrollmentController::class, 'bulkExport']);
   Route::post('/enrollment/bulk-remind', [EnrollmentController::class, 'bulkRemind']);
   Route::post('/enrollment-schedule/toggle', [EnrollmentController::class, 'toggleEnrollmentSchedule']);
 
+  Route::get('/enrollment-data', [EnrollmentController::class, 'showEnrollmentData']);
+  Route::post('/manual-enrollment', [EnrollmentController::class, 'manualEnrollment']);
+  Route::post('/student/enroll', [EnrollmentController::class, 'studentEnrollment']);
+
   Route::post('/academic-years', [AcademicYearController::class, 'store']);
   Route::get('/academic-years', [AcademicYearController::class, 'index']);
 
+  Route::get('/soa/{schoolYear}', [SOAController::class, 'show']);
+  Route::post('/soa', [SOAController::class, 'store']);
+  Route::put('/soa/{schoolYear}', [SOAController::class, 'update']);
 
 });
 

@@ -1,8 +1,8 @@
 
-
-import "./student_information.css"
+import "@/styles/student_information.css"
 import FormField from "./form_field"
 import SectionHeader from "./header_section"
+import { formatDate } from "@/utils/formatDate";
 
 export default function StudentInfoSection({ personalInfo, isEditing, onChange, religionOptions }) {
   const handleChange = (e) => {
@@ -18,21 +18,21 @@ export default function StudentInfoSection({ personalInfo, isEditing, onChange, 
       <div className="student_grid">
         <FormField
           label="First Name"
-          value={personalInfo.firstName}
+          value={personalInfo.first_name}
           isEditing={isEditing}
           onChange={handleChange}
           name="firstName"
         />
         <FormField
           label="Middle Name"
-          value={personalInfo.middleName}
+          value={personalInfo.middle_name}
           isEditing={isEditing}
           onChange={handleChange}
           name="middleName"
         />
         <FormField
           label="Last Name"
-          value={personalInfo.lastName}
+          value={personalInfo.last_name}
           isEditing={isEditing}
           onChange={handleChange}
           name="lastName"
@@ -49,15 +49,16 @@ export default function StudentInfoSection({ personalInfo, isEditing, onChange, 
       {/* Birth Info, Gender, Civil Status */}
       <div className="student_grid">
         <FormField
+          type="date"
           label="Birthdate"
-          value={personalInfo.birthdate}
+          value={formatDate(personalInfo.birth_date)}
           isEditing={isEditing}
           onChange={handleChange}
           name="birthdate"
         />
         <FormField
           label="Birthplace"
-          value={personalInfo.birthplace}
+          value={personalInfo.birth_place}
           isEditing={isEditing}
           onChange={handleChange}
           name="birthplace"
@@ -73,7 +74,7 @@ export default function StudentInfoSection({ personalInfo, isEditing, onChange, 
         />
         <FormField
           label="Civil Status"
-          value={personalInfo.civilStatus}
+          value={personalInfo.civil_status}
           maxWidth="md:max-w-[150px]"
           isEditing={isEditing}
           onChange={handleChange}
@@ -95,7 +96,7 @@ export default function StudentInfoSection({ personalInfo, isEditing, onChange, 
         />
         <FormField
           label="Contact Number"
-          value={personalInfo.contactNumber}
+          value={personalInfo.contact_number}
           maxWidth="md:max-w-[200px]"
           isEditing={isEditing}
           onChange={handleChange}
@@ -103,7 +104,7 @@ export default function StudentInfoSection({ personalInfo, isEditing, onChange, 
         />
         <FormField
           label="Facebook Profile link"
-          value={personalInfo.facebookProfile}
+          value={personalInfo.fb_link}
           maxWidth="md:max-w-[300px]"
           isEditing={isEditing}
           onChange={handleChange}

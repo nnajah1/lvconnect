@@ -75,10 +75,15 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
       });
     }
 
+    // if (initialData?.content && quillRef.current) {
+    //   quillRef.current.root.innerHTML = initialData.content;
+    //   setInstructions(initialData.content);
+    // }
     if (initialData?.content && quillRef.current) {
-      quillRef.current.root.innerHTML = initialData.content;
-      setInstructions(initialData.content);
-    }
+    const cleanedHTML = initialData.content.trim().replace(/(<p><br><\/p>)+$/g, '');
+    quillRef.current.clipboard.dangerouslyPasteHTML(cleanedHTML);
+    setInstructions(cleanedHTML);
+  }
 
     if (initialData) {
       setValue('title', initialData.title || '');

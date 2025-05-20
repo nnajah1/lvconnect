@@ -1,79 +1,119 @@
-"use client"
 
-import { useState } from "react"
+
+import { useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
 import "../student_styling/student_enrollment_form.css"
-import StudentInfoSection from "@/Registrar_screens/student_information/student_info"
-import AddressSection from "@/Registrar_screens/student_information/address"
-import FamilyInfoSection from "@/Registrar_screens/student_information/family_info"
-import SchoolInfoSection from "@/Registrar_screens/student_information/schoolinfo"
-import GuardianInfoComponent from "@/Registrar_screens/student_information/guardianinfo"
-import SectionHeader from "@/Registrar_screens/student_information/header_section"
+import StudentInfoSection from "@/components/studentinfo/student_info"
+import AddressSection from "@/components/studentinfo/address"
+import FamilyInfoSection from "@/components/studentinfo/family_info"
+import SchoolInfoSection from "@/components/studentinfo/school_info"
+import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
+import SectionHeader from "@/components/studentinfo/header_section"
 
-export default function StudentInformationForms() {
-    const schoolyear = () => {
-      "2025-2026"
-    }
-    const semester = () => {
-      "1st semester"
-    }
-    const scholarshipStatus = () => {
-      "pending"
-    }
-    const religionOptions = () => {
-      "MCGI"
-    }
+import { program, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
+import { getEnrollee } from "@/services/enrollmentAPI"
+
+export default function StudentInformationFormk() {
+  const schoolyear = () => {
+    // "2025-2026"
+  }
+  const semester = () => {
+    // "1st semester"
+  }
+  const scholarshipStatus = () => {
+    // "pending"
+  }
+
+  const dataPrivacyPolicy = () => {
+    // "lorem"
+  }
+ 
+
    const [studentData, setStudentData] = useState({
-    personal: {
-      firstName: "Juan",
-      lastName: "Dela Cruz",
-      birthDate: "2005-08-15",
-      gender: "Male",
-      religion: "Catholic",
-      contactNumber: "09171234567",
-    },
-    address: {
-      street: "123 Mabini St.",
-      city: "Quezon City",
-      province: "Metro Manila",
-      zipCode: "1100",
-    },
-    family: {
-      siblings: "3",
-      birthOrder: "2",
-      livingWith: "Parents",
-    },
-    education: {
-      lastSchoolAttended: "Barangay High School",
-      lastSchoolAddress: "Pasig City",
-      lastSchoolYear: "2023-2024",
-    },
-    mother: {
-      fullName: "Maria Dela Cruz",
-      occupation: "Housewife",
-      income: "Below ₱10,000",
-      contactNumber: "09181234567",
-      religion: "Catholic",
-    },
-    father: {
-      fullName: "Jose Dela Cruz",
-      occupation: "Driver",
-      income: "₱10,000 - ₱20,000",
-      contactNumber: "09181234568",
-      religion: "Catholic",
-    },
-    guardian: {
-      fullName: "Tita Ana",
-      occupation: "Vendor",
-      income: "₱10,000 - ₱20,000",
-      contactNumber: "09181234569",
-      religion: "Iglesia ni Cristo",
-    },
-  })
+      student_id_number: "",
+      first_name: "",
+      middle_name: "",
+      last_name: "",
+      civil_status: "",
+      gender: "",
+      birth_date: "",
+      birth_place: "",
+      mobile_number: "",
+      religion: "",
+      lrn: "",
+      fb_link: "",
+      student_type: "",
+      government_subsidy: "",
+      scholarship_status: "",
+      last_school_attended: "",
+      previous_school_address: "",
+      school_type: "",
+      academic_awards: "",
+      floorUnitBuildingNo: "",
+      houseNoStreet: "",
+      barangay: "",
+      city_municipality: "",
+      province: "",
+      zip_code: "",
+      student_family_info: {
+        num_children_in_family: 4,
+        birth_order: 4,
+        has_siibling_in_lvcc: 0,
+        mother_first_name: "",
+        mother_middle_name: "",
+        mother_last_name: "",
+        mother_religion: "",
+        mother_occupation: "",
+        mother_monthly_income: "",
+        mother_mobile_number: "",
+        father_first_name: "",
+        father_middle_name: "",
+        father_last_name: "",
+        father_religion: "",
+        father_occupation: "",
+        father_monthly_income: "",
+        father_mobile_number: "",
+        guardian_first_name: "",
+        guardian_middle_name: "",
+        guardian_last_name: "",
+        guardian_religion: "",
+        guardian_occupation: "",
+        guardian_monthly_income: "",
+        guardian_mobile_number: "",
+  
+      }
+    });
 
   const [isEditing, setIsEditing] = useState(true)
   const [step, setStep] = useState(1)
   const [isAgreed, setIsAgreed] = useState(false)
+
+  useEffect(() => {
+    const fetchStudentInfo = async () => {
+      try {
+        const res = await getEnrollee(studentId);
+        const data = res.data;
+
+        setStudentData((prev) => ({
+          ...prev,
+          contact_number: data.mobile_number,
+          address: {
+            building_no: data["floor/unit/building_no"],
+            street: data["house_no/street"],
+            barangay: data.barangay,
+            city: data.city_municipality,
+            province: data.province,
+            zip: data.zip_code,
+          },
+        }));
+
+      } catch (err) {
+        console.error("Failed to fetch student info", err);
+      }
+    };
+
+    fetchStudentInfo();
+  }, []);
 
   const handleFieldChange = (section, field, value) => {
     setStudentData((prevData) => ({
@@ -88,9 +128,32 @@ export default function StudentInformationForms() {
   const goToNextStep = () => setStep((prev) => prev + 1)
   const goToPreviousStep = () => setStep((prev) => prev - 1)
 
-  const handleSubmit = () => {
-   
+  const formRef = useRef(null);
+const handleNextStep = (e) => {
+  e.preventDefault();
+
+  if (!formRef.current.checkValidity()) {
+    formRef.current.reportValidity();
+    return;
   }
+
+  goToNextStep();
+};
+
+
+  const handleSubmit = async () => {
+    try {
+      const res = await submitEnrollment(studentData);
+      alert("Enrollment submitted successfully!");
+    } catch (error) {
+      if (error.response?.data?.errors) {
+        console.log("Validation errors", error.response.data.errors);
+        alert("Please fill out all fields.");
+      } else {
+        alert("Something went wrong. Try again later.");
+      }
+    }
+  };
 
   return (
     <div className="student-form-wrapper">
@@ -99,123 +162,131 @@ export default function StudentInformationForms() {
       <div className="student-form-container">
         <div className="student-form-header">School Year: {schoolyear}</div>
 
-        <div className="student-form-content">
-          {step === 1 && (
-            <>
-              <div>
-                <div className="student-semester">{semester}</div>
-                <div className="student-scholarship">Scholarship Status: {scholarshipStatus}</div>
+        <form ref={formRef}>
+          <div className="student-form-content">
+
+            {step === 1 && (
+              <>
+                <div>
+                  <div className="student-semester">{semester}</div>
+                  <div className="student-scholarship">Scholarship Status: {scholarshipStatus}</div>
+                </div>
+
+                <StudentInfoSection
+                  personalInfo={studentData}
+                  isEditing={isEditing}
+                  onChange={handleFieldChange}
+                  religionOptions={religionOptions}
+                />
+                <AddressSection
+                  addressInfo={studentData}
+                  isEditing={isEditing}
+                  onChange={handleFieldChange}
+                />
+                <FamilyInfoSection
+                  familyInfo={studentData.student_family_info}
+                  isEditing={isEditing}
+                  onChange={handleFieldChange}
+                />
+                <SchoolInfoSection
+                  educationInfo={studentData}
+                  isEditing={isEditing}
+                  onChange={handleFieldChange}
+                />
+              </>
+            )}
+
+            {step === 2 && (
+              <div className="guardian-section">
+                <SectionHeader title="GUARDIAN INFORMATION" />
+                <GuardianInfoComponent
+                  title="Mother's Information"
+                  guardianData={studentData}
+                  isEditing={isEditing}
+                  onChange={handleFieldChange}
+                  incomeOptions={incomeOptions}
+                  religionOptions={religionOptions}
+                  prefix="mother"
+                />
+                <GuardianInfoComponent
+                  title="Father's Information"
+                  guardianData={studentData}
+                  isEditing={isEditing}
+                  onChange={handleFieldChange}
+                  incomeOptions={incomeOptions}
+                  religionOptions={religionOptions}
+                  prefix="father"
+                />
+                <GuardianInfoComponent
+                  title="Guardian's Information"
+                  guardianData={studentData}
+                  isEditing={isEditing}
+                  onChange={handleFieldChange}
+                  incomeOptions={incomeOptions}
+                  religionOptions={religionOptions}
+                  prefix="guardian"
+                />
               </div>
+            )}
 
-              <StudentInfoSection
-                personalInfo={studentData.personal}
-                isEditing={isEditing}
-                onChange={handleFieldChange}
-                religionOptions={religionOptions}
-              />
-              <AddressSection
-                addressInfo={studentData.address}
-                isEditing={isEditing}
-                onChange={handleFieldChange}
-              />
-              <FamilyInfoSection
-                familyInfo={studentData.family}
-                isEditing={isEditing}
-                onChange={handleFieldChange}
-              />
-              <SchoolInfoSection
-                educationInfo={studentData.education}
-                isEditing={isEditing}
-                onChange={handleFieldChange}
-              />
-            </>
-          )}
+            {step === 3 && (
+              <div className="privacy-section">
+                <h2 className="privacy-title">Data Privacy Policy</h2>
+                <div className="privacy-texts">
+                  {dataPrivacyPolicy.length > 0 ? (
+                    dataPrivacyPolicy.map((paragraph, index) => (
+                      <p key={index} className="privacy-text">{paragraph}</p>
+                    ))
+                  ) : (
+                    <p className="privacy-text italic">No Data Privacy Policy provided.</p>
+                  )}
+                </div>
 
-          {step === 2 && (
-            <div className="guardian-section">
-              <SectionHeader title="GUARDIAN INFORMATION" />
-              <GuardianInfoComponent
-                title="Mother's Information"
-                guardianData={studentData.mother}
-                isEditing={isEditing}
-                onChange={handleFieldChange}
-                incomeOptions={incomeOptions}
-                religionOptions={religionOptions}
-                prefix="mother"
-              />
-              <GuardianInfoComponent
-                title="Father's Information"
-                guardianData={studentData.father}
-                isEditing={isEditing}
-                onChange={handleFieldChange}
-                incomeOptions={incomeOptions}
-                religionOptions={religionOptions}
-                prefix="father"
-              />
-              <GuardianInfoComponent
-                title="Guardian's Information"
-                guardianData={studentData.guardian}
-                isEditing={isEditing}
-                onChange={handleFieldChange}
-                incomeOptions={incomeOptions}
-                religionOptions={religionOptions}
-                prefix="guardian"
-              />
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="privacy-section">
-              <h2 className="privacy-title">Data Privacy Policy</h2>
-              <div className="privacy-texts">
-                {dataPrivacyPolicy.length > 0 ? (
-                  dataPrivacyPolicy.map((paragraph, index) => (
-                    <p key={index} className="privacy-text">{paragraph}</p>
-                  ))
-                ) : (
-                  <p className="privacy-text italic">No Data Privacy Policy provided.</p>
-                )}
+                <div className="privacy-checkbox-wrapper">
+                  <label className="privacy-checkbox-label gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isAgreed}
+                      onChange={(e) => setIsAgreed(e.target.checked)}
+                      className="privacy-checkbox m-auto"
+                    />
+                    <span className="privacy-agreement-text">I have read and understand the Data Privacy Policy</span>
+                  </label>
+                </div>
               </div>
+            )}
+          </div>
 
-              <div className="privacy-checkbox-wrapper">
-                <label className="privacy-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={isAgreed}
-                    onChange={(e) => setIsAgreed(e.target.checked)}
-                    className="privacy-checkbox"
-                  />
-                  <span className="privacy-agreement-text">I have read and understand the Data Privacy Policy</span>
-                </label>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="step-navigation">
-          <button
-            className="step-navigation-button"
-            onClick={goToPreviousStep}
-            disabled={step === 1}
-          >
-            <ChevronLeft size={16} />
-            Go back
-          </button>
-
-          {step < 3 ? (
-            <button className="next-button" onClick={goToNextStep}>
-              Next
-            </button>
-          ) : (
+          <div className="step-navigation">
             <button
-              className={`submit-button ${isAgreed ? "submit-enabled" : "submit-disabled"}`}
-              onClick={handleSubmit}
-              disabled={!isAgreed}
+              className="step-navigation-button"
+              onClick={goToPreviousStep}
+              disabled={step === 1}
             >
-              Enroll
+              <ChevronLeft size={16} />
+              Go back
             </button>
-          )}
-        </div>
+
+            {step < 3 ? (
+              <button
+                className="next-button"
+                onClick={handleNextStep}
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                className={`submit-button ${studentData.privacy_policy ? "submit-enabled" : "submit-disabled"}`}
+                onClick={handleSubmit}
+                disabled={!studentData.privacy_policy}
+              >
+                Enroll
+              </button>
+            )}
+
+          </div>
+
+        </form>
       </div>
     </div>
   )

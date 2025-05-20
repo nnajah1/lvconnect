@@ -1,7 +1,8 @@
-"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "@/styles/admin_soa.css";
+import { getSoa } from "@/services/enrollmentAPI";
+import { toast } from "react-toastify";
 
 const AdminSoa = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,22 @@ const AdminSoa = () => {
     name: "",
     amount: "",
   });
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (formData.schoolYear) {
+      getSoa(formData.schoolYear)
+        .then((res) => {
+          setFormData(res.data);
+          setIsEditing(true);
+        })
+        .catch((err) => {
+          console.log('No existing SOA found. Ready to create new.', err);
+          setIsEditing(false);
+        });
+    }
+  }, [formData.schoolYear]);
 
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;
@@ -62,7 +79,7 @@ const AdminSoa = () => {
 
   const addNewFee = () => {
     if (!newFee.name.trim() || newFee.amount === "" || Number(newFee.amount) <= 0) {
-      alert("Please enter a valid fee name and a positive amount.");
+      toast.info("Please enter a valid fee name and a positive amount.");
       return;
     }
 
@@ -103,10 +120,10 @@ const AdminSoa = () => {
 
   const { tuitionTotal, miscTotal, semesterTotal, yearTotal, totalPayment } = calculateTotals();
 
-  const handleSubmit = (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const completeData = {
+    const payload = {
       ...formData,
       tuitionFee: {
         ...formData.tuitionFee,
@@ -118,7 +135,19 @@ const AdminSoa = () => {
       totalPayment,
     };
 
- 
+    try {
+      if (isEditing) {
+        await updateSoa(formData.schoolYear, payload);
+        toast.success("SOA updated successfully!");
+      } else {
+        await createSoa(payload);
+        toast.success("SOA created successfully!");
+        setIsEditing(true);
+      }
+    } catch (error) {
+      console.error("Failed to submit SOA", error);
+      toast.error("Something went wrong.");
+    }
   };
 
   return (
@@ -133,7 +162,7 @@ const AdminSoa = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
             <h2 className="section-title">General Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
               <div>
                 <label className="input-label">School Year</label>
                 <input
@@ -144,7 +173,7 @@ const AdminSoa = () => {
                   className="input-field"
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="input-label">Program & Year Level</label>
                 <input
                   type="text"
@@ -153,8 +182,8 @@ const AdminSoa = () => {
                   onChange={handleInputChange}
                   className="input-field"
                 />
-              </div>
-            </div>
+              </div> */}
+            {/* </div> */}
           </div>
 
           <div className="mb-6">
@@ -310,6 +339,7 @@ const AdminSoa = () => {
                 <p className="font-semibold text-lg">₱{totalPayment.toLocaleString()}.00</p>
               </div>
             </div>
+            <button type="submit">{isEditing ? "Update SOA" : "Save SOA"}</button>
           </div>
         </form>
       </div>

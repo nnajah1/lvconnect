@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('student_information_id')->constrained('student_information')->onDelete('cascade');
             $table->integer('num_children_in_family');
             $table->integer('birth_order');
-            $table->string('has_sibling_in_lvcc');
+            $table->boolean('has_sibling_in_lvcc')->default('false');
             $table->string('mother_first_name');
             $table->string('mother_middle_name');
             $table->string('mother_last_name');

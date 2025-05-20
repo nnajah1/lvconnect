@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
@@ -9,11 +8,12 @@ import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
 import EditFormModal from "@/pages/admins/psas/EditForm";
 import UserViewFormModal from "@/pages/student/UserViewSchoolForm";
-import { bulkDeleteEnrollment, bulkExportEnrollment, bulkRemindEnrollment, getEnrollees} from "@/services/enrollmentAPI";
+import { approveEnrollment, bulkApproveEnrollment, bulkDeleteEnrollment, bulkExportEnrollment, bulkRemindEnrollment, getEnrollees, rejectEnrollment } from "@/services/enrollmentAPI";
 import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
 import AcademicYear from "@/components/enrollment/academicYear";
+import { toast } from "react-toastify";
 
 
 const Enrollment = ({ userRole }) => {
@@ -22,10 +22,13 @@ const Enrollment = ({ userRole }) => {
   const [enrollment, setEnrollment] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [item, setItem] = useState(null);
+  const [id, setId] = useState(null);
   const [acceptItem, setAcceptItem] = useState(null);
   const [rejectItem, setRejectItem] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [globalFilter, setGlobalFilter] = useState("");
+  const [remarks, setRemarks] = useState("");
+
   useEffect(() => {
     const loadSurveys = async () => {
       const data = await getEnrollees();
@@ -40,7 +43,7 @@ const Enrollment = ({ userRole }) => {
 
   const actionMap = actions(openModal, openAcceptModal, openRejectModal, activeTab);
   const filteredData = useMemo(() => {
-    
+
     switch (activeTab) {
       case "pending":
         return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "pending");
@@ -92,26 +95,73 @@ const Enrollment = ({ userRole }) => {
   });
 
   const handleBulkApprove = async (items) => {
-  const ids = items.map((item) => item.id);
-  await bulkApproveEnrollment(ids);
-};
+    const ids = items.map((item) => item.id);
+    await bulkApproveEnrollment(ids);
+  };
 
-const handleBulkDelete = async (items) => {
-  const ids = items.map((item) => item.id);
-  await bulkDeleteEnrollment(ids);
-};
+  const handleBulkDelete = async (items) => {
+    const ids = items.map((item) => item.id);
+    await bulkDeleteEnrollment(ids);
+  };
 
-const handleBulkExport = async (items) => {
-  const ids = items.map((item) => item.id);
-  const response = await bulkExportEnrollment(ids);
-  // Trigger file download if needed
-  console.log("Exported Data:", response.data);
-};
+  const handleBulkExport = async (items) => {
+    const ids = items.map((item) => item.id);
+    const response = await bulkExportEnrollment(ids);
+    // Trigger file download if needed
+    console.log("Exported Data:", response.data);
+  };
 
-const handleBulkRemind = async (items) => {
-  const ids = items.map((item) => item.id);
-  await bulkRemindEnrollment(ids);
-};
+  const handleBulkRemind = async (items) => {
+    const ids = items.map((item) => item.id);
+    await bulkRemindEnrollment(ids);
+  };
+
+  const handleApprove = async () => {
+    const id = acceptItem?.enrollee_record?.[0]?.id;
+    console.log(id)
+    if (!id) {
+      toast.info("No valid enrollment ID found.");
+      console.log("acceptItem:", acceptItem);
+      return;
+    }
+
+    try {
+      await approveEnrollment(id);
+      toast.success("Enrollment approved!");
+      setAcceptItem(null);
+
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to approve enrollment.");
+    }
+  };
+
+
+  const handleReject = async () => {
+    const id = rejectItem?.enrollee_record?.[0]?.id;
+
+    if (!id) {
+      toast.info("No valid enrollment ID found.");
+      console.log("rejectItem:", rejectItem);
+      return;
+    }
+    if (!remarks) {
+      toast.error("Put admin remarks");
+      console.log("rejectItem:", rejectItem);
+      return;
+    }
+
+
+    try {
+      await rejectEnrollment(id, { admin_remarks: remarks });
+      toast.success("Enrollment rejected!");
+      setRejectItem(null)
+      setRemarks("");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to reject enrollment.");
+    }
+  };
 
 
   return (
@@ -120,7 +170,7 @@ const handleBulkRemind = async (items) => {
         <h1 className="text-2xl font-bold">Enrollment</h1>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
-      
+
       <div className="pb-6"><AcademicYear /></div>
 
       <DynamicTabs
@@ -144,7 +194,7 @@ const handleBulkRemind = async (items) => {
 
 
       {item && (
-        navigate(`/psas-admin/student-information/${item.id}`, {
+        navigate(`student-information/${item.id}`, {
           state: { from: location.pathname }
         })
       )}
@@ -162,7 +212,7 @@ const handleBulkRemind = async (items) => {
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onClick={handleAccept}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onClick={handleApprove}
           >
             Accept
           </button>
@@ -171,21 +221,40 @@ const handleBulkRemind = async (items) => {
       {rejectItem && (
         <WarningModal
           isOpen={!!rejectItem}
-          closeModal={() => setRejectItem(null)}
-          title="Accept Enrollment"
-          description="Are you sure you want to accept this enrollment?"
+          closeModal={() => { setRejectItem(null); setRemarks(""); }}
+          title="Reject Enrollment"
+          description="Are you sure you want to reject this enrollment?"
         >
-          <button
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-            onClick={() => setRejectItem(null)}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleReject}
-          >
-            Reject
-          </button>
+          <div className="flex w-full flex-col">
+            <div className="w-full">
+              <input
+                type="text"
+                placeholder="Enter admin remarks"
+                className="w-full px-3 py-2 border rounded mb-4"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex justify-end">
+
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+                onClick={() => { setRejectItem(null); setRemarks(""); }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleReject}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+
+
         </WarningModal>
       )}
 

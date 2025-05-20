@@ -1,4 +1,4 @@
-"use client"
+
 import { useEffect, useState } from "react"
 import {
   flexRender,
@@ -9,7 +9,7 @@ import {
   getPaginationRowModel
 } from "@tanstack/react-table"
 
-export function DataTable({ columns, data, globalFilter, bulkActions = [], showSelection = true, }) {
+export function DataTable({ columns, data, globalFilter, bulkActions = [], showSelection = true, isLoading }) {
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [rowSelection, setRowSelection] = useState({})
@@ -83,7 +83,13 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
           ))}
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-          {table.getRowModel().rows.length ? (
+          {isLoading ? (
+            <tr>
+              <td colSpan={columns.length} className="p-4 text-center text-gray-500 dark:text-gray-400">
+                Loading...
+              </td>
+            </tr>
+          ) : table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row, index) => (
               <tr
                 key={row.id}
@@ -99,7 +105,8 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
                       whiteSpace: cell.column.id === "title" ? "normal" : "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                    }}>
+                    }}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -107,12 +114,13 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
             ))
           ) : (
             <tr>
-              <td colSpan={columns.length} className="p-4 text-center">
+              <td colSpan={columns.length} className="p-4 text-center text-gray-500 dark:text-gray-400">
                 No data available
               </td>
             </tr>
           )}
         </tbody>
+
       </table>
 
       {/* Pagination */}

@@ -1,4 +1,4 @@
-"use client"
+
 
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckIcon, AlertCircle } from "lucide-react"

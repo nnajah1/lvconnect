@@ -47,6 +47,7 @@ export const FormsProvider = ({ children }) => {
         error,
         fetchForms,
         fetchSubmitted,
+        isLoading 
       }}
     >
       {children}

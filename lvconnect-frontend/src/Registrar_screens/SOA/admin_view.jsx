@@ -1,4 +1,4 @@
-"use client";
+;
 
 import { useState } from "react";
 import "../Registrar_screens/registrar_styling/admin_soa.css";

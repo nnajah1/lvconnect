@@ -1,6 +1,6 @@
 
 import { ChevronLeft } from "lucide-react"
-import "./student_information.css"
+import "@/styles/student_information.css"
 
 export default function ActionButtons({
   isEditing,
@@ -8,14 +8,16 @@ export default function ActionButtons({
   handleArchive,
   handleCancel,
   handleEditToggle,
+  handleBack
 }) {
   return (
     <div className="add_actions_container">
-      <button className="add_back_btn">
+      <button className="add_back_btn" onClick={handleBack}>
         <ChevronLeft className="add_back_icon" />
       </button>
 
-      <div className="add_btn_group">
+    {isEditing && (
+        <div className="add_btn_group">
         {isEditing ? (
           <>
             <button onClick={handleSave} className="add_action_btn save">
@@ -34,6 +36,7 @@ export default function ActionButtons({
           </button>
         )}
       </div>
+    )}
     </div>
   )
 }

@@ -1,106 +1,206 @@
-"use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { DataTable } from "@/components/dynamic/DataTable";
-import { getColumns } from "@/components/dynamic/getColumns";
-import { formActionConditions, formActions, schoolFormTemplateSchema, surveySubmittedSchema, surveySubmitActions, surveySubmitActionConditions } from "@/tableSchemas/surveyResponse";
-import { CiCirclePlus, CiSearch } from "react-icons/ci";
-import DynamicTabs from "@/components/dynamic/dynamicTabs";
-import { useForms } from '@/context/FormsContext';
-import { getSurveyResponses } from "@/services/surveyAPI";
-// import ViewSurveyResponseModal from "./../ViewSurvey";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import SearchBar from "@/components/dynamic/searchBar";
+import ProfileSection from "@/components/studentinfo/profile"
+import StudentInfoSection from "@/components/studentinfo/student_info"
+import AddressSection from "@/components/studentinfo/address"
+import FamilyInfoSection from "@/components/studentinfo/family_info"
+import SchoolInfoSection from "@/components/studentinfo/school_info"
+import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
+import SectionHeader from "@/components/studentinfo/header_section"
+import ActionButtons from "@/components/studentinfo/action"
+import { getEnrollee } from "@/services/enrollmentAPI";
+import { program, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
 
 const Enrollees = ({ userRole }) => {
-  const { schoolForms, submittedSurvey, error, fetchForms, fetchSubmitted } = useForms();
-  const [survey, setSurvey] = useState(null);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
-  const [isOpen, setIsOpen] = useState(false)
-  const [submittedItem, setSubmittedItem] = useState(null);
-
-  const [activeTab, setActiveTab] = useState("summary");
-  const [globalFilter, setGlobalFilter] = useState("");
-
-  const { surveyId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || '/';
+  const { studentId } = useParams();
+  const handleBack = () => navigate(from);
 
-const handleBack = () => navigate(from);
+  const [profileImage, setProfileImage] = useState("")
+  const [isEditing, setIsEditing] = useState(false)
 
-  const openSubmittedModal = (item) => {
-    setSubmittedItem(item); // full item, not just id
-  };
 
-  const templateColumns = getColumns({
-    userRole,
-    schema: schoolFormTemplateSchema,
-    actions: formActions,
-    actionConditions: formActionConditions,
-    context: "formstemplate",
+  const [studentData, setStudentData] = useState({
+    student_id_number: "",
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    civil_status: "",
+    gender: "",
+    birth_date: "",
+    birth_place: "",
+    mobile_number: "",
+    religion: "",
+    lrn: "",
+    fb_link: "",
+    student_type: "",
+    government_subsidy: "",
+    scholarship_status: "",
+    last_school_attended: "",
+    previous_school_address: "",
+    school_type: "",
+    academic_awards: "",
+    floorUnitBuildingNo: "",
+    houseNoStreet: "",
+    barangay: "",
+    city_municipality: "",
+    province: "",
+    zip_code: "",
+    student_family_info: {
+      num_children_in_family: 4,
+      birth_order: 4,
+      has_siibling_in_lvcc: 0,
+      mother_first_name: "",
+      mother_middle_name: "",
+      mother_last_name: "",
+      mother_religion: "",
+      mother_occupation: "",
+      mother_monthly_income: "",
+      mother_mobile_number: "",
+      father_first_name: "",
+      father_middle_name: "",
+      father_last_name: "",
+      father_religion: "",
+      father_occupation: "",
+      father_monthly_income: "",
+      father_mobile_number: "",
+      guardian_first_name: "",
+      guardian_middle_name: "",
+      guardian_last_name: "",
+      guardian_religion: "",
+      guardian_occupation: "",
+      guardian_monthly_income: "",
+      guardian_mobile_number: "",
+
+    }
   });
-  const submitActions = surveySubmitActions(openSubmittedModal);
-  const submittedColumns = getColumns({
-    userRole,
-    schema: surveySubmittedSchema,
-    actions: submitActions,
-    actionConditions: surveySubmitActionConditions,
-    context: "formssubmited",
-    openSubmittedModal
-  });
 
-   useEffect(() => {
-      const loadSurveyResponses = async () => {
-        const data = await getSurveyResponses(surveyId);
-        setSurvey(data);
-      };
-      loadSurveyResponses();
-    }, []);
-  
+  useEffect(() => {
+    const loadStudentInfo = async () => {
+      const data = await getEnrollee(studentId);
+      setStudentData(data);
+    };
+    loadStudentInfo();
+  }, []);
 
-  const tabs = [
-    {
-      label: "Summary",
-      value: "summary",
-      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
-    },
-    {
-      label: "Individual",
-      value: "Individual",
-      content: <DataTable columns={submittedColumns} data={survey} globalFilter={globalFilter} />
-    },
-  ];
+  const handleChangeImage = () => {
+
+    console.log("Change image clicked")
+  }
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing)
+  }
+
+  const handleSave = () => {
+
+    console.log("Saving data:", studentData)
+    setIsEditing(false)
+  }
+
+  const handleArchive = () => {
+
+    console.log("Archiving student record")
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+
+    setIsEditing(false)
+  }
+
+  const handleFieldChange = (section, field, value) => {
+    setStudentData((prevData) => ({
+      ...prevData,
+      [section]: {
+        ...prevData[section],
+        [field]: value,
+      },
+    }))
+  }
+
 
   return (
-    <div className="container mx-auto p-4">
-      {error && <p>{error}</p>}
-      <button onClick={handleBack} className="text-blue-500 hover:underline">
-      ← Go Back
-    </button>
+    <div className="flex flex-col items-start w-full min-h-screen">
 
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold mb-4">Responses</h1>
-        {/* Search Input */}
-        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
+      <div className="w-full p-2 sticky top-0 bg-muted">
+
+        <ActionButtons
+          isEditing={isEditing}
+          handleSave={handleSave}
+          handleArchive={handleArchive}
+          handleCancel={handleCancel}
+          handleEditToggle={handleEditToggle}
+          handleBack={handleBack}
+        />
+
+        <ProfileSection
+          profileData={studentData}
+          profileImage={profileImage}
+          onChangeImage={handleChangeImage}
+          isEditing={isEditing}
+          onChange={handleFieldChange}
+        />
       </div>
 
 
-      <DynamicTabs tabs={tabs} activeTab={activeTab}
-        onTabChange={setActiveTab}
-        className="mb-2"/>
-
-      {/* Modals */}
-
-      {/* {submittedItem && (
-        <ViewSurveyResponseModal
-          isOpen={!!submittedItem}
-          closeModal={() => setSubmittedItem(false)}
-          submittedItem={submittedItem}
+      <div className="w-full">
+        <StudentInfoSection
+          personalInfo={studentData}
+          isEditing={isEditing}
+          onChange={handleFieldChange}
+          religionOptions={religionOptions}
         />
-        )} */}
 
+        <AddressSection addressInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
+
+
+        <FamilyInfoSection familyInfo={studentData.student_family_info} isEditing={isEditing} onChange={handleFieldChange} />
+
+
+        <SchoolInfoSection educationInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
+
+
+        <div className="w-full">
+          <SectionHeader title="GUARDIAN INFORMATION" />
+
+
+          <GuardianInfoComponent
+            title="Mother's Information"
+            guardianData={studentData.student_family_info}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+            incomeOptions={incomeOptions}
+            religionOptions={religionOptions}
+            prefix="mother"
+          />
+
+
+          <GuardianInfoComponent
+            title="Father's Information"
+            guardianData={studentData.student_family_info}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+            incomeOptions={incomeOptions}
+            religionOptions={religionOptions}
+            prefix="father"
+          />
+
+
+          <GuardianInfoComponent
+            title="Guardian's Information"
+            guardianData={studentData.student_family_info}
+            isEditing={isEditing}
+            onChange={handleFieldChange}
+            incomeOptions={incomeOptions}
+            religionOptions={religionOptions}
+            prefix="guardian"
+          />
+        </div>
+      </div>
     </div>
   );
 }
