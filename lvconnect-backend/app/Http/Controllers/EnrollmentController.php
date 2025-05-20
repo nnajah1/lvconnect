@@ -67,6 +67,7 @@ class EnrollmentController extends Controller
                 'guardian' => 'required|array',
                 'mother' => 'required|array',
                 'father' => 'required|array',
+                'student_id_number' => 'required|string|max:50', 
             ], [
                 'program_id.required' => 'Program is required.',
                 'program_id.exists' => 'Selected program is invalid.',
@@ -78,6 +79,7 @@ class EnrollmentController extends Controller
                 'guardian.required' => 'Guardian information is required.',
                 'mother.required' => 'Mother information is required.',
                 'father.required' => 'Father information is required.',
+                'student_id_number.required' => 'Student ID number is required.', 
             ]);
 
             $studentInfo = StudentInformation::where('user_id', $user->id)->first();
@@ -104,6 +106,7 @@ class EnrollmentController extends Controller
                     'province' => $validated['address']['province'] ?? $studentInfo->province,
                     'zip_code' => $validated['address']['zip'] ?? $studentInfo->zip_code,
                     'mobile_number' => $validated['contact_number'] ?? $studentInfo->mobile_number,
+                    'student_id_number' => $validated['student_id_number'] ?? $studentInfo->student_id_number,
                 ]);
 
                 StudentFamilyInformation::updateOrCreate(
@@ -133,9 +136,6 @@ class EnrollmentController extends Controller
                     'program_id' => $validated['program_id'],
                     'year_level' => $validated['year_level'],
                     'privacy_policy' => $validated['privacy_policy'],
-                    'enrollment_schedule_id' => $validated['enrollment_schedule_id'],
-
-                    
                     'enrollment_status' => 'pending',
                     'admin_remarks' => '',
                     'submission_date' => now(),
@@ -192,18 +192,18 @@ class EnrollmentController extends Controller
             'year_level' => 'required|integer|min:1',
             'privacy_policy' => 'required|boolean',
             'admin_remarks' => 'nullable|string|max:1000',
-            'contact_number' => 'nullable|string',
+            'student_id_number' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
+            'address' => 'nullable|array',
+            'address.building_no' => 'nullable|string|max:255',
+            'address.street' => 'nullable|string|max:255',
+            'address.barangay' => 'nullable|string|max:255',
+            'address.city' => 'nullable|string|max:255',
+            'address.province' => 'nullable|string|max:255',
+            'address.zip' => 'nullable|string|max:10',
             'guardian' => 'nullable|array',
             'mother' => 'nullable|array',
             'father' => 'nullable|array',
-        ], [
-            'user_id.required' => 'Please select a student.',
-            'user_id.exists' => 'Selected student does not exist.',
-            'program_id.required' => 'Program is required.',
-            'program_id.exists' => 'Selected program is invalid.',
-            'year_level.required' => 'Year level is required.',
-            'year_level.integer' => 'Year level must be a number.',
-            'privacy_policy.required' => 'Privacy policy agreement is required.',
         ]);
 
         $studentInfo = StudentInformation::where('user_id', $validated['user_id'])->first();
@@ -223,12 +223,17 @@ class EnrollmentController extends Controller
 
         try {
             DB::transaction(function () use ($validated, $studentInfo) {
-                // Update contact number
-                if (isset($validated['contact_number'])) {
-                    $studentInfo->update([
-                        'mobile_number' => $validated['contact_number']
-                    ]);
-                }
+                // Update student info
+                $studentInfo->update([
+                    'floor/unit/building_no' => $validated['address']['building_no'] ?? $studentInfo['floor/unit/building_no'],
+                    'house_no/street' => $validated['address']['street'] ?? $studentInfo['house_no/street'],
+                    'barangay' => $validated['address']['barangay'] ?? $studentInfo->barangay,
+                    'city_municipality' => $validated['address']['city'] ?? $studentInfo->city_municipality,
+                    'province' => $validated['address']['province'] ?? $studentInfo->province,
+                    'zip_code' => $validated['address']['zip'] ?? $studentInfo->zip_code,
+                    'mobile_number' => $validated['contact_number'] ?? $studentInfo->mobile_number,
+                    'student_id_number' => $validated['student_id_number'] ?? $studentInfo->student_id_number,
+                ]);
 
                 // Guardian info
                 if (!empty($validated['guardian'])) {
@@ -249,34 +254,32 @@ class EnrollmentController extends Controller
 
                 // Mother info
                 if (!empty($validated['mother'])) {
-                    $motherInfo = $studentInfo->mother;
-
-                    if ($motherInfo) {
-                        $motherInfo->update([
-                            'mother_religion' => $validated['mother']['religion'] ?? $motherInfo->mother_religion,
-                            'mother_occupation' => $validated['mother']['occupation'] ?? $motherInfo->mother_occupation,
-                            'mother_monthly_income' => $validated['mother']['monthly_income'] ?? $motherInfo->mother_monthly_income,
-                            'mother_mobile_number' => $validated['mother']['mobile_number'] ?? $motherInfo->mother_mobile_number,
+                    $mother = $studentInfo->mother;
+                    if ($mother) {
+                        $mother->update([
+                            'mother_religion' => $validated['mother']['religion'] ?? $mother->mother_religion,
+                            'mother_occupation' => $validated['mother']['occupation'] ?? $mother->mother_occupation,
+                            'mother_monthly_income' => $validated['mother']['monthly_income'] ?? $mother->mother_monthly_income,
+                            'mother_mobile_number' => $validated['mother']['mobile_number'] ?? $mother->mother_mobile_number,
                         ]);
                     }
                 }
 
                 // Father info
                 if (!empty($validated['father'])) {
-                    $fatherInfo = $studentInfo->father;
-
-                    if ($fatherInfo) {
-                        $fatherInfo->update([
-                            'father_religion' => $validated['father']['religion'] ?? $fatherInfo->father_religion,
-                            'father_occupation' => $validated['father']['occupation'] ?? $fatherInfo->father_occupation,
-                            'father_monthly_income' => $validated['father']['monthly_income'] ?? $fatherInfo->father_monthly_income,
-                            'father_mobile_number' => $validated['father']['mobile_number'] ?? $fatherInfo->father_mobile_number,
+                    $father = $studentInfo->father;
+                    if ($father) {
+                        $father->update([
+                            'father_religion' => $validated['father']['religion'] ?? $father->father_religion,
+                            'father_occupation' => $validated['father']['occupation'] ?? $father->father_occupation,
+                            'father_monthly_income' => $validated['father']['monthly_income'] ?? $father->father_monthly_income,
+                            'father_mobile_number' => $validated['father']['mobile_number'] ?? $father->father_mobile_number,
                         ]);
                     }
                 }
 
                 // Create enrollee record
-                $record = EnrolleeRecord::create([
+                EnrolleeRecord::create([
                     'student_information_id' => $studentInfo->id,
                     'program_id' => $validated['program_id'],
                     'year_level' => $validated['year_level'],
@@ -286,16 +289,16 @@ class EnrollmentController extends Controller
                     'submission_date' => now(),
                 ]);
 
-                // Get academic year via enrollment schedule
+                // Academic year from latest enrollment schedule
                 $academicYear = EnrollmentSchedule::with('academicYear')
                     ->latest()
                     ->first()
                     ?->academicYear;
 
                 // Notify the student
-                $user = User::find($validated['user_id']);
-                if ($user && $academicYear) {
-                    $user->notify(new EnrollmentStatusNotification('enrolled', $academicYear));
+                $studentUser = User::find($validated['user_id']);
+                if ($studentUser && $academicYear) {
+                    $studentUser->notify(new EnrollmentStatusNotification('enrolled', $academicYear));
                 }
             });
 
