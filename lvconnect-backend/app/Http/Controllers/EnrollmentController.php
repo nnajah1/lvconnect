@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\EnrolleeRecord;
 use App\Models\EnrollmentSchedule;
 use App\Models\StudentInformation;
-use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Models\AcademicYear;
+use App\Models\User;
 use App\Models\StudentFamilyInformation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Validation\ValidationException;
-
+use App\Notifications\EnrollmentNotification;
+use App\Notifications\EnrollmentStatusNotification;
+use Illuminate\Support\Facades\Notification;
 
 class EnrollmentController extends Controller
 {
@@ -208,7 +212,6 @@ class EnrollmentController extends Controller
             return response()->json(['message' => 'Student information not found for the selected user.'], 404);
         }
 
-        // Prevent duplicate enrollment record for same program and year level
         $alreadyEnrolled = EnrolleeRecord::where('student_information_id', $studentInfo->id)
             ->where('program_id', $validated['program_id'])
             ->where('year_level', $validated['year_level'])
@@ -220,14 +223,14 @@ class EnrollmentController extends Controller
 
         try {
             DB::transaction(function () use ($validated, $studentInfo) {
-                // Update contact number if provided
+                // Update contact number
                 if (isset($validated['contact_number'])) {
                     $studentInfo->update([
                         'mobile_number' => $validated['contact_number']
                     ]);
                 }
 
-                // Update guardian info if provided (all fields editable)
+                // Guardian info
                 if (!empty($validated['guardian'])) {
                     StudentFamilyInformation::updateOrCreate(
                         ['student_information_id' => $studentInfo->id],
@@ -244,9 +247,9 @@ class EnrollmentController extends Controller
                     );
                 }
 
-                // Update mother info 
+                // Mother info
                 if (!empty($validated['mother'])) {
-                    $motherInfo = $studentInfo->mother; 
+                    $motherInfo = $studentInfo->mother;
 
                     if ($motherInfo) {
                         $motherInfo->update([
@@ -258,9 +261,9 @@ class EnrollmentController extends Controller
                     }
                 }
 
-                // Update father info
+                // Father info
                 if (!empty($validated['father'])) {
-                    $fatherInfo = $studentInfo->father; 
+                    $fatherInfo = $studentInfo->father;
 
                     if ($fatherInfo) {
                         $fatherInfo->update([
@@ -272,15 +275,28 @@ class EnrollmentController extends Controller
                     }
                 }
 
-                EnrolleeRecord::create([
+                // Create enrollee record
+                $record = EnrolleeRecord::create([
                     'student_information_id' => $studentInfo->id,
                     'program_id' => $validated['program_id'],
                     'year_level' => $validated['year_level'],
                     'privacy_policy' => $validated['privacy_policy'],
-                    'enrollment_status' => 'enrolled', // Directly enrolled
+                    'enrollment_status' => 'enrolled',
                     'admin_remarks' => $validated['admin_remarks'] ?? '',
                     'submission_date' => now(),
                 ]);
+
+                // Get academic year via enrollment schedule
+                $academicYear = EnrollmentSchedule::with('academicYear')
+                    ->latest()
+                    ->first()
+                    ?->academicYear;
+
+                // Notify the student
+                $user = User::find($validated['user_id']);
+                if ($user && $academicYear) {
+                    $user->notify(new EnrollmentStatusNotification('enrolled', $academicYear));
+                }
             });
 
             return response()->json(['message' => 'Student enrolled successfully.']);
@@ -288,6 +304,7 @@ class EnrollmentController extends Controller
             return response()->json(['message' => 'Failed to enroll student.', 'error' => $e->getMessage()], 500);
         }
     }
+
     /**
      * Open and Close Enrollment
      */
@@ -311,39 +328,33 @@ class EnrollmentController extends Controller
             }
         }
 
-        // When opening enrollment
-        if ($data['is_active']) {
-            // Close all active schedules for this academic year (any semester)
-            EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
-                ->update(['is_active' => false]);
+        $academicYear = AcademicYear::find($data['academic_year_id']);
+        $students = User::role('student')->get();
+        $isOpen = $data['is_active'];
 
-            // Either create or update the current semester
+        //open
+        if ($isOpen) {
+            EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])->update(['is_active' => false]);
+
             $schedule = EnrollmentSchedule::updateOrCreate(
-                [
-                    'academic_year_id' => $data['academic_year_id'],
-                    'semester' => $data['semester'],
-                ],
-                [
-                    'is_active' => true,
-                    'start_date' => now(),
-                    'end_date' => null,
-                ]
+                ['academic_year_id' => $data['academic_year_id'], 'semester' => $data['semester']],
+                ['is_active' => true, 'start_date' => now(), 'end_date' => null]
             );
-        } else {
-            // Closing enrollment for this semester
+        } 
+        //close
+        else {
             $schedule = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
-                ->where('semester', $data['semester'])
-                ->first();
+                ->where('semester', $data['semester'])->first();
 
-            if ($schedule) {
-                $schedule->update([
-                    'is_active' => false,
-                    'end_date' => now(),
-                ]);
-            } else {
+            if (!$schedule) {
                 return response()->json(['message' => 'Schedule not found.'], 404);
             }
+
+            $schedule->update(['is_active' => false, 'end_date' => now()]);
         }
+
+        // Send one combined notification
+        Notification::send($students, new EnrollmentNotification($academicYear, $data['semester'], $isOpen));
 
         return response()->json([
             'data' => $schedule,
@@ -433,6 +444,16 @@ class EnrollmentController extends Controller
         $record->enrollment_status = 'enrolled';
         $record->save();
 
+        // Get the user and academic year to notify
+        $studentInfo = $record->studentInformation;
+        $studentUser = $studentInfo?->user;
+
+        $academicYear = $record->enrollmentSchedule?->academicYear;
+
+        if ($studentUser && $academicYear) {
+            $studentUser->notify(new EnrollmentStatusNotification('enrolled', $academicYear));
+        }
+
         return response()->json([
             'message' => 'Enrollment approved successfully.',
             'data' => $record
@@ -463,6 +484,15 @@ class EnrollmentController extends Controller
         $record->enrollment_status = 'rejected';
         $record->admin_remarks = $request->input('admin_remarks');
         $record->save();
+
+        // Notify student about rejection
+        $studentInfo = $record->studentInformation;
+        $studentUser = $studentInfo?->user;
+        $academicYear = $record->enrollmentSchedule?->academicYear;
+
+        if ($studentUser && $academicYear) {
+            $studentUser->notify(new EnrollmentStatusNotification('rejected', $academicYear));
+        }
 
         return response()->json([
             'message' => 'Enrollment rejected successfully.',
