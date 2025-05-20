@@ -151,59 +151,56 @@ public function getSurveyResponses($surveyId)
        /**
      * Display the submitted survey responses for admin.
      */
-public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
-{
-    $user = JWTAuth::authenticate();
+    public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
+    {
+        $user = JWTAuth::authenticate();
 
-    if (!$user->hasRole('psas')) {
-        return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Fetch a single submitted survey response with answers and related questions
+        $response = SurveyResponse::with([
+            'student', // Change this to student_information later
+            'answers.question',
+            'survey'
+        ])
+        ->where('id', $surveyResponseId)
+        ->whereNotNull('submitted_at')
+        ->first();
+
+        if (!$response) {
+            return response()->json(['message' => 'Submitted survey response not found.'], 404);
+        }
+
+        // Format the response
+        $formatted = [
+            'survey_response_id' => $response->id,
+            'survey' => [
+                'id' => $response->survey_id,
+                'title' => $response->survey->title,
+                'description' => $response->survey->description,
+            ],
+            'student' => [
+                'id' => $response->student->id,
+                // 'name' => $response->student->name,
+            ],
+            'submitted_at' => $response->submitted_at,
+            'answers' => $response->answers->map(function ($answer) {
+                return [
+                    'question' => [
+                        'id' => $answer->question->id,
+                        'question_data' => $answer->question->question,
+                        'type' => $answer->question->survey_question_type, 
+                    ],
+                    'answer' => $answer->answer,
+                    'img_url' => $answer->img_url,
+                ];
+            }),
+        ];
+
+        return response()->json($formatted);
     }
-
-    // Fetch a single submitted survey response with answers and related questions
-    $response = SurveyResponse::with([
-        'student', // Change this to student_information later
-        'answers.question',
-        'survey'
-    ])
-    ->where('id', $surveyResponseId)
-    ->whereNotNull('submitted_at')
-    ->first();
-
-    if (!$response) {
-        return response()->json(['message' => 'Submitted survey response not found.'], 404);
-    }
-
-    // Format the response
-    $formatted = [
-        'survey_response_id' => $response->id,
-        'survey' => [
-            'id' => $response->survey_id,
-            'title' => $response->survey->title,
-            'description' => $response->survey->description,
-        ],
-        'student' => [
-            'id' => $response->student->id,
-            // 'name' => $response->student->name,
-        ],
-        'submitted_at' => $response->submitted_at,
-        'answers' => $response->answers->map(function ($answer) {
-            return [
-                'question' => [
-                    'id' => $answer->question->id,
-                    'question_data' => $answer->question->question,
-                    'type' => $answer->question->survey_question_type, 
-                ],
-                'answer' => $answer->answer,
-                'img_url' => $answer->img_url,
-            ];
-        }),
-    ];
-
-    return response()->json($formatted);
-}
-
-
-
     /**
      * Display the specified survey with questions.
      */
@@ -553,19 +550,29 @@ public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
         // Total survey answers submitted
         $totalAnswers = SurveyAnswer::count();
 
-        // How many students answered each survey
-        $surveyResponseCounts = Survey::withCount([
-            'questions as responses_count' => function ($query) {
-                $query->join('survey_answers', 'survey_questions.id', '=', 'survey_answers.survey_question_id');
-            }
-        ])->get(['id', 'title']);
+        // How many students from different programs answered each survey
+        $responsesByProgram = Survey::get()->map(function ($survey) {
+            $programCounts = DB::table('survey_responses')
+                ->join('enrollee_records', 'survey_responses.student_information_id', '=', 'enrollee_records.student_information_id')
+                ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
+                ->where('survey_responses.survey_id', $survey->id)
+                ->select('programs.id as program_id', 'programs.program_name', DB::raw('COUNT(DISTINCT survey_responses.student_information_id) as student_count'))
+                ->groupBy('programs.id', 'programs.program_name')
+                ->get();
+
+            return [
+                'survey_id' => $survey->id,
+                'survey_title' => $survey->title,
+                'responses_by_program' => $programCounts,
+            ];
+        });
 
         return response()->json([
             'total_students' => $totalStudents,
             'visible_surveys' => $visibleSurveys,
             'mandatory_surveys' => $mandatorySurveys,
             'total_answers_submitted' => $totalAnswers,
-            'survey_response_counts' => $surveyResponseCounts
+            'responses_by_program' => $responsesByProgram,
         ]);
     }
 
@@ -579,7 +586,39 @@ public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
         if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-    }
+
+        // Get all surveys with their questions
+        $surveys = Survey::with('questions')->get();
+
+        $summary = [];
+
+        foreach ($surveys as $survey) {
+            $questionsSummary = [];
+
+            foreach ($survey->questions as $question) {
+                // Count distinct student_information_id who answered this question
+                $count = SurveyAnswer::where('survey_question_id', $question->id)
+                    ->join('survey_responses', 'survey_answers.survey_response_id', '=', 'survey_responses.id')
+                    ->where('survey_responses.survey_id', $survey->id)
+                    ->distinct('survey_responses.student_information_id')
+                    ->count('survey_responses.student_information_id');
+
+                $questionsSummary[] = [
+                    'question_id' => $question->id,
+                    'question' => $question->question,
+                    'student_answers_count' => $count,
+                ];
+            }
+
+            $summary[] = [
+                'survey_id' => $survey->id,
+                'survey_title' => $survey->title,
+                'questions' => $questionsSummary,
+            ];
+        }
+
+        return response()->json($summary);
+}
 
     /**
      * Remove the specified survey from storage.
