@@ -63,11 +63,12 @@ class EnrollmentController extends Controller
                 'year_level' => 'required|integer|min:1',
                 'privacy_policy' => 'required|boolean',
                 'address' => 'required|array',
-                'contact_number' => 'required|string',
+                'mobile_number' => 'required|string',
                 'guardian' => 'required|array',
                 'mother' => 'required|array',
                 'father' => 'required|array',
-                'student_id_number' => 'required|string|max:50', 
+                'student_id_number' => 'required|string|max:50',
+                'fb_link' => 'nullable|url',
             ], [
                 'program_id.required' => 'Program is required.',
                 'program_id.exists' => 'Selected program is invalid.',
@@ -75,11 +76,12 @@ class EnrollmentController extends Controller
                 'year_level.integer' => 'Year level must be a number.',
                 'privacy_policy.required' => 'You must agree to the privacy policy.',
                 'address.required' => 'Address is required.',
-                'contact_number.required' => 'Contact number is required.',
+                'mobile_number.required' => 'mobile number is required.',
                 'guardian.required' => 'Guardian information is required.',
                 'mother.required' => 'Mother information is required.',
                 'father.required' => 'Father information is required.',
-                'student_id_number.required' => 'Student ID number is required.', 
+                'student_id_number.required' => 'Student ID number is required.',
+                'fb_link.url' => 'Facebook link must be a valid URL.',
             ]);
 
             $studentInfo = StudentInformation::where('user_id', $user->id)->first();
@@ -105,8 +107,9 @@ class EnrollmentController extends Controller
                     'city_municipality' => $validated['address']['city'] ?? $studentInfo->city_municipality,
                     'province' => $validated['address']['province'] ?? $studentInfo->province,
                     'zip_code' => $validated['address']['zip'] ?? $studentInfo->zip_code,
-                    'mobile_number' => $validated['contact_number'] ?? $studentInfo->mobile_number,
+                    'mobile_number' => $validated['mobile_number'] ?? $studentInfo->mobile_number,
                     'student_id_number' => $validated['student_id_number'] ?? $studentInfo->student_id_number,
+                    'fb_link' => $validated['fb_link'] ?? $studentInfo->fb_link,
                 ]);
 
                 StudentFamilyInformation::updateOrCreate(
@@ -193,7 +196,7 @@ class EnrollmentController extends Controller
             'privacy_policy' => 'required|boolean',
             'admin_remarks' => 'nullable|string|max:1000',
             'student_id_number' => 'nullable|string|max:255',
-            'contact_number' => 'nullable|string|max:255',
+            'mobile_number' => 'nullable|string|max:255',
             'address' => 'nullable|array',
             'address.building_no' => 'nullable|string|max:255',
             'address.street' => 'nullable|string|max:255',
@@ -204,6 +207,7 @@ class EnrollmentController extends Controller
             'guardian' => 'nullable|array',
             'mother' => 'nullable|array',
             'father' => 'nullable|array',
+            'fb_link' => 'nullable|string|max:255',
         ]);
 
         $studentInfo = StudentInformation::where('user_id', $validated['user_id'])->first();
@@ -231,7 +235,7 @@ class EnrollmentController extends Controller
                     'city_municipality' => $validated['address']['city'] ?? $studentInfo->city_municipality,
                     'province' => $validated['address']['province'] ?? $studentInfo->province,
                     'zip_code' => $validated['address']['zip'] ?? $studentInfo->zip_code,
-                    'mobile_number' => $validated['contact_number'] ?? $studentInfo->mobile_number,
+                    'mobile_number' => $validated['mobile_number'] ?? $studentInfo->mobile_number,
                     'student_id_number' => $validated['student_id_number'] ?? $studentInfo->student_id_number,
                 ]);
 
@@ -287,6 +291,7 @@ class EnrollmentController extends Controller
                     'enrollment_status' => 'enrolled',
                     'admin_remarks' => $validated['admin_remarks'] ?? '',
                     'submission_date' => now(),
+                    'fb_link' => $validated['fb_link'] ?? null,
                 ]);
 
                 // Academic year from latest enrollment schedule
