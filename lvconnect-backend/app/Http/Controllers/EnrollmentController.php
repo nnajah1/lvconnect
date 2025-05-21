@@ -96,7 +96,7 @@ class EnrollmentController extends Controller
                 ->exists();
 
             if ($alreadyEnrolled) {
-                return response()->json(['message' => 'You have already submitted an enrollment for this program and year level.'], 409);
+                return response()->json(['message' => 'You have already submitted an enrollment for this semester.'], 409);
             }
 
             DB::transaction(function () use ($validated, $studentInfo) {
@@ -194,16 +194,7 @@ class EnrollmentController extends Controller
             'program_id' => 'required|exists:programs,id',
             'year_level' => 'required|integer|min:1',
             'privacy_policy' => 'required|boolean',
-            'admin_remarks' => 'nullable|string|max:1000',
-            'student_id_number' => 'nullable|string|max:255',
-            'mobile_number' => 'nullable|string|max:255',
-            'address' => 'nullable|array',
-            'address.building_no' => 'nullable|string|max:255',
-            'address.street' => 'nullable|string|max:255',
-            'address.barangay' => 'nullable|string|max:255',
-            'address.city' => 'nullable|string|max:255',
-            'address.province' => 'nullable|string|max:255',
-            'address.zip' => 'nullable|string|max:10',
+            'contact_number' => 'nullable|string',
             'guardian' => 'nullable|array',
             'mother' => 'nullable|array',
             'father' => 'nullable|array',

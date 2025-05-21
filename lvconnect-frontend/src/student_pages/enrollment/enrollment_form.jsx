@@ -10,7 +10,7 @@ import SchoolInfoSection from "@/components/studentinfo/school_info"
 import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
 
-import { program, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
+
 import { getEnrollee } from "@/services/enrollmentAPI"
 
 export default function StudentInformationFormk() {
@@ -27,62 +27,62 @@ export default function StudentInformationFormk() {
   const dataPrivacyPolicy = () => {
     // "lorem"
   }
- 
 
-   const [studentData, setStudentData] = useState({
-      student_id_number: "",
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      civil_status: "",
-      gender: "",
-      birth_date: "",
-      birth_place: "",
-      mobile_number: "",
-      religion: "",
-      lrn: "",
-      fb_link: "",
-      student_type: "",
-      government_subsidy: "",
-      scholarship_status: "",
-      last_school_attended: "",
-      previous_school_address: "",
-      school_type: "",
-      academic_awards: "",
-      floorUnitBuildingNo: "",
-      houseNoStreet: "",
-      barangay: "",
-      city_municipality: "",
-      province: "",
-      zip_code: "",
-      student_family_info: {
-        num_children_in_family: 4,
-        birth_order: 4,
-        has_siibling_in_lvcc: 0,
-        mother_first_name: "",
-        mother_middle_name: "",
-        mother_last_name: "",
-        mother_religion: "",
-        mother_occupation: "",
-        mother_monthly_income: "",
-        mother_mobile_number: "",
-        father_first_name: "",
-        father_middle_name: "",
-        father_last_name: "",
-        father_religion: "",
-        father_occupation: "",
-        father_monthly_income: "",
-        father_mobile_number: "",
-        guardian_first_name: "",
-        guardian_middle_name: "",
-        guardian_last_name: "",
-        guardian_religion: "",
-        guardian_occupation: "",
-        guardian_monthly_income: "",
-        guardian_mobile_number: "",
-  
-      }
-    });
+
+  const [studentData, setStudentData] = useState({
+    student_id_number: "",
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    civil_status: "",
+    gender: "",
+    birth_date: "",
+    birth_place: "",
+    mobile_number: "",
+    religion: "",
+    lrn: "",
+    fb_link: "",
+    student_type: "",
+    government_subsidy: "",
+    scholarship_status: "",
+    last_school_attended: "",
+    previous_school_address: "",
+    school_type: "",
+    academic_awards: "",
+    floorUnitBuildingNo: "",
+    houseNoStreet: "",
+    barangay: "",
+    city_municipality: "",
+    province: "",
+    zip_code: "",
+    student_family_info: {
+      num_children_in_family: 0,
+      birth_order: 0,
+      has_sibling_in_lvcc: true,
+      mother_first_name: "",
+      mother_middle_name: "",
+      mother_last_name: "",
+      mother_religion: "",
+      mother_occupation: "",
+      mother_monthly_income: "",
+      mother_mobile_number: "",
+      father_first_name: "",
+      father_middle_name: "",
+      father_last_name: "",
+      father_religion: "",
+      father_occupation: "",
+      father_monthly_income: "",
+      father_mobile_number: "",
+      guardian_first_name: "",
+      guardian_middle_name: "",
+      guardian_last_name: "",
+      guardian_religion: "",
+      guardian_occupation: "",
+      guardian_monthly_income: "",
+      guardian_mobile_number: "",
+
+    }
+  });
 
   const [isEditing, setIsEditing] = useState(true)
   const [step, setStep] = useState(1)
@@ -96,7 +96,7 @@ export default function StudentInformationFormk() {
 
         setStudentData((prev) => ({
           ...prev,
-          contact_number: data.mobile_number,
+          mobile_number: data.mobile_number,
           address: {
             building_no: data["floor/unit/building_no"],
             street: data["house_no/street"],
@@ -129,16 +129,16 @@ export default function StudentInformationFormk() {
   const goToPreviousStep = () => setStep((prev) => prev - 1)
 
   const formRef = useRef(null);
-const handleNextStep = (e) => {
-  e.preventDefault();
+  const handleNextStep = (e) => {
+    e.preventDefault();
 
-  if (!formRef.current.checkValidity()) {
-    formRef.current.reportValidity();
-    return;
-  }
+    if (!formRef.current.checkValidity()) {
+      formRef.current.reportValidity();
+      return;
+    }
 
-  goToNextStep();
-};
+    goToNextStep();
+  };
 
 
   const handleSubmit = async () => {

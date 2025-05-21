@@ -6,9 +6,9 @@ import '@/styles/student_information.css'
 
 export default function AddressSection({ addressInfo, isEditing, onChange }) {
   const handleChange = (e) => {
-    const { name, value } = e.target
-    onChange("address", name, value)
-  }
+    const { name, value } = e.target;
+    onChange(name, value);
+  };
 
   return (
     <div className="address-container">
@@ -27,7 +27,7 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
           value={addressInfo.city_municipality}
           isEditing={isEditing}
           onChange={handleChange}
-          name="cityMunicipality"
+          name="cityMunicicity_municipalitypality"
         />
         <FormField
           label="Barangay"
@@ -76,7 +76,7 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
           value={addressInfo.zip_code}
           isEditing={isEditing}
           onChange={handleChange}
-          name="zipCode"
+          name="zip_code"
         />
         <div className="address-empty-col" />
       </div>

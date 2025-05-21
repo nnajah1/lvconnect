@@ -6,12 +6,12 @@ import ShowSubmission from "@/components/school_forms/userViewSchoolForm";
 import { useAuthContext } from "@/context/AuthContext";
 
 import { useState } from "react";
+import { useUserRole } from "@/utils/userRole";
 
 const UserViewFormModal = ({ isOpen, closeModal, submittedItem, setIsSuccessModalOpen}) => {
 
     const [isLoading, setIsLoading] = useState(false);
-    const { user } = useAuthContext();
-    const userRole = user?.roles?.[0]?.name;
+    const userRole = useUserRole();
 
      const handleSuccess = (formId) => {
         setIsLoading(true);

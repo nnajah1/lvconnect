@@ -41,7 +41,7 @@ export const registrarSchema = {
   },
 };
 
-export const actions = (openModal, openAcceptModal, openRejectModal, tab) => ({
+export const actions = (openModal, openAcceptModal, openRejectModal, openDirectModal, tab) => ({
   
   view: {
     icon: () => <Eye size={18} />,
@@ -90,7 +90,7 @@ export const actions = (openModal, openAcceptModal, openRejectModal, tab) => ({
       }
       return null;
     },
-    fn: (id, item) => openModal(item),
+    fn: (id, item) => openDirectModal(item),
     variant: (item) => "default",
     className: "hover:bg-blue-300 bg-blue-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },

@@ -25,7 +25,7 @@ export const incomeOptions = [
     "Other",
   ]
 
-  export const program = [
+  export const programOptions = [
   {
     "id": 1,
     "name": "Bachelor of Science in Computer Science"
@@ -35,3 +35,18 @@ export const incomeOptions = [
     "name": "Bachelor of Arts in Psychology"
   }
 ]
+
+export const partialFieldsStudent = [
+  "religion", 
+  "fb_link", 
+  "mobile_number", 
+  
+];
+
+export const partialFieldsAdmin = [
+  ...partialFieldsStudent, 
+  //image
+  "program_id",
+  "year_level",
+
+];

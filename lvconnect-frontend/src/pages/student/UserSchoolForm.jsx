@@ -13,8 +13,10 @@ import { ConfirmationModal } from '@/components/dynamic/alertModal';
 import SchoolServices from '@/components/school_forms/school_services';
 import GuidelinesAndPolicies from '@/components/school_forms/guidelines_policies';
 import '@/styles/studentservice.css';
+import { useUserRole } from '@/utils/userRole';
 
-const VisibleForms = ({ userRole }) => {
+const VisibleForms = () => {
+  const userRole = useUserRole();
   const { schoolForms, submittedForms, fetchForms, fetchSubmitted } = useForms();
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)

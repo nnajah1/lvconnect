@@ -3,11 +3,11 @@
 import FormField from "./form_field"
 import '@/styles/student_information.css'
 
-export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange }) {
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    onChange("profile", name, value)
-  }
+export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange, canEditField, programOptions }) {
+ const handleChange = (e) => {
+  const { name, value } = e.target;
+  onChange(name, value); 
+};
 
   return (
     <div className="profile_section">
@@ -34,17 +34,18 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
           <FormField
             label="Program"
             value={profileData.program_id}
-            isEditing={isEditing}
+            isEditing={canEditField("program_id")}
             onChange={handleChange}
-            name="program"
+            name="program_id"
+            options={programOptions}
           />
           <FormField
             label="Year"
             value={profileData.year_level}
             maxWidth="md:max-w-[200px]"
-            isEditing={isEditing}
+            isEditing={canEditField("year_level")}
             onChange={handleChange}
-            name="year"
+            name="year_level"
           />
         </div>
 
@@ -53,14 +54,14 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
             label="Student Number"
             value={profileData.student_id_number}
             maxWidth="md:max-w-[200px]"
-            isEditing={isEditing}
+            isEditing={canEditField("student_id_number")}
             onChange={handleChange}
-            name="studentNumber"
+            name="student_id_number"
           />
           <FormField
-            label="Email address"
-            value={profileData.barangay}
-            isEditing={isEditing}
+            label="Email Address"
+            value={profileData.email}
+            isEditing={canEditField("email")}
             onChange={handleChange}
             name="email"
           />

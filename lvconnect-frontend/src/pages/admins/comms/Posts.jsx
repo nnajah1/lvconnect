@@ -8,8 +8,10 @@ import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreatePostModal from "@/pages/admins/comms/CreatePost";
 import ViewPostModal from "./ViewPost";
 import SearchBar from "@/components/dynamic/searchBar";
+import { useUserRole } from "@/utils/userRole";
 
-const Posts = ({ userRole }) => {
+const Posts = () => {
+  const userRole = useUserRole();
   const [schoolUpdates, setSchoolUpdates] = useState([]);
   // const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

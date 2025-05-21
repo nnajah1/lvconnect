@@ -33,6 +33,9 @@ import UserEnrollment from "./pages/student/UserEnrollment";
 import AdminSoa from "./pages/registrar/Soa";
 import StudentInformationForms from "./student_pages/enrollment/enrollment_form";
 import StudentInformationFormk from "./student_pages/enrollment/enrollment_form";
+import EditStudentInformation from "./pages/registrar/DirectEnrollment";
+import StudentInformation from "./pages/registrar/StudentInformation";
+import DirectEnrollment from "./pages/registrar/DirectEnrollment";
 
 
 
@@ -125,8 +128,11 @@ const router = createBrowserRouter([
                         children: [
                             { index: true, element: <AdminDashboard /> },
                             { path: "enrollment", element: <Enrollment /> },
-                            { path: "enrollment/student-information/:studentId", element: <Enrollees /> },
-                            { path: "student-information-management", element: <AdminDashboard /> },
+                            { path: "enrollment/student-information/:studentId", element: <Enrollees mode="view"/> },
+                            { path: "enrollment/student-information/:studentId/edit", element: <Enrollees mode="edit" editType="partial"/>},
+                            { path: "student-information-management/:studentId/edit", element: <Enrollees mode="edit" editType="full"/>},
+                            { path: "student-information-management", element: <StudentInformation /> },
+                            { path: "", element: <StudentInformation /> },
                             { path: "soa", element: <AdminSoa /> },
                         ],
                     },
