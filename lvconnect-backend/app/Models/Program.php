@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Program extends Model
 {
     protected $fillable = [
-        'program_name', 'created_at'
+        'program_name','year_level', 'created_at'
     ];
 
     public function enrollees() {

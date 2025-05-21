@@ -14,21 +14,31 @@ class ProgramSeeder extends Seeder
     public function run(): void
     {
         $programs = [
-            'BSIS',   
-            'BSA',    
-            'BAB',   
-            'BSAIS',  
-            'BSSW',   
-            'ACT',    
+            'BSIS',
+            'BSA',
+            'BAB',
+            'BSAIS',
+            'BSSW',
+            'ACT',
+        ];
+
+        $yearLevels = [
+            '1st Year',
+            '2nd Year',
+            '3rd Year',
+            '4th Year',
         ];
 
         foreach ($programs as $program) {
-            DB::table('programs')->insert([
-                'program_name' => $program,
-                'created_at' => Carbon::now(),
-            ]);
+            foreach ($yearLevels as $year) {
+                DB::table('programs')->insert([
+                    'program_name' => $program,
+                    'year_level' => $year,
+                    'created_at' => Carbon::now(),
+                ]);
+            }
         }
 
-        $this->command->info('Programs table seeded successfully!');
+        $this->command->info('Programs table seeded successfully with year levels!');
     }
 }
