@@ -28,12 +28,16 @@ class DatabaseSeeder extends Seeder
             StudentInformationSeeder::class,
             StudentFamilyInformationSeeder::class,
             ProgramSeeder::class,
+            AcademicYearSeeder::class,
+            EnrollmentScheduleSeeder::class,
+            EnrolleeRecordSeeder::class,
             SchoolUpdateSeeder::class,
             FormTypeSeeder::class,
             FormFieldSeeder::class,
             FormSubmissionSeeder::class,
             FormSubmissionDataSeeder::class,
             SurveySeeder::class,
+            SOASeeder::class,
         ]);
     }
 }
