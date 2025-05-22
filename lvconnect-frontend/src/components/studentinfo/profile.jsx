@@ -4,10 +4,10 @@ import FormField from "./form_field"
 import '@/styles/student_information.css'
 
 export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange, canEditField, programOptions }) {
- const handleChange = (e) => {
-  const { name, value } = e.target;
-  onChange(name, value); 
-};
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    onChange(name, value);
+  };
 
   return (
     <div className="profile_section">
@@ -23,8 +23,8 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
           </div>
           {isEditing && (
             <button onClick={onChangeImage} className="profile_change_btn">
-            Change
-          </button>
+              Change
+            </button>
           )}
         </div>
       </div>
@@ -40,12 +40,17 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
             options={programOptions}
           />
           <FormField
+            type="text"
+            maxLength={1}
+            pattern="[0-9]*"
+            inputMode="numeric"
             label="Year"
             value={profileData.year_level}
             maxWidth="md:max-w-[200px]"
             isEditing={canEditField("year_level")}
             onChange={handleChange}
             name="year_level"
+            numericOnly
           />
         </div>
 

@@ -64,7 +64,7 @@ const handleBack = () => navigate(from);
     {
       label: "Summary",
       value: "summary",
-      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
+      content: ""
     },
     {
       label: "Individual",

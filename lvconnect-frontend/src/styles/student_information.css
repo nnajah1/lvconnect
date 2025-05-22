@@ -183,43 +183,6 @@
   color: #212529;
 }
 
-.family-radio-group {
-  display: flex;
-  gap: 1rem;
-}
-
-.family-radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.family-radio-circle {
-  width: 0.875rem; /* w-3.5 */
-  height: 0.875rem;
-  border: 1px solid #444444;
-  border-radius: 50%;
-}
-
-.family-radio-circle.selected {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.family-radio-circle.clickable {
-  cursor: pointer;
-}
-
-.family-radio-dot {
-  width: 0.375rem; /* w-1.5 */
-  height: 0.375rem;
-  border-radius: 50%;
-  background-color: #444444;
-}
-
-
-
 /* form */
 
 .form-field-container {
@@ -258,6 +221,65 @@
   color: #212529;
 }
 
+/* Checkbox readonly display */
+.form-display-checkbox {
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-display-checkbox input[type="checkbox"] {
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+/* Radio readonly display */
+.form-display-radio {
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  min-height: 2.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  cursor: default;
+  font-size: 0.85rem;
+  color: #212529;
+  gap: 0.25rem;
+}
+
+.radio-label input[type="radio"] {
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.radio-label.selected {
+  font-weight: 600;
+  /* color: #0a58ca; */
+}
+
+/* Styles for editing radios */
+.form-radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-radio-group .radio-label {
+  cursor: pointer;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
 
 /* guardian */
 

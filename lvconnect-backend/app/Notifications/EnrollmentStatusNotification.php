@@ -50,6 +50,13 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
                 ->line('Please check your student portal for more details or contact the registrar for assistance.');
         }
 
+        if ($this->status === 'not_enrolled') {
+            return (new MailMessage)
+                ->subject("Enrollment Application Reminder")
+                ->line("Reminder! Please process your enrollment application for Academic Year {$this->academicYear->school_year}.")
+                ->line('Please check your student portal for more details or contact the registrar for assistance.');
+        }
+
         return (new MailMessage)
             ->subject('Enrollment Status Update')
             ->line('Your enrollment status has been updated.')
@@ -64,6 +71,7 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
         $message = match ($this->status) {
             'enrolled' => "You have been officially enrolled for Academic Year {$this->academicYear->school_year}.",
             'rejected' => "Your enrollment application for Academic Year {$this->academicYear->school_year} has been rejected.",
+            'not_Enrolled' => "Enrollment application is open for Academic Year {$this->academicYear->school_year}.",
             default => 'Your enrollment status has been updated.',
         };
 

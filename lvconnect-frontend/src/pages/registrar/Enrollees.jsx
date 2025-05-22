@@ -9,8 +9,8 @@ import SchoolInfoSection from "@/components/studentinfo/school_info"
 import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
 import ActionButtons from "@/components/studentinfo/action"
-import { getEnrollee } from "@/services/enrollmentAPI";
-import { programOptions, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
+import { createEnrollee, getEnrollee } from "@/services/enrollmentAPI";
+import { programOptions, religionOptions, incomeOptions, partialFieldsAdmin, partialFieldsStudent } from "@/utils/enrollmentHelper.js"
 import { useUserRole } from "@/utils/userRole";
 
 const Enrollees = ({ mode, editType }) => {
@@ -25,7 +25,8 @@ const Enrollees = ({ mode, editType }) => {
   const [isEditing, setIsEditing] = useState(mode === "edit")
 
   const [studentData, setStudentData] = useState({
-    program_id: "",
+    program_id: 1,
+    year_level: 1,
     student_id_number: "",
     first_name: "",
     middle_name: "",
@@ -51,6 +52,7 @@ const Enrollees = ({ mode, editType }) => {
     city_municipality: "",
     province: "",
     zip_code: "",
+    privacy_policy: "",
     student_family_info: {
       num_children_in_family: 0,
       birth_order: 0,
@@ -81,6 +83,8 @@ const Enrollees = ({ mode, editType }) => {
   });
 
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   useEffect(() => {
     if (!studentId) return;
@@ -107,11 +111,42 @@ const Enrollees = ({ mode, editType }) => {
     setIsEditing(!isEditing)
   }
 
-  const handleSave = () => {
+   const handleSave = async () => {
+    setError(null);
+    setSuccess(null);
 
-    console.log("Saving data:", studentData)
-    setIsEditing(false)
-  }
+    try {
+      const payload = mapToApiPayload(studentData);
+      const response = await createEnrollee(studentId, payload)
+      
+      setSuccess("Enrollment submitted successfully!");
+      setIsEditing(false);
+      console.log("API Response:", response.data);
+    } catch (error) {
+      console.error("Enrollment submission error:", error);
+
+      if (error.response) {
+        if (error.response.status === 422) {
+          setError("Validation failed. Please check your inputs.");
+          // Optionally, extract detailed validation errors here:
+          // error.response.data.errors
+        } else if (error.response.status === 409) {
+          setError("You have already enrolled.");
+        } else {
+          setError("An error occurred. Please try again.");
+        }
+      } else {
+        setError("Network error. Please try again later.");
+      }
+    }
+  };
+
+  //  const handleSave = () => {
+  //   console.log("Saving data:", studentData);
+  //   handleSubmit();
+  //   setIsEditing(false);
+  // };
+
 
   const handleArchive = () => {
 
@@ -124,29 +159,80 @@ const Enrollees = ({ mode, editType }) => {
     setIsEditing(false)
   }
 
-  const handleFieldChange = (field, value) => {
-    setStudentData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
-  };
+ const handleFieldChange = (name, value) => {
+  setStudentData((prev) => {
+    const keys = name.split(".");
 
-
-  const partialFields = ["religion", "fb_link", "mobile_number", "student_id_number"];
+    if (keys.length === 1) {
+      return { ...prev, [name]: value };
+    } else {
+      const [section, field] = keys;
+      return {
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value,
+        },
+      };
+    }
+  });
+};
 
   const canEditField = (fieldName) => {
     if (!isEditing) return false;
 
     if (userRole === "registrar") {
-      return editType === "full" || (editType === "partial" && partialFields.includes(fieldName));
+      return editType === "full" || (editType === "partial" && partialFieldsAdmin.includes(fieldName));
     }
 
     if (userRole === "student") {
-      return partialFields.includes(fieldName);
+      return partialFieldsStudent.includes(fieldName);
     }
 
     return false;
   };
+
+  function mapToApiPayload(data) {
+    return {
+      user_id: studentId,
+      program_id: 1,
+      year_level: 1,
+      privacy_policy: true, 
+      address: {
+        building_no: data["floor/unit/building_no"],
+        street: data["house_no/street"],
+        barangay: data.barangay,
+        city: data.city_municipality,
+        province: data.province,
+        zip: data.zip_code,
+      },
+      mobile_number: data.mobile_number,
+      student_id_number: data.student_id_number,
+      fb_link: data.fb_link,
+      guardian: {
+        first_name: data.student_family_info.guardian_first_name,
+        middle_name: data.student_family_info.guardian_middle_name,
+        last_name: data.student_family_info.guardian_last_name,
+        religion: data.student_family_info.guardian_religion,
+        occupation: data.student_family_info.guardian_occupation,
+        monthly_income: data.student_family_info.guardian_monthly_income,
+        mobile_number: data.student_family_info.guardian_mobile_number,
+        relationship: data.student_family_info.guardian_relationship,
+      },
+      mother: {
+        religion: data.student_family_info.mother_religion,
+        occupation: data.student_family_info.mother_occupation,
+        monthly_income: data.student_family_info.mother_monthly_income,
+        mobile_number: data.student_family_info.mother_mobile_number,
+      },
+      father: {
+        religion: data.student_family_info.father_religion,
+        occupation: data.student_family_info.father_occupation,
+        monthly_income: data.student_family_info.father_monthly_income,
+        mobile_number: data.student_family_info.father_mobile_number,
+      }
+    };
+  }
 
   return (
     <div className="flex flex-col items-start w-full min-h-screen">
@@ -190,8 +276,9 @@ const Enrollees = ({ mode, editType }) => {
           canEditField={canEditField} onChange={handleFieldChange} />
 
 
-        <FamilyInfoSection familyInfo={studentData.student_family_info}
-          canEditField={canEditField} onChange={handleFieldChange} />
+        <FamilyInfoSection familyInfo={studentData.student_family_info} 
+          isEditing={isEditing}
+        canEditField={canEditField} onChange={handleFieldChange} />
 
 
         <SchoolInfoSection educationInfo={studentData}

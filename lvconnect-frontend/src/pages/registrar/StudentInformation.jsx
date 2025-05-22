@@ -2,59 +2,77 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { actionConditions, actions, registrarSchema } from "@/tableSchemas/enrollment";
-import { CiCirclePlus, CiSearch } from "react-icons/ci";
-import CreateFormModal from "@/pages/admins/psas/CreateForm";
-import DynamicTabs from "@/components/dynamic/dynamicTabs";
-import EditFormModal from "@/pages/admins/psas/EditForm";
-import UserViewFormModal from "@/pages/student/UserViewSchoolForm";
-import { approveEnrollment, bulkApproveEnrollment, bulkDeleteEnrollment, bulkExportEnrollment, bulkRemindEnrollment, getEnrollees, rejectEnrollment } from "@/services/enrollmentAPI";
+import { smActionsConditions, smActions, registrarSchema } from "@/tableSchemas/studentManagement";
+import { bulkArchiveEnrollment, getEnrollees } from "@/services/enrollmentAPI";
 import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
-import AcademicYear from "@/components/enrollment/academicYear";
 import { toast } from "react-toastify";
 import { useUserRole } from "@/utils/userRole";
 
 const StudentInformation = () => {
   const userRole = useUserRole();
- const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
   const [enrollment, setEnrollment] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [item, setItem] = useState(null);
-  const [id, setId] = useState(null);
-  const [acceptItem, setAcceptItem] = useState(null);
-  const [rejectItem, setRejectItem] = useState(null);
-  const [activeTab, setActiveTab] = useState("all");
+  const [archiveItem, setArchiveItem] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [remarks, setRemarks] = useState("");
-
+  
   useEffect(() => {
-    const loadSurveys = async () => {
-      const data = await getEnrollees();
-      setEnrollment(data);
-    }
-    loadSurveys();
+    const loadEnrollees = async () => {
+      const allEnrollees = await getEnrollees();
+      const enrolledOnly = allEnrollees.filter(
+        enrollee => enrollee.enrollee_record?.[0]?.enrollment_status === "enrolled"
+      );
+
+      setEnrollment(enrolledOnly);
+    };
+
+    loadEnrollees();
   }, []);
 
-  const openModal = (item) => setItem(item);
-  const openAcceptModal = (item) => setAcceptItem(item);
-  const openRejectModal = (item) => setRejectItem(item);
 
-  const actionMap = actions(openModal, openAcceptModal, openRejectModal, activeTab);
+  const getBulkActions = () => {
+    return [
+      {
+        label: "Archive Selected",
+        onClick: handleBulkArchive,
+      },
+    ];
+  };
+
+ const handleBulkArchive = async (items) => {
+  const ids = items.map((item) => item.id);
+  await bulkArchiveEnrollment(ids);
+};
+
+
+  const openModal = (item) => setItem(item);
+  const openArchiveModal = (item) => setArchiveItem(item);
 
 
   const templateColumns = getColumns({
     userRole,
     schema: registrarSchema,
-    actions: actionMap,
-    actionConditions,
+    actions: smActions(openModal, openArchiveModal),
+    actionConditions: smActionsConditions,
     context: "formstemplate",
     openModal,
-    openAcceptModal,
-    openRejectModal,
+    openArchiveModal,
+    showSelectionColumn: true,
   });
+
+  useEffect(() => {
+    if (item) {
+      navigate(`/registrar/student-information-management/${item.id}/edit`, {
+        state: { from: location.pathname },
+      });
+    }
+  }, [item, navigate, location.pathname]);
+
+  if (item) return null;
 
   return (
     <div className="container mx-auto p-4">
@@ -62,75 +80,32 @@ const StudentInformation = () => {
         <h1 className="text-2xl font-bold">Enrollment</h1>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
-      
+
       <DataTable
         columns={templateColumns}
         data={enrollment}
+        {... { bulkActions: getBulkActions() }}
         globalFilter={globalFilter} />
 
-
-      {item && (
-        navigate(`student-information/${item.id}`, {
-          state: { from: location.pathname }
-        })
-      )}
-      {acceptItem && (
-        <ConfirmationModal
-          isOpen={!!acceptItem}
-          closeModal={() => setAcceptItem(null)}
-          title="Accept Enrollment"
-          description="Are you sure you want to accept this enrollment?"
+      {archiveItem && (
+        <WarningModal
+          isOpen={!!archiveItem}
+          closeModal={() => { setArchiveItem(null); }}
+          title="Archive Data"
+          description="Are you sure you want to archive this student data?"
         >
           <button
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-            onClick={() => setAcceptItem(null)}
+            onClick={() => { setArchiveItem(null); }}
           >
             Cancel
           </button>
+
           <button
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onClick={handleApprove}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleBulkArchive}
           >
-            Accept
+            Archive
           </button>
-        </ConfirmationModal>
-      )}
-      {rejectItem && (
-        <WarningModal
-          isOpen={!!rejectItem}
-          closeModal={() => { setRejectItem(null); setRemarks(""); }}
-          title="Reject Enrollment"
-          description="Are you sure you want to reject this enrollment?"
-        >
-          <div className="flex w-full flex-col">
-            <div className="w-full">
-              <input
-                type="text"
-                placeholder="Enter admin remarks"
-                className="w-full px-3 py-2 border rounded mb-4"
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="flex justify-end">
-
-              <button
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-                onClick={() => { setRejectItem(null); setRemarks(""); }}
-              >
-                Cancel
-              </button>
-
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleReject}
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-
-
         </WarningModal>
       )}
 

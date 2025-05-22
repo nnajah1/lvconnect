@@ -99,28 +99,73 @@ const Enrollment = () => {
     showSelectionColumn: activeTab !== "all",
   });
 
-  const handleBulkApprove = async (items) => {
-    const ids = items.map((item) => item.id);
-    await bulkApproveEnrollment(ids);
-  };
-
-  const handleBulkDelete = async (items) => {
-    const ids = items.map((item) => item.id);
-    await bulkDeleteEnrollment(ids);
-  };
-
   const handleBulkExport = async (items) => {
     const ids = items.map((item) => item.id);
     const response = await bulkExportEnrollment(ids);
-    // Trigger file download if needed
-    console.log("Exported Data:", response.data);
+
+    const blob = new Blob([response.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'enrollees_export.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   const handleBulkRemind = async (items) => {
     const ids = items.map((item) => item.id);
-    await bulkRemindEnrollment(ids);
+
+    // Get the enrollment_schedule_id from the first item's enrollee_record
+    const enrollment_sched = items[0]?.enrollee_record?.enrollment_schedule_id;
+
+    if (!enrollment_sched) {
+      console.error("Missing enrollment schedule ID.");
+      return;
+    }
+    try {
+      await bulkRemindEnrollment(ids, enrollment_sched);
+      toast.success("Reminder was sent successfully.");
+      // optionally refresh data
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to send reminder.");
+    }
   };
 
+  const handleBulkApprove = async (items) => {
+    const ids = items.map(item => item.enrollee_record?.id).filter(Boolean);
+    if (!ids.length) {
+      toast.alert("No valid enrollee records selected.");
+      return;
+    }
+
+    try {
+      await bulkApproveEnrollment(ids);
+      toast.success("Approved successfully.");
+      // optionally refresh data
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to approve.");
+    }
+  };
+
+  const handleBulkDelete = async (items) => {
+    const ids = items.map(item => item.enrollee_record?.id).filter(Boolean);
+    if (!ids.length) {
+      toast.alert("No valid enrollee records selected.");
+      return;
+    }
+
+    try {
+      await bulkDeleteEnrollment(ids);
+      toast.success("Deleted successfully.");
+      // optionally refresh data
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete.");
+    }
+  };
   const handleApprove = async () => {
     const id = acceptItem?.enrollee_record?.[0]?.id;
     console.log(id)
@@ -172,6 +217,20 @@ const Enrollment = () => {
   };
 
 
+  useEffect(() => {
+    if (directItem) {
+      navigate(`student-information/${directItem.id}/edit`, {
+        state: { from: location.pathname },
+      });
+    } else if (item) {
+      navigate(`student-information/${item.id}`, {
+        state: { from: location.pathname },
+      });
+    }
+  }, [directItem, item, navigate, location.pathname]);
+
+  if (directItem || item) return null;
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
@@ -199,19 +258,6 @@ const Enrollment = () => {
         data={filteredData}
         {...(activeTab !== "all" && { bulkActions: getBulkActions(activeTab) })}
         globalFilter={globalFilter} />
-
-
-      {item && (
-        navigate(`student-information/${item.id}`, {
-          state: { from: location.pathname }
-        })
-      )}
-
-      {directItem && (
-        navigate(`student-information/${directItem.id}/edit`, {
-          state: { from: location.pathname }
-        })
-      )}
 
       {acceptItem && (
         <ConfirmationModal

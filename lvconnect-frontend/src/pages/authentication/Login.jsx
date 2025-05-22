@@ -96,7 +96,7 @@ export default function Login() {
               <div className="grid gap-3">
                 <label className="login-label">Email address</label>
                 <div className="input-group">
-                  <FaUser className="input-icon" />
+                  {/* <FaUser className="input-icon" /> */}
                   <input
                     className="input-field"
                     type="email"
@@ -112,7 +112,7 @@ export default function Login() {
               <div className="grid gap-3">
                 <label className="login-label">Password</label>
                 <div className="input-group">
-                  <IoLockClosed className="input-icon" />
+                  {/* <IoLockClosed className="input-icon" /> */}
                   <input
                     className="input-field"
                     id="password"

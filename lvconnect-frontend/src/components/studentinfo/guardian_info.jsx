@@ -12,11 +12,15 @@ export default function GuardianInfoComponent({
   incomeOptions,
   religionOptions,
   prefix,
+  canEditField
 }) {
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    onChange(`${prefix}_${name}`, value)
-  }
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  const fullFieldName = `student_family_info.${prefix}_${name}`;
+  onChange(fullFieldName, value);
+};
+
+  
 
   return (
     <div className="guardian_container">
@@ -26,28 +30,28 @@ export default function GuardianInfoComponent({
         <FormField
           label="First Name"
           value={guardianData?.[`${prefix}_first_name`] || ""}
-          isEditing={isEditing}
+          isEditing={canEditField(`${prefix}_first_name`)}
           onChange={handleChange}
           name="first_name"
         />
         <FormField
           label="Middle Name"
           value={guardianData?.[`${prefix}_middle_name`] || ""}
-          isEditing={isEditing}
+          isEditing={canEditField(`${prefix}_middle_name`)}
           onChange={handleChange}
           name="middle_name"
         />
         <FormField
           label="Last Name"
           value={guardianData?.[`${prefix}_last_name`] || ""}
-          isEditing={isEditing}
+          isEditing={canEditField(`${prefix}_last_name`)}
           onChange={handleChange}
           name="last_name"
         />
         <FormField
           label="Contact Number"
-          lasvalue={guardianData?.[`${prefix}_mobile_number`] || ""}
-          isEditing={isEditing}
+          value={guardianData?.[`${prefix}_mobile_number`] || ""}
+          isEditing={canEditField(`${prefix}_mobile_number`)}
           onChange={handleChange}
           name="mobile_number"
         />
@@ -57,14 +61,14 @@ export default function GuardianInfoComponent({
         <FormField
           label="Occupation"
           value={guardianData?.[`${prefix}_occupation`] || ""}
-          isEditing={isEditing}
+          isEditing={canEditField(`${prefix}_occupation`)}
           onChange={handleChange}
           name="occupation"
         />
         <FormField
           label="Monthly Income"
           value={guardianData?.[`${prefix}_monthly_income`] || ""}
-          isEditing={isEditing}
+          isEditing={canEditField(`${prefix}_monthly_income`)}
           onChange={handleChange}
           name="monthly_income"
           options={incomeOptions}
@@ -72,7 +76,7 @@ export default function GuardianInfoComponent({
         <FormField
           label="Religion"
           value={guardianData?.[`${prefix}_religion`] || ""}
-          isEditing={isEditing}
+          isEditing={canEditField(`${prefix}_religion`)}
           onChange={handleChange}
           name="religion"
           options={religionOptions}
@@ -81,7 +85,7 @@ export default function GuardianInfoComponent({
           <FormField
             label="Relationship"
             value={guardianData.relationship}
-            isEditing={isEditing}
+            isEditing={canEditField(`${prefix}_relationship`)}
             onChange={handleChange}
             name="relationship"
           />

@@ -51,6 +51,17 @@ export const getEnrollee = async (id) => {
   const response = await api.get(`/enrollee/${id}`);
   return response.data;
 };
+
+export const updateEnrollee = async (id, data) => {
+  const response = await api.put(`/enrollees/${id}`, data);
+  return response.data;
+};
+
+export const createEnrollee = async (studentId, data) => {
+  const response = await api.post(`/manual-enrollment/${studentId}`, data);
+  return response.data;
+};
+
 export const submitEnrollment = async (data) => {
   return api.post("/student/enroll", data);
 };
@@ -77,6 +88,10 @@ export const bulkExportEnrollment = (ids) =>
 export const bulkRemindEnrollment = (ids) =>
   api.post('/enrollment/bulk-remind', { ids });
 
+export const bulkArchiveEnrollment = (ids) => {
+  return axios.post('/enrollees/bulk-archive', { ids });
+};
+
 export const getEnrollmentSchedule = ({ academic_year_id, semester }) =>
   api.get("/enrollment-schedule", {
     params: { academic_year_id, semester },
@@ -96,3 +111,5 @@ export const createSoa = (data) => {
 export const updateSoa = (schoolYear, data) => {
   return api.put(`/soa/${schoolYear}`, data);
 };
+
+

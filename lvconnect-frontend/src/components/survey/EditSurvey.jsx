@@ -8,7 +8,7 @@ import {
 } from '@/utils/surveyUtils';
 import { toast } from 'react-toastify';
 
-const EditSurvey = ({ surveyId, closeModal, onDelete }) => {
+const EditSurvey = ({ surveyId, closeModal, onDelete, onSuccess }) => {
   const [surveyData, setSurveyData] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +87,7 @@ const EditSurvey = ({ surveyId, closeModal, onDelete }) => {
       };
 
       const response = await updateSurvey(surveyId, payload);
+      onSuccess();
       toast.success('Survey updated successfully');
       return response.data;
     } catch (err) {

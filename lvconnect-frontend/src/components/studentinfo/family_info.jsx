@@ -1,76 +1,70 @@
 
 
 import "@/styles/student_information.css"
-export default function FamilyInfoSection({ familyInfo, isEditing, onChange }) {
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    onChange(name, value);
-  };
+import FormField from "./form_field";
+export default function FamilyInfoSection({ familyInfo, isEditing, onChange, canEditField }) {
+const handleChange = (e) => {
+  const { name, type, value, checked } = e.target;
+  const fullFieldName = `student_family_info.${name}`;
 
-  const handleRadioChange = (value) => {
-    onChange("hasSiblingsInLVCC", value)
+  let parsedValue = value;
+  if (type === "checkbox") {
+    parsedValue = checked;
+  } else if (type === "radio") {
+    parsedValue = value === "true" ? true : value === "false" ? false : value;
   }
+
+  onChange(fullFieldName, parsedValue);
+};
+
 
   return (
     <div className="family-container">
       <div className="family-content">
         {/* Number of Children */}
-        <div className="family-item">
-          <label className="family-label">Number of Children in Family:</label>
-          {isEditing ? (
-            <input
-              type="text"
-              name="numberOfChildren"
-              value={familyInfo.num_children_in_family}
-              onChange={handleChange}
-              className="family-input"
-            />
-          ) : (
-            <div className="family-static">
-              <span className="family-value">{familyInfo.num_children_in_family}</span>
-            </div>
-          )}
-        </div>
+        <FormField
+          label="Number of Children in Family"
+          name="num_children_in_family"
+          value={familyInfo.num_children_in_family}
+          onChange={handleChange}
+          isEditing={canEditField("num_children_in_family")}
+          type="text"
+          maxLength={1}
+          inputMode="numeric"
+        />
 
-        {/* Birth Order */}
-        <div className="family-item">
-          <label className="family-label">Birth Order:</label>
-          {isEditing ? (
-            <input
-              type="text"
-              name="birthOrder"
-              value={familyInfo.birth_order}
-              onChange={handleChange}
-              className="family-input"
-            />
-          ) : (
-            <div className="family-static">
-              <span className="family-value">{familyInfo.birth_order}</span>
-            </div>
-          )}
-        </div>
+        <FormField
+          label="Birth Order"
+          name="birth_order"
+          value={familyInfo.birth_order}
+          onChange={handleChange}
+          isEditing={canEditField("birth_order")}
+          type="text"
+          maxLength={1}
+          inputMode="numeric"
+        />
 
         {/* Siblings in LVCC */}
-        <div className="family-item">
-          <label className="family-label">Siblings studying in LVCC:</label>
-          <div className="family-radio-group">
-            {[{ label: "Yes", value: 1 }, { label: "No", value: 0 }].map((option) => {
-              const selected = familyInfo.has_sibling_in_lvcc === option.value;
-              return (
-                <div key={option.label} className="family-radio-option">
-                  <div
-                    className={`family-radio-circle ${selected ? "selected" : ""} ${isEditing ? "clickable" : ""}`}
-                    onClick={isEditing ? () => handleRadioChange(option.value) : undefined}
-                  >
-                    {selected && <div className="family-radio-dot"></div>}
-                  </div>
-                  <span className="family-value">{option.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
+          <FormField
+            label="Has Sibling"
+            name="has_sibling_in_lvcc"
+            value={familyInfo.has_sibling_in_lvcc}
+            isEditing={canEditField("has_sibling_in_lvcc")}
+            onChange={handleChange}
+            type="radio"
+            options={[
+              { label: "Yes", value: true },
+              { label: "No", value: false },
+            ]}
+          />
+            {/* <FormField
+  label="Agrees to Privacy Policy"
+  name="privacy_policy"
+  value={familyInfo.privacy_policy}
+  isEditing={canEditField("privacy_policy")}
+  onChange={handleChange}
+  type="checkbox"
+/> */}
       </div>
     </div>
   )

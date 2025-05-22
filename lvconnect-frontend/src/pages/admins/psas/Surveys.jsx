@@ -97,6 +97,7 @@ const Surveys = () => {
           closeModal={() => setFormItem(null)}
           formItem={formItem}
           onDeleteModal={() => setIsSuccessModalOpen(true)}
+          onSuccessModal={() => setIsSuccessModalOpen(false)}
         />
       )}
 

@@ -47,7 +47,7 @@ export default function Navbar({ user, logout}) {
   const unreadCount = notifications.filter((notification) => !notification.isRead).length
 
   return (
-    <header className="sticky top-0 z-10 bg-secondary text-white shadow-md p-2 m-2 rounded">
+    <header className="sticky top-0 z-10 bg-secondary text-white shadow-basef p-2 m-2 rounded">
       <div className="flex items-center justify-between px-4 py-3 md:px-6">
         {/* Left side - Title and menu toggle */}
         <div className="flex items-center">
