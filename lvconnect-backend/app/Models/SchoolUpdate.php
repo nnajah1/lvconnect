@@ -12,8 +12,8 @@ class SchoolUpdate extends Model
     protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'facebook_post_id', 'post_to_facebook', 'is_notified', 'is_urgent'];
 
     protected $casts = [
-        'revision_fields' => 'array', // Automatically cast JSON to array
-        'rejected_at' => 'datetime', //Cast rejected_at to a Carbon instance
+        'revision_fields' => 'array', 
+        'rejected_at' => 'datetime', 
         'published_at' => 'datetime',
         'archived_at' => 'datetime',
         'post_to_facebook' => 'boolean',

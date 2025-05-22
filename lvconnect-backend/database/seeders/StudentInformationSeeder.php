@@ -49,7 +49,7 @@ class StudentInformationSeeder extends Seeder
                 'barangay' => $faker->streetName,
                 'city_municipality' => $faker->city,
                 'province' => $faker->state,
-                'zip_code' => $faker->postcode,
+                'zip_code' => $faker->numberBetween(1000, 9999),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
