@@ -22,23 +22,13 @@ class ProgramSeeder extends Seeder
             'ACT',
         ];
 
-        $yearLevels = [
-            '1st Year',
-            '2nd Year',
-            '3rd Year',
-            '4th Year',
-        ];
-
         foreach ($programs as $program) {
-            foreach ($yearLevels as $year) {
-                DB::table('programs')->insert([
-                    'program_name' => $program,
-                    'year_level' => $year,
-                    'created_at' => Carbon::now(),
-                ]);
-            }
+            DB::table('programs')->insert([
+                'program_name' => $program,
+                'created_at' => Carbon::now(),
+            ]);
         }
 
-        $this->command->info('Programs table seeded successfully with year levels!');
+        $this->command->info('Programs table seeded successfully!');
     }
 }

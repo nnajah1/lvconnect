@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolUpdate;
-use App\Models\User;
 use App\Notifications\UrgentPostNotification;
 use App\Notifications\PostApprovedNotification;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -40,7 +39,10 @@ class SchoolUpdateController extends Controller
         }
 
         if ($user->hasRole('scadmin')) {
-            return SchoolUpdate::whereIn('status', SchoolUpdate::STATUS_PENDING, SchoolUpdate::STATUS_REVISION)->get();
+            return SchoolUpdate::whereIn('status', [
+                SchoolUpdate::STATUS_PENDING,
+                SchoolUpdate::STATUS_REVISION
+            ])->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);

@@ -76,6 +76,7 @@ class EnrollmentController extends Controller
                 'last_school_attended' => 'required|string|max:255',
                 'previous_school_address' => 'required|string|max:255',
                 'school_type' => 'required|string|max:255',
+                'year_level' => 'required|integer|min:1|max:6'
             ], [
                 'program_id.required' => 'Program is required.',
                 'program_id.exists' => 'Selected program is invalid.',
@@ -93,6 +94,7 @@ class EnrollmentController extends Controller
                 'last_school_attended.required' => 'Last school attended is required.',
                 'previous_school_address.required' => 'Previous school address is required.',
                 'school_type.required' => 'School type is required.',
+                'year_level.max' => 'Year level cannot exceed 6.',
             ]);
 
             $studentInfo = StudentInformation::where('user_id', $user->id)->first();
@@ -100,9 +102,6 @@ class EnrollmentController extends Controller
             if (!$studentInfo) {
                 return response()->json(['message' => 'Student information not found.'], 404);
             }
-
-            $program = Program::findOrFail($validated['program_id']);
-            $yearLevel = $program->year_level;
 
             $alreadyEnrolled = EnrolleeRecord::where('student_information_id', $studentInfo->id)
                 ->where('program_id', $validated['program_id'])
@@ -112,7 +111,7 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'You have already submitted an enrollment for this program.'], 409);
             }
 
-            DB::transaction(function () use ($validated, $studentInfo, $yearLevel) {
+            DB::transaction(function () use ($validated, $studentInfo) {
                 $studentInfo->update([
                     'floor/unit/building_no' => $validated['address']['building_no'] ?? $studentInfo['floor/unit/building_no'],
                     'house_no/street' => $validated['address']['street'] ?? $studentInfo['house_no/street'],
@@ -158,7 +157,7 @@ class EnrollmentController extends Controller
                     'enrollment_schedule_id' => $currentSchedule->id,
                     'student_information_id' => $studentInfo->id,
                     'program_id' => $validated['program_id'],
-                    'year_level' => $yearLevel,
+                    'year_level' => $validated['year_level'],
                     'privacy_policy' => $validated['privacy_policy'],
                     'enrollment_status' => 'pending',
                     'admin_remarks' => '',
@@ -183,12 +182,25 @@ class EnrollmentController extends Controller
     }
 
     /**
-     * Show Information for pre-filled enrollment for student.
+     * Show Information for pre-filled enrollment for student and registrar.
      */
-    public function showEnrollmentData()
+    public function showEnrollmentData(Request $request)
     {
         $user = JWTAuth::authenticate();
-        $studentInfo = StudentInformation::where('user_id', $user->id)->with('guardian')->first();
+
+        $targetUserId = $user->id;
+
+        if ($user->hasRole('registrar')) {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+            ]);
+
+            $targetUserId = $validated['user_id'];
+        }
+
+        $studentInfo = StudentInformation::where('user_id', $targetUserId)
+            ->with('guardian')
+            ->first();
 
         if (!$studentInfo) {
             return response()->json(['message' => 'Student information not found.'], 404);
