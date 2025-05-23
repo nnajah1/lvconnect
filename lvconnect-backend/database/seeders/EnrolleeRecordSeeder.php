@@ -14,7 +14,7 @@ class EnrolleeRecordSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create();
+        $faker = Faker::create(20);
 
         $students = StudentInformation::all();
         $programs = Program::all();

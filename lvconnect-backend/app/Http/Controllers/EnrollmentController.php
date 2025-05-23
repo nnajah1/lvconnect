@@ -24,17 +24,73 @@ class EnrollmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = JWTAuth::authenticate();
 
         if ($user->hasRole('student')) {
-            return EnrolleeRecord::where('id', $user->id)
+            $studentInfoId = $user->student_information_id;
+
+            return EnrollmentSchedule::where('is_active', true)
+                ->with([
+                    'enrolleeRecords' => function ($query) use ($studentInfoId) {
+                        $query->where('student_information_id', $studentInfoId);
+                    }
+                ])
                 ->get();
+
         }
+
+        $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'semester' => 'required|in:first_semester,second_semester',
+        ]);
+
+        $academicYear = $request->input('academic_year_id');
+        $semester = $request->input('semester');
+
+        if ($user->hasRole('registrar')) {
+            $students = StudentInformation::with([
+                'enrolleeRecord.enrollmentSchedule' => function ($query) use ($academicYear, $semester) {
+                    if ($academicYear) {
+                        $query->where('academic_year_id', $academicYear);
+                    }
+                    if ($semester) {
+                        $query->where('semester', $semester);
+                    }
+                },
+                'enrolleeRecord.program',
+            ])
+                ->whereHas('enrolleeRecord', function ($query) {
+                    $query->where('enrollment_status', '!=', 'archived');
+                })
+                ->whereHas('enrolleeRecord.enrollmentSchedule', function ($query) use ($academicYear, $semester) {
+                    if ($academicYear) {
+                        $query->where('academic_year_id', $academicYear);
+                    }
+                    if ($semester) {
+                        $query->where('semester', $semester);
+                    }
+                })
+                ->get();
+
+            return response()->json($students);
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+
+    }
+
+    public function showEnrolled()
+    {
+
+        $user = JWTAuth::authenticate();
 
         if ($user->hasRole('registrar')) {
             return StudentInformation::with('enrolleeRecord')
+                ->whereHas('enrolleeRecord', function ($query) {
+                    $query->where('enrollment_status', 'enrolled');
+                })
                 ->get();
         }
 
@@ -51,8 +107,8 @@ class EnrollmentController extends Controller
             }
 
             $studentsWithoutEnrollment = StudentInformation::whereHas('user', function ($query) {
-                    $query->role('student');
-                })
+                $query->role('student');
+            })
                 ->whereDoesntHave('enrolleeRecords')
                 ->with('user')
                 ->get();
@@ -418,13 +474,13 @@ class EnrollmentController extends Controller
     {
         $data = $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
-            'semester' => 'required|in:1st_semester,second_semester',
+            'semester' => 'required|in:first_semester,second_semester',
             'is_active' => 'required|boolean',
         ]);
 
         if ($data['semester'] === 'second_semester') {
             $firstSemesterExists = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
-                ->where('semester', '1st_semester')
+                ->where('semester', 'first_semester')
                 ->exists();
 
             if (!$firstSemesterExists) {
@@ -488,15 +544,20 @@ class EnrollmentController extends Controller
     public function bulkExport(Request $request)
     {
         $ids = $request->input('ids');
-        $data = EnrolleeRecord::whereIn('id', $ids)->get();
+        $data = EnrolleeRecord::with('studentInfo')
+            ->whereIn('id', $ids)
+            ->get();
 
         $csvData = '';
-        $headers = ['ID', 'Name', 'Status']; // customize as needed
+        $headers = ['ID', 'First Name', 'Last Name', 'Status']; // updated headers
         $csvData .= implode(',', $headers) . "\n";
 
         foreach ($data as $record) {
-            $csvData .= "{$record->id},{$record->name},{$record->enrollment_status}\n";
+            $firstName = $record->studentInfo?->first_name ?? 'N/A';
+            $lastName = $record->studentInfo?->last_name ?? 'N/A';
+            $csvData .= "{$record->id},{$firstName},{$lastName},{$record->enrollment_status}\n";
         }
+
 
         return Response::make($csvData, 200, [
             'Content-Type' => 'text/csv',
@@ -507,16 +568,16 @@ class EnrollmentController extends Controller
     public function bulkRemind(Request $request)
     {
         $studentIds = $request->input('ids');
-        $scheduleId = $request->input('enrollment_schedule_id'); 
+        $scheduleId = $request->input('enrollment_schedule_id');
 
         $schedule = EnrollmentSchedule::with('academicYear')->findOrFail($scheduleId);
 
         // Fetch students NOT enrolled in this schedule
         $studentsToRemind = StudentInformation::whereIn('id', $studentIds)
-            ->whereDoesntHave('enrolleeRecords', function ($query) use ($scheduleId) {
+            ->whereDoesntHave('enrolleeRecord', function ($query) use ($scheduleId) {
                 $query->where('enrollment_schedule_id', $scheduleId);
             })
-            ->with('user')
+            // ->with('user')
             ->get();
 
         foreach ($studentsToRemind as $student) {
@@ -529,6 +590,33 @@ class EnrollmentController extends Controller
 
         return response()->json(['message' => 'Reminders sent.']);
     }
+
+    public function bulkRemindRejected(Request $request)
+    {
+        $studentIds = $request->input('ids');
+        $scheduleId = $request->input('enrollment_schedule_id');
+
+        $schedule = EnrollmentSchedule::with('academicYear')->findOrFail($scheduleId);
+
+        $studentsToRemind = StudentInformation::whereIn('id', $studentIds)
+            ->whereHas('enrolleeRecord', function ($query) use ($scheduleId) {
+                $query->where('enrollment_status', 'rejected')
+                    ->where('enrollment_schedule_id', $scheduleId);
+            })
+            ->get();
+
+
+        foreach ($studentsToRemind as $student) {
+            if ($student->user) {
+                $student->user->notify(
+                    new EnrollmentStatusNotification('remind_rejected', $schedule->academicYear)
+                );
+            }
+        }
+
+        return response()->json(['message' => 'Reminders sent.']);
+    }
+
 
 
     /**
@@ -550,7 +638,7 @@ class EnrollmentController extends Controller
     {
         $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
-            'semester' => 'required|in:1st_semester,second_semester',
+            'semester' => 'required|in:first_semester,second_semester',
         ]);
 
         $schedule = EnrollmentSchedule::where('academic_year_id', $request->academic_year_id)

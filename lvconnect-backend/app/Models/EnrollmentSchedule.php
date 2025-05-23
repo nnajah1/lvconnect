@@ -12,8 +12,8 @@ class EnrollmentSchedule extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'start_date' => 'date',
-        'end_date' => 'date'
+        'start_date' => 'datetime',
+        'end_date' => 'datetime'
     ];
 
     public function academicYear() {

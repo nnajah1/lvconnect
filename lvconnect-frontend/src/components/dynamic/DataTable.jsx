@@ -8,6 +8,8 @@ import {
   getSortedRowModel,
   getPaginationRowModel
 } from "@tanstack/react-table"
+import { Loader, Loader2 } from "./loader"
+import { Loader2Icon } from "lucide-react"
 
 export function DataTable({ columns, data, globalFilter, bulkActions = [], showSelection = true, isLoading }) {
   const [sorting, setSorting] = useState([])
@@ -48,10 +50,9 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
       {bulkActions.length > 0 && selectedRows.length > 0 && (
         <div className="flex gap-2 p-4 bg-white">
           {bulkActions.map(({ label, onClick, message }) => (
-            <div className="flex justify-between">
+            <div key={label}  className="flex justify-between">
               <span>{message}</span>
               <button
-                key={label}
                 className="px-3 py-2 bg-blue-600 text-white rounded"
                 onClick={() => onClick(selectedRows.map((row) => row.original))}
               >
@@ -86,7 +87,7 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
           {isLoading ? (
             <tr>
               <td colSpan={columns.length} className="p-4 text-center text-gray-500 dark:text-gray-400">
-                Loading...
+                <Loader2Icon className="mx-auto h-6 w-6 animate-spin text-gray-500 dark:text-gray-400" />
               </td>
             </tr>
           ) : table.getRowModel().rows.length ? (

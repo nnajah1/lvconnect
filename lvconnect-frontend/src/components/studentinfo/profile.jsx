@@ -33,7 +33,7 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
         <div className="profile_row">
           <FormField
             label="Program"
-            value={profileData.program_id}
+            value={profileData.enrollee_record?.[0].program_id}
             isEditing={canEditField("program_id")}
             onChange={handleChange}
             name="program_id"
@@ -45,7 +45,7 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
             pattern="[0-9]*"
             inputMode="numeric"
             label="Year"
-            value={profileData.year_level}
+            value={profileData.enrollee_record?.[0].year_level}
             maxWidth="md:max-w-[200px]"
             isEditing={canEditField("year_level")}
             onChange={handleChange}

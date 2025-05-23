@@ -93,7 +93,10 @@ Route::middleware('auth.jwt')->group(function () {
   Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
 
   Route::get('/enrollees', [EnrollmentController::class, 'index']);
+  Route::get('/not-enrolled', [EnrollmentController::class, 'getStudentsWithoutEnrollment']);
+  Route::get('/enrollees/enrolled', [EnrollmentController::class, 'showEnrolled']);
   Route::get('/enrollee/{id}', [EnrollmentController::class, 'show']);
+  Route::get('/not-enrolled/{id}', [EnrollmentController::class, 'directEnrollButton']);
   Route::get('/enrollment-schedule', [EnrollmentController::class, 'showEnrollmentSchedule']);
   Route::post('/enrollment-approve/{id}', [EnrollmentController::class, 'approve']);
   Route::post('/enrollment-reject/{id}', [EnrollmentController::class, 'reject']);
@@ -101,11 +104,14 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/enrollment/bulk-delete', [EnrollmentController::class, 'bulkDelete']);
   Route::post('/enrollment/bulk-export', [EnrollmentController::class, 'bulkExport']);
   Route::post('/enrollment/bulk-remind', [EnrollmentController::class, 'bulkRemind']);
+  Route::post('/enrollment/bulk-remind-rejected', [EnrollmentController::class, 'bulkRemindRejected']);
+  Route::post('/archive-student-data/{id}', [StudentManagementController::class, 'archive']);
   Route::post('/enrollees/bulk-archive', [StudentManagementController::class, 'bulkArchive']);
   Route::post('/enrollment-schedule/toggle', [EnrollmentController::class, 'toggleEnrollmentSchedule']);
 
   Route::get('/enrollment-data', [EnrollmentController::class, 'showEnrollmentData']);
-  Route::post('/manual-enrollment/{id}', [EnrollmentController::class, 'manualEnrollment']);
+  Route::put('/manual-enrollment/{id}', [EnrollmentController::class, 'manualEnrollment']);
+  Route::put('/update-student/{id}', [StudentManagementController::class, 'updateStudentManagement']);
   Route::put('/student/enroll', [EnrollmentController::class, 'studentEnrollment']);
   Route::post('/enrollees/{id}', [StudentManagementController::class, 'archive']);
   Route::post('/academic-years', [AcademicYearController::class, 'store']);

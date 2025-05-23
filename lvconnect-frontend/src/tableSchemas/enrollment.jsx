@@ -2,28 +2,28 @@ import { Check, Eye, Pencil, X } from "lucide-react";
 
 export const registrarSchema = {
 
-  fullname: {
+  full_name: {
     header: "Name",
     display: true,
-    customCell: (value, original) => {
-      const first = original.first_name || '';
-      const last = original.last_name || '';
-      const fullName = `${first} ${last}`.trim();
-
-      return fullName || 'Unknown';
-    }
+    filterable: true, 
   },
-  student_id_number: { header: "ID", display: true },
-  course: { header: "Course", display: true },
+  student_id_number: { header: "ID", display: true, },
+  program_name: { header: "Course", display: true },
   year: {
-    header: "Year", display: true,
+    header: "Year", display: true, sortable: true,
     customCell: (value, original) => {
       const year = original?.enrollee_record?.[0]?.year_level;
-      const text = `${year}th Year`
-      return text || "Unknown";
+      const yearMap = {
+        1: "1st Year",
+        2: "2nd Year",
+        3: "3rd Year",
+        4: "4th Year",
+      };
+      return year ? yearMap[year] || `${year}th Year` : "-";
     }
+
   },
-  stat: {
+  status: {
     header: "Status",
     sortable: false,
     display: true,
@@ -35,14 +35,14 @@ export const registrarSchema = {
         pending: <span style={{ color: "orange" }}>Pending</span>,
         rejected: <span style={{ color: "red" }}>Rejected</span>
       };
-      return map[status] || "Unknown";
+      return map[status] || "-";
     }
 
   },
 };
 
 export const actions = (openModal, openAcceptModal, openRejectModal, openDirectModal, tab) => ({
-  
+
   view: {
     icon: () => <Eye size={18} />,
     fn: (id, item) => openModal(item),

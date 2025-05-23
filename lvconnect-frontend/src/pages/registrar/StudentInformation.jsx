@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { smActionsConditions, smActions, registrarSchema } from "@/tableSchemas/studentManagement";
-import { bulkArchiveEnrollment, getEnrollees } from "@/services/enrollmentAPI";
+import { archiveData, bulkArchiveEnrollment, getEnrolled, getEnrollees } from "@/services/enrollmentAPI";
 import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
@@ -19,17 +19,20 @@ const StudentInformation = () => {
   const [item, setItem] = useState(null);
   const [archiveItem, setArchiveItem] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
-  
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadEnrollees = async () => {
+    setIsLoading(true);
+    try {
+      const allEnrollees = await getEnrolled();
+      setEnrollment(allEnrollees);
+    } finally {
+      setIsLoading(false);
+    }
+
+  };
   useEffect(() => {
-    const loadEnrollees = async () => {
-      const allEnrollees = await getEnrollees();
-      const enrolledOnly = allEnrollees.filter(
-        enrollee => enrollee.enrollee_record?.[0]?.enrollment_status === "enrolled"
-      );
-
-      setEnrollment(enrolledOnly);
-    };
-
     loadEnrollees();
   }, []);
 
@@ -43,10 +46,33 @@ const StudentInformation = () => {
     ];
   };
 
- const handleBulkArchive = async (items) => {
-  const ids = items.map((item) => item.id);
-  await bulkArchiveEnrollment(ids);
-};
+  const handleBulkArchive = async (items) => {
+    const ids = items.map((item) => item.student_information_id);
+    try {
+      await bulkArchiveEnrollment(ids);
+      toast.success('Students archived successfully');
+    } catch (error) {
+      console.error('Bulk archive failed:', error);
+      toast.error('Failed to archive students');
+    }
+  };
+  const handleArchive = async () => {
+    const id = archiveItem?.enrollee_record?.[0]?.id;
+    if (!id) {
+          toast.info("Student data not found.");
+          return;
+        }
+    try {
+      await archiveData(id);
+      toast.success('Student data archived successfully');
+      setArchiveItem(null);
+      await loadEnrollees();
+    } catch (error) {
+      console.error('Archive failed:', error);
+      toast.error('Failed to archive student data');
+    }
+  };
+
 
 
   const openModal = (item) => setItem(item);
@@ -77,7 +103,7 @@ const StudentInformation = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Enrollment</h1>
+        <h1 className="text-2xl font-bold">Student Information Management</h1>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
@@ -85,7 +111,9 @@ const StudentInformation = () => {
         columns={templateColumns}
         data={enrollment}
         {... { bulkActions: getBulkActions() }}
-        globalFilter={globalFilter} />
+        globalFilter={globalFilter}
+        isLoading={isLoading}
+      />
 
       {archiveItem && (
         <WarningModal
@@ -102,7 +130,7 @@ const StudentInformation = () => {
           </button>
 
           <button
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleBulkArchive}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleArchive}
           >
             Archive
           </button>

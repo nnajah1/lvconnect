@@ -8,7 +8,7 @@ import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
 import EditFormModal from "@/pages/admins/psas/EditForm";
 import UserViewFormModal from "@/pages/student/UserViewSchoolForm";
-import { approveEnrollment, bulkApproveEnrollment, bulkDeleteEnrollment, bulkExportEnrollment, bulkRemindEnrollment, getEnrollees, rejectEnrollment } from "@/services/enrollmentAPI";
+import { approveEnrollment, bulkApproveEnrollment, bulkDeleteEnrollment, bulkExportEnrollment, bulkRemindEnrollment, bulkRemindRejectedEnrollment, getEnrollees, getNotEnrolled, rejectEnrollment } from "@/services/enrollmentAPI";
 import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
@@ -22,6 +22,7 @@ const Enrollment = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [enrollment, setEnrollment] = useState([]);
+  const [notEnrolled, setNotEnrolled] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [item, setItem] = useState(null);
   const [directItem, setDirectItem] = useState(null);
@@ -30,16 +31,51 @@ const Enrollment = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [globalFilter, setGlobalFilter] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState("");
+  const [semester, setSemester] = useState("");
+  const [currentSchedule, setCurrentSchedule] = useState(null);
+  const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
+
+  const selectedYearObj = academicYears.find((y) => y.school_year === selectedYear);
+
+
+  const loadEnrollment = async () => {
+  if (!selectedYearObj || !semester) return;
+  setIsLoading(true);
+  try {
+    const data = await getEnrollees({ academic_year_id: selectedYearObj.id, semester });
+    setEnrollment(data);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    loadEnrollment();
+  }, [selectedYearObj, semester]);
+
 
   useEffect(() => {
 
-    const loadSurveys = async () => {
-      const data = await getEnrollees();
-      setEnrollment(data);
-    }
-    loadSurveys();
-  }, []);
+    const loadNotEnrolled = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getNotEnrolled();
+        setNotEnrolled(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    loadNotEnrolled();
+  }, []);
   const openModal = (item) => setItem(item);
   const openAcceptModal = (item) => setAcceptItem(item);
   const openRejectModal = (item) => setRejectItem(item);
@@ -47,20 +83,23 @@ const Enrollment = () => {
 
   const actionMap = actions(openModal, openAcceptModal, openRejectModal, openDirectModal, activeTab);
   const filteredData = useMemo(() => {
-
     switch (activeTab) {
       case "pending":
-        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "pending");
+        return enrollment.filter(s => s.enrollee_record[0].enrollment_status === "pending");
       case "enrolled":
-        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "enrolled");
-      case "not_enrolled":
-        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "not_enrolled");
+        return enrollment.filter(s => s.enrollee_record[0].enrollment_status === "enrolled");
       case "rejected":
-        return enrollment.filter((s) => s.enrollee_record[0].enrollment_status === "rejected");
-      default:
+        return enrollment.filter(s => s.enrollee_record[0].enrollment_status === "rejected");
+      case "all":
         return enrollment;
+      default:
+        return [];
     }
   }, [activeTab, enrollment]);
+
+  const notEnrolledData = useMemo(() => {
+    return enrollment.filter(s => s.enrollee_record[0].enrollment_status === "not_enrolled");
+  }, [notEnrolled]);
 
   const getBulkActions = (tab) => {
     switch (tab) {
@@ -74,11 +113,11 @@ const Enrollment = () => {
       case "not_enrolled":
         return [
           { label: "Send Reminder", onClick: handleBulkRemind },
-          { label: "Delete Selected", onClick: handleBulkDelete },
+          // { label: "Delete Selected", onClick: handleBulkDelete },
         ];
       case "rejected":
         return [
-          { label: "Send Reminder", onClick: handleBulkRemind },
+          { label: "Send Reminder", onClick: handleBulkRemindRejected },
           // { label: "Delete Selected", onClick: handleBulkDelete },
         ];
       default:
@@ -117,7 +156,7 @@ const Enrollment = () => {
     const ids = items.map((item) => item.id);
 
     // Get the enrollment_schedule_id from the first item's enrollee_record
-    const enrollment_sched = items[0]?.enrollee_record?.enrollment_schedule_id;
+    const enrollment_sched = items[0]?.enrollee_record?.[0]?.enrollment_schedule_id;
 
     if (!enrollment_sched) {
       console.error("Missing enrollment schedule ID.");
@@ -125,6 +164,27 @@ const Enrollment = () => {
     }
     try {
       await bulkRemindEnrollment(ids, enrollment_sched);
+      // await loadEnrollment();
+      toast.success("Reminder was sent successfully.");
+      // optionally refresh data
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to send reminder.");
+    }
+  };
+  const handleBulkRemindRejected = async (items) => {
+    const ids = items.map((item) => item.id);
+
+    // Get the enrollment_schedule_id from the first item's enrollee_record
+    const enrollment_sched = items[0]?.enrollee_record?.[0]?.enrollment_schedule_id;
+
+    if (!enrollment_sched) {
+      console.error("Missing enrollment schedule ID.");
+      return;
+    }
+    try {
+      await bulkRemindRejectedEnrollment(ids, enrollment_sched);
+      // await loadEnrollment();
       toast.success("Reminder was sent successfully.");
       // optionally refresh data
     } catch (error) {
@@ -134,31 +194,36 @@ const Enrollment = () => {
   };
 
   const handleBulkApprove = async (items) => {
-    const ids = items.map(item => item.enrollee_record?.id).filter(Boolean);
+    const ids = items.map(item => item.enrollee_record?.[0]?.id).filter(Boolean);
+    console.log("First selected item:", items);
+
     if (!ids.length) {
-      toast.alert("No valid enrollee records selected.");
+      toast.info("No valid enrollee records selected.");
       return;
     }
-
     try {
       await bulkApproveEnrollment(ids);
+      await loadEnrollment();
       toast.success("Approved successfully.");
       // optionally refresh data
     } catch (error) {
       console.error(error);
       toast.error("Failed to approve.");
-    }
+    }finally {
+    setIsLoading(false);
+  }
   };
 
   const handleBulkDelete = async (items) => {
-    const ids = items.map(item => item.enrollee_record?.id).filter(Boolean);
+    const ids = items.map(item => item.enrollee_record?.[0]?.id).filter(Boolean);
     if (!ids.length) {
-      toast.alert("No valid enrollee records selected.");
+      toast.info("No valid enrollee records selected.");
       return;
     }
 
     try {
       await bulkDeleteEnrollment(ids);
+      await loadEnrollment();
       toast.success("Deleted successfully.");
       // optionally refresh data
     } catch (error) {
@@ -179,7 +244,7 @@ const Enrollment = () => {
       await approveEnrollment(id);
       toast.success("Enrollment approved!");
       setAcceptItem(null);
-      await loadSurveys();
+      await loadEnrollment();
 
     } catch (error) {
       console.error(error);
@@ -208,7 +273,7 @@ const Enrollment = () => {
       toast.success("Enrollment rejected!");
       setRejectItem(null)
       setRemarks("");
-      await loadSurveys();
+      await loadEnrollment();
 
     } catch (error) {
       console.error(error);
@@ -218,18 +283,15 @@ const Enrollment = () => {
 
 
   useEffect(() => {
-    if (directItem) {
-      navigate(`student-information/${directItem.id}/edit`, {
-        state: { from: location.pathname },
-      });
-    } else if (item) {
-      navigate(`student-information/${item.id}`, {
-        state: { from: location.pathname },
+    if (directItem || item) {
+      setIsLoading(true);
+      const target = directItem ?? item;
+      navigate(`student-information/${target.id}${directItem ? '/edit' : ''}`, {
+        state: { from: location.pathname, isLoading: true },
       });
     }
   }, [directItem, item, navigate, location.pathname]);
 
-  if (directItem || item) return null;
 
   return (
     <div className="container mx-auto p-4">
@@ -238,7 +300,20 @@ const Enrollment = () => {
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
-      <div className="pb-6"><AcademicYear /></div>
+      <div className="pb-6">
+        <AcademicYear
+          academicYears={academicYears}
+          setAcademicYears={setAcademicYears}
+          selectedYearObj={selectedYearObj}
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          semester={semester}
+          setSemester={setSemester}
+          currentSchedule={currentSchedule}
+          setCurrentSchedule={setCurrentSchedule}
+          isEnrollmentOpen={isEnrollmentOpen}
+          setIsEnrollmentOpen={setIsEnrollmentOpen}
+        /></div>
 
       <DynamicTabs
         tabs={[
@@ -253,11 +328,23 @@ const Enrollment = () => {
         className="mb-2"
       />
 
-      <DataTable
-        columns={templateColumns}
-        data={filteredData}
-        {...(activeTab !== "all" && { bulkActions: getBulkActions(activeTab) })}
-        globalFilter={globalFilter} />
+      {activeTab === "not_enrolled" ? (
+        <DataTable
+          columns={templateColumns}
+          data={notEnrolledData}
+          bulkActions={getBulkActions("not_enrolled")}
+          globalFilter={globalFilter}
+          isLoading={isLoading}
+        />
+      ) : (
+        <DataTable
+          columns={templateColumns}
+          data={filteredData}
+          {...(activeTab !== "all" && { bulkActions: getBulkActions(activeTab) })}
+          globalFilter={globalFilter}
+          isLoading={isLoading}
+        />
+      )}
 
       {acceptItem && (
         <ConfirmationModal

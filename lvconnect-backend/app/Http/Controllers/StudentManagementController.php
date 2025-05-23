@@ -86,9 +86,11 @@ class StudentManagementController extends Controller
 
         // Get student profile info
         $studentInfo = StudentInformation::where('user_id', $user->id)
-            ->with(['enrolleeRecords' => function ($query) {
-                $query->latest()->limit(1)->with('program');
-            }])
+            ->with([
+                'enrolleeRecords' => function ($query) {
+                    $query->latest()->limit(1)->with('program');
+                }
+            ])
             ->first();
 
         if (!$studentInfo) {
@@ -261,6 +263,33 @@ class StudentManagementController extends Controller
     /**
      * Button to archived student information.
      */
+
+    public function bulkArchive(Request $request)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('registrar')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $ids = $request->input('ids'); 
+
+        foreach ($ids as $studentId) {
+            $enrolleeRecord = EnrolleeRecord::where('student_information_id', $studentId)
+                ->latest()
+                ->first();
+
+            if ($enrolleeRecord) {
+                $enrolleeRecord->update(['enrollment_status' => 'archived']);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Selected students archived successfully.',
+        ]);
+    }
+
     public function archive($studentId)
     {
         $user = JWTAuth::authenticate();

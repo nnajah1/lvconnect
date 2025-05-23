@@ -9,15 +9,18 @@ import SchoolInfoSection from "@/components/studentinfo/school_info"
 import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
 import ActionButtons from "@/components/studentinfo/action"
-import { createEnrollee, getEnrollee } from "@/services/enrollmentAPI";
+import { createEnrollee, editStudentData, getEnrollee } from "@/services/enrollmentAPI";
 import { programOptions, religionOptions, incomeOptions, partialFieldsAdmin, partialFieldsStudent } from "@/utils/enrollmentHelper.js"
 import { useUserRole } from "@/utils/userRole";
+import { Loader2 } from "@/components/dynamic/loader";
 
 const Enrollees = ({ mode, editType }) => {
   const userRole = useUserRole();
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || '/';
+  const isLoadingFromNav = location.state?.isLoading || false;
+
   const { studentId } = useParams();
   const handleBack = () => navigate(from);
 
@@ -82,7 +85,7 @@ const Enrollees = ({ mode, editType }) => {
     }
   });
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(isLoadingFromNav);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -102,6 +105,10 @@ const Enrollees = ({ mode, editType }) => {
     loadStudentInfo();
   }, [studentId]);
 
+  if (isLoading) {
+    return <Loader2 />;
+  }
+
   const handleChangeImage = () => {
 
     console.log("Change image clicked")
@@ -110,43 +117,6 @@ const Enrollees = ({ mode, editType }) => {
   const handleEditToggle = () => {
     setIsEditing(!isEditing)
   }
-
-   const handleSave = async () => {
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const payload = mapToApiPayload(studentData);
-      const response = await createEnrollee(studentId, payload)
-      
-      setSuccess("Enrollment submitted successfully!");
-      setIsEditing(false);
-      console.log("API Response:", response.data);
-    } catch (error) {
-      console.error("Enrollment submission error:", error);
-
-      if (error.response) {
-        if (error.response.status === 422) {
-          setError("Validation failed. Please check your inputs.");
-          // Optionally, extract detailed validation errors here:
-          // error.response.data.errors
-        } else if (error.response.status === 409) {
-          setError("You have already enrolled.");
-        } else {
-          setError("An error occurred. Please try again.");
-        }
-      } else {
-        setError("Network error. Please try again later.");
-      }
-    }
-  };
-
-  //  const handleSave = () => {
-  //   console.log("Saving data:", studentData);
-  //   handleSubmit();
-  //   setIsEditing(false);
-  // };
-
 
   const handleArchive = () => {
 
@@ -159,24 +129,24 @@ const Enrollees = ({ mode, editType }) => {
     setIsEditing(false)
   }
 
- const handleFieldChange = (name, value) => {
-  setStudentData((prev) => {
-    const keys = name.split(".");
+  const handleFieldChange = (name, value) => {
+    setStudentData((prev) => {
+      const keys = name.split(".");
 
-    if (keys.length === 1) {
-      return { ...prev, [name]: value };
-    } else {
-      const [section, field] = keys;
-      return {
-        ...prev,
-        [section]: {
-          ...prev[section],
-          [field]: value,
-        },
-      };
-    }
-  });
-};
+      if (keys.length === 1) {
+        return { ...prev, [name]: value };
+      } else {
+        const [section, field] = keys;
+        return {
+          ...prev,
+          [section]: {
+            ...prev[section],
+            [field]: value,
+          },
+        };
+      }
+    });
+  };
 
   const canEditField = (fieldName) => {
     if (!isEditing) return false;
@@ -192,12 +162,12 @@ const Enrollees = ({ mode, editType }) => {
     return false;
   };
 
-  function mapToApiPayload(data) {
+  function mapToApiPayload(data, studentId) {
     return {
       user_id: studentId,
-      program_id: 1,
-      year_level: 1,
-      privacy_policy: true, 
+      program_id: data.enrollee_record?.[0].program_id,
+      year_level: data.enrollee_record?.[0].year_level,
+      privacy_policy: true,
       address: {
         building_no: data["floor/unit/building_no"],
         street: data["house_no/street"],
@@ -233,6 +203,42 @@ const Enrollees = ({ mode, editType }) => {
       }
     };
   }
+
+  const handleSave = async () => {
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const payload = mapToApiPayload(studentData, studentId);
+
+      let response;
+      if (editType === "partial") {
+        response = await createEnrollee(studentId, payload);
+      } else if (editType === "full") {
+        response = await editStudentData(studentId, payload);
+      } else {
+        throw new Error("Unknown edit type.");
+      }
+
+      setSuccess("Enrollment submitted successfully!");
+      setIsEditing(false);
+      console.log("API Response:", response.data);
+    } catch (error) {
+      console.error("Enrollment submission error:", error);
+
+      if (error.response) {
+        if (error.response.status === 422) {
+          setError("Validation failed. Please check your inputs.");
+        } else if (error.response.status === 409) {
+          setError("You have already enrolled.");
+        } else {
+          setError("An error occurred. Please try again.");
+        }
+      } else {
+        setError("Network error. Please try again later.");
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col items-start w-full min-h-screen">
@@ -276,9 +282,9 @@ const Enrollees = ({ mode, editType }) => {
           canEditField={canEditField} onChange={handleFieldChange} />
 
 
-        <FamilyInfoSection familyInfo={studentData.student_family_info} 
+        <FamilyInfoSection familyInfo={studentData.student_family_info}
           isEditing={isEditing}
-        canEditField={canEditField} onChange={handleFieldChange} />
+          canEditField={canEditField} onChange={handleFieldChange} />
 
 
         <SchoolInfoSection educationInfo={studentData}

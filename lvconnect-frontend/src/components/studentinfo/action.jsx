@@ -28,7 +28,7 @@ export default function ActionButtons({
             {editType === "full" && (
               <>
                 <button onClick={handleSave} className="add_action_btn save">Save</button>
-                <button onClick={handleArchive} className="add_action_btn archive">Archive</button>
+                {/* <button onClick={handleArchive} className="add_action_btn archive">Archive</button> */}
               </>
             )}
             {editType === "partial" && (

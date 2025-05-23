@@ -32,7 +32,7 @@ class EnrollmentScheduleSeeder extends Seeder
             DB::table('enrollment_schedules')->insert([
                 [
                     'academic_year_id' => $year->id,
-                    'semester' => '1st_semester',
+                    'semester' => 'first_semester',
                     'is_active' => false,
                     'start_date' => $startDate1->format('Y-m-d'),
                     'end_date' => $endDate1->format('Y-m-d'),

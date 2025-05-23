@@ -28,11 +28,27 @@ export const religionOptions = [
 export const programOptions = [
   {
     "id": 1,
-    "name": "he"
+    "name": "BSIS"
   },
   {
     "id": 2,
-    "name": "Bachelor of Arts in Psychology"
+    "name": "BSA"
+  },
+  {
+    "id": 3,
+    "name": "BAB"
+  },
+  {
+    "id": 4,
+    "name": "BSAIS"
+  },
+  {
+    "id": 5,
+    "name": "BSSW"
+  },
+  {
+    "id": 6,
+    "name": "ACT"
   }
 ]
 
