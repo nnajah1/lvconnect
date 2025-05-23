@@ -53,13 +53,14 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
         if ($this->status === 'not_enrolled') {
             return (new MailMessage)
                 ->subject("Enrollment Application Reminder")
-                ->line("Reminder! Please process your enrollment application for Academic Year {$this->academicYear->school_year}.")
-                ->line('Please check your student portal for more details or contact the registrar for assistance.');
+                ->line("Reminder! You have not yet enrolled for Academic Year {$this->academicYear->school_year}.")
+                ->line('Please log in to your student portal to begin the enrollment process or contact the registrar for assistance.');
         }
+
         if ($this->status === 'remind_rejected') {
             return (new MailMessage)
                 ->subject("Enrollment Application Reminder")
-                ->line("Reminder! Please process your enrollment application for Academic Year {$this->academicYear->school_year}.")
+                ->line("Reminder! Please reprocess your enrollment application for Academic Year {$this->academicYear->school_year}.")
                 ->line('Please check your student portal for more details or contact the registrar for assistance.');
         }
 
@@ -77,7 +78,7 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
         $message = match ($this->status) {
             'enrolled' => "You have been officially enrolled for Academic Year {$this->academicYear->school_year}.",
             'rejected' => "Your enrollment application for Academic Year {$this->academicYear->school_year} has been rejected.",
-            'not_Enrolled' => "Reminder! Please process your enrollment application Academic Year {$this->academicYear->school_year}.",
+            'not_enrolled' => "Reminder! You have not yet enrolled for Academic Year {$this->academicYear->school_year}.",
             'remind_rejected' => "Reminder! Please reprocess your enrollment application for Academic Year {$this->academicYear->school_year}.",
             default => 'Your enrollment status has been updated.',
         };

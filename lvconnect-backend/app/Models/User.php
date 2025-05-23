@@ -87,4 +87,8 @@ class User extends Authenticatable implements JWTSubject
                     ->withTimestamps();
     }
 
+    public function studentInformation()
+    {
+        return $this->hasOne(StudentInformation::class);
+    }
 }

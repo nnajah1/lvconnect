@@ -577,13 +577,12 @@ class EnrollmentController extends Controller
             ->whereDoesntHave('enrolleeRecord', function ($query) use ($scheduleId) {
                 $query->where('enrollment_schedule_id', $scheduleId);
             })
-            // ->with('user')
             ->get();
 
         foreach ($studentsToRemind as $student) {
             if ($student->user) {
                 $student->user->notify(
-                    new EnrollmentStatusNotification('not enrolled', $schedule->academicYear)
+                    new EnrollmentStatusNotification('not_enrolled', $schedule->academicYear)
                 );
             }
         }
@@ -598,6 +597,7 @@ class EnrollmentController extends Controller
 
         $schedule = EnrollmentSchedule::with('academicYear')->findOrFail($scheduleId);
 
+        // Fetch students who were rejected for this specific enrollment schedule
         $studentsToRemind = StudentInformation::whereIn('id', $studentIds)
             ->whereHas('enrolleeRecord', function ($query) use ($scheduleId) {
                 $query->where('enrollment_status', 'rejected')
@@ -605,7 +605,7 @@ class EnrollmentController extends Controller
             })
             ->get();
 
-
+        // Notify each student's associated user
         foreach ($studentsToRemind as $student) {
             if ($student->user) {
                 $student->user->notify(
@@ -616,8 +616,6 @@ class EnrollmentController extends Controller
 
         return response()->json(['message' => 'Reminders sent.']);
     }
-
-
 
     /**
      * Display the specified resource.
