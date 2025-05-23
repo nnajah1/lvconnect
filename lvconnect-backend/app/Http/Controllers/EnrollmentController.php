@@ -208,7 +208,7 @@ class EnrollmentController extends Controller
             ], 500);
         }
     }
-    public function showAllStudentInfo(Request $request)
+    public function directEnrollButton(Request $request)
     {
         try {
             $user = JWTAuth::authenticate();
@@ -217,16 +217,21 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'Unauthorized. Only registrars can access this data.'], 403);
             }
 
-            $studentIds = StudentInformation::pluck('id');
+            $request->validate([
+                'student_information_id' => 'required|exists:student_information,id',
+            ]);
+
+            // confirm the student exists 
+            $student = StudentInformation::findOrFail($request->student_information_id);
 
             return response()->json([
-                'message' => 'Student information IDs retrieved successfully.',
-                'data' => $studentIds,
+                'message' => 'Student found.',
+                'student_id' => $student->id,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'An error occurred while fetching student IDs.',
+                'message' => 'Error retrieving student.',
                 'error' => $e->getMessage(),
             ], 500);
         }
