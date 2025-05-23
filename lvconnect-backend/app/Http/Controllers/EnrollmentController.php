@@ -41,6 +41,34 @@ class EnrollmentController extends Controller
         return response()->json(['message' => 'Unauthorized'], 403);
 
     }
+    public function getStudentsWithoutEnrollment(Request $request)
+    {
+        try {
+            $user = JWTAuth::authenticate();
+
+            if (!$user->hasRole('registrar')) {
+                return response()->json(['message' => 'Unauthorized. Only registrars can access this data.'], 403);
+            }
+
+            $studentsWithoutEnrollment = StudentInformation::whereHas('user', function ($query) {
+                    $query->role('student');
+                })
+                ->whereDoesntHave('enrolleeRecords')
+                ->with('user')
+                ->get();
+
+            return response()->json([
+                'message' => 'Students without enrollment records retrieved successfully.',
+                'data' => $studentsWithoutEnrollment
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while fetching students.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     /**
      * Enrollment for student.
