@@ -92,7 +92,9 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
 
-  Route::get('/enrollees', [EnrollmentController::class, 'index']);
+  
+  Route::get('/enrollment', [EnrollmentController::class, 'index']);
+  Route::get('/enrollees', [EnrollmentController::class, 'adminView']);
   Route::get('/not-enrolled', [EnrollmentController::class, 'getStudentsWithoutEnrollment']);
   Route::get('/enrollees/enrolled', [EnrollmentController::class, 'showEnrolled']);
   Route::get('/enrollee/{id}', [EnrollmentController::class, 'show']);

@@ -59,23 +59,21 @@ const Enrollment = () => {
     loadEnrollment();
   }, [selectedYearObj, semester]);
 
-
+  const loadNotEnrolled = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getNotEnrolled();
+      setNotEnrolled(data.students);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
-
-    const loadNotEnrolled = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getNotEnrolled();
-        setNotEnrolled(data.students);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadNotEnrolled();
   }, []);
+
   const openModal = (item) => setItem(item);
   const openAcceptModal = (item) => setAcceptItem(item);
   const openRejectModal = (item) => setRejectItem(item);
@@ -137,7 +135,7 @@ const Enrollment = () => {
     openDirectModal,
     showSelectionColumn: activeTab !== "all",
   });
-   const notEnrolledColumns = getColumns({
+  const notEnrolledColumns = getColumns({
     userRole,
     schema: registrarNotEnrolledSchema,
     actions: enrollActions(openDirectModal),

@@ -1,5 +1,9 @@
 import api from "@/services/axios"
 
+export const getEnrollment = async () => {
+  const response = await api.get("/enrollment");
+  return response.data;
+};
 
 export const getEnrollees = async ({ academic_year_id, semester }) => {
   const response = await api.get("/enrollees", {

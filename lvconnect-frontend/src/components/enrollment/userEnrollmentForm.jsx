@@ -2,18 +2,24 @@
 
 import { useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
-import "../student_styling/student_enrollment_form.css"
+import "@/styles/student_enrollment_form.css"
 import StudentInfoSection from "@/components/studentinfo/student_info"
 import AddressSection from "@/components/studentinfo/address"
 import FamilyInfoSection from "@/components/studentinfo/family_info"
 import SchoolInfoSection from "@/components/studentinfo/school_info"
 import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
-
+import { programOptions, religionOptions, incomeOptions, partialFieldsStudent } from "@/utils/enrollmentHelper.js"
 
 import { getEnrollee } from "@/services/enrollmentAPI"
+import { useUserRole } from "@/utils/userRole"
 
-export default function StudentInformationFormk() {
+export default function EnrollmentForm({ mode, editType }) {
+  const userRole = useUserRole();
+  const [isEditing, setIsEditing] = useState(mode === "edit")
+  const [step, setStep] = useState(1)
+  const [isAgreed, setIsAgreed] = useState(false)
+
   const schoolyear = () => {
     // "2025-2026"
   }
@@ -84,9 +90,6 @@ export default function StudentInformationFormk() {
     }
   });
 
-  const [isEditing, setIsEditing] = useState(true)
-  const [step, setStep] = useState(1)
-  const [isAgreed, setIsAgreed] = useState(false)
 
   useEffect(() => {
     const fetchStudentInfo = async () => {
@@ -154,14 +157,21 @@ export default function StudentInformationFormk() {
       }
     }
   };
+    const canEditField = (fieldName) => {
+      if (!isEditing) return false;
+  
+      if (userRole === "registrar") {
+        return editType === "full" || (editType === "partial" && partialFieldsAdmin.includes(fieldName));
+      }
+  
+      if (userRole === "student") {
+        return partialFieldsStudent.includes(fieldName);
+      }
+  
+      return false;
+    };
 
   return (
-    <div className="student-form-wrapper">
-      <h1 className="student-form-title">Enrollment</h1>
-
-      <div className="student-form-container">
-        <div className="student-form-header">School Year: {schoolyear}</div>
-
         <form ref={formRef}>
           <div className="student-form-content">
 
@@ -173,54 +183,58 @@ export default function StudentInformationFormk() {
                 </div>
 
                 <StudentInfoSection
-                  personalInfo={studentData}
                   isEditing={isEditing}
+                  personalInfo={studentData}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   religionOptions={religionOptions}
                 />
-                <AddressSection
-                  addressInfo={studentData}
+
+                <AddressSection addressInfo={studentData}
+                  canEditField={canEditField} onChange={handleFieldChange} />
+
+
+                <FamilyInfoSection familyInfo={studentData.student_family_info}
                   isEditing={isEditing}
-                  onChange={handleFieldChange}
-                />
-                <FamilyInfoSection
-                  familyInfo={studentData.student_family_info}
-                  isEditing={isEditing}
-                  onChange={handleFieldChange}
-                />
-                <SchoolInfoSection
-                  educationInfo={studentData}
-                  isEditing={isEditing}
-                  onChange={handleFieldChange}
-                />
+                  canEditField={canEditField} onChange={handleFieldChange} />
+
+
+                <SchoolInfoSection educationInfo={studentData}
+                  canEditField={canEditField} onChange={handleFieldChange} />
+
               </>
             )}
 
             {step === 2 && (
               <div className="guardian-section">
                 <SectionHeader title="GUARDIAN INFORMATION" />
+
                 <GuardianInfoComponent
                   title="Mother's Information"
-                  guardianData={studentData}
-                  isEditing={isEditing}
+                  guardianData={studentData.student_family_info}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
                   religionOptions={religionOptions}
                   prefix="mother"
                 />
+
+
                 <GuardianInfoComponent
                   title="Father's Information"
-                  guardianData={studentData}
-                  isEditing={isEditing}
+                  guardianData={studentData.student_family_info}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
                   religionOptions={religionOptions}
                   prefix="father"
                 />
+
+
                 <GuardianInfoComponent
                   title="Guardian's Information"
-                  guardianData={studentData}
-                  isEditing={isEditing}
+                  guardianData={studentData.student_family_info}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
                   religionOptions={religionOptions}
@@ -287,7 +301,5 @@ export default function StudentInformationFormk() {
           </div>
 
         </form>
-      </div>
-    </div>
   )
 }

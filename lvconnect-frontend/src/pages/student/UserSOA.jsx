@@ -22,11 +22,11 @@ const StudentSoa = () => {
 
 
   return (
-    <div className="statement-container">
+    <div className="">
       {/* Header */}
       <div className="statement-header">
         <div className="header-title-container">
-          <h1 className="header-title">Statement of Account</h1>
+          <h1 className="text-2xl font-bold text-[#1a2b4c]">Statement of Account</h1>
         </div>
       </div>
 

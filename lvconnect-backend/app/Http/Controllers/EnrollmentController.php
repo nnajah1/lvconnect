@@ -24,22 +24,42 @@ class EnrollmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
         $user = JWTAuth::authenticate();
 
         if ($user->hasRole('student')) {
             $studentInfoId = $user->student_information_id;
 
-            return EnrollmentSchedule::where('is_active', true)
+            $activeSchedule = EnrollmentSchedule::where('is_active', true)
                 ->with([
-                    'enrolleeRecords' => function ($query) use ($studentInfoId) {
-                        $query->where('student_information_id', $studentInfoId);
-                    }
+                    'academicYear',
+                    'enrollees' => function ($q) use ($studentInfoId) {
+                        // Only include enrollee records for this student
+                        $q->where('student_information_id', $studentInfoId);
+                    },
+                    'enrollees.program'
                 ])
-                ->get();
+                ->first();
 
+            if (!$activeSchedule) {
+                return response()->json([
+                    'message' => 'No active enrollment schedule found.'
+                ], 404);
+            }
+
+            return response()->json([
+                'data' => $activeSchedule
+            ]);
         }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+
+    public function AdminView(Request $request)
+    {
+        $user = JWTAuth::authenticate();
 
         $request->validate([
             'academic_year_id' => 'required|exists:academic_years,id',
@@ -203,7 +223,8 @@ class EnrollmentController extends Controller
                 'last_school_attended' => 'required|string|max:255',
                 'previous_school_address' => 'required|string|max:255',
                 'school_type' => 'required|string|max:255',
-                'year_level' => 'required|integer|min:1|max:6'
+                'year_level' => 'required|integer|min:1|max:6',
+                'civil_status' => 'required|in:single,married,divorced,widowed',
             ], [
                 'program_id.required' => 'Program is required.',
                 'program_id.exists' => 'Selected program is invalid.',
@@ -222,6 +243,7 @@ class EnrollmentController extends Controller
                 'previous_school_address.required' => 'Previous school address is required.',
                 'school_type.required' => 'School type is required.',
                 'year_level.max' => 'Year level cannot exceed 6.',
+                'civil_status' => 'Civil Status is required.',
             ]);
 
             $studentInfo = StudentInformation::where('user_id', $user->id)->first();
