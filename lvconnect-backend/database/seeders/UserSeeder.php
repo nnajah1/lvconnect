@@ -24,17 +24,17 @@ class UserSeeder extends Seeder
             $lastName = $faker->lastName;
             $email = strtolower($firstName . '.' . $lastName . $i . '@example.com');
 
-            $users[] = [
+            $user = User::create([
                 'first_name' => $firstName,
-                'last_name' => $lastName,
-                'email' => $email,
-                'password' => Hash::make('password'), // Default password
-                'avatar' => $faker->imageUrl(200, 200, 'people', true, 'Avatar'), // avatar URL
+                'last_name'  => $lastName,
+                'email'      => $email,
+                'password'   => Hash::make('password'),
+                'avatar'     => $faker->imageUrl(200, 200, 'people', true, 'Avatar'),
                 'notify_via_email' => true,
                 'must_change_password' => false,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+            ]);
+
+            $user->assignRole($studentRole);
         }
 
         // Bulk insert
