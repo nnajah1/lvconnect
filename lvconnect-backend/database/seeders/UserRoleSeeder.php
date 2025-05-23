@@ -40,10 +40,12 @@ class UserRoleSeeder extends Seeder
                     'last_name' => $lastName,
                     'email' => $email,
                     'password' => Hash::make('password123'),
+                    'avatar' => $faker->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'notify_via_email' => true,
+                    'must_change_password' => false,
                 ]);
 
                 $user->assignRole($role);
-
             }
 
             $this->command->info("5 users created and assigned role: {$roleName}");

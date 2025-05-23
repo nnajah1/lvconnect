@@ -12,6 +12,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Notifications\MandatorySurveyNotification;
 
 class SurveyController extends Controller
 {
@@ -50,31 +51,31 @@ class SurveyController extends Controller
         return response()->json(['message' => 'Unauthorized'], 403);
     }
 
-public function getSurveyResponses($surveyId)
-{
-    $user = JWTAuth::authenticate();
+    public function getSurveyResponses($surveyId)
+    {
+        $user = JWTAuth::authenticate();
 
-    if (!$user->hasRole('psas')) {
-        return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $responses = SurveyResponse::with([
+            'student', 
+            'answers.question'
+        ])
+        ->where('survey_id', $surveyId)
+        ->whereHas('student.surveys', function ($query) use ($surveyId) {
+            $query->where('survey_id', $surveyId)
+                ->whereNotNull('survey_user.completed_at');
+        })
+        ->get();
+
+        if ($responses->isEmpty()) {
+            return response()->json(['message' => 'No completed responses found'], 404);
+        }
+
+        return response()->json($responses);
     }
-
-    $responses = SurveyResponse::with([
-        'student', 
-        'answers.question'
-    ])
-    ->where('survey_id', $surveyId)
-    ->whereHas('student.surveys', function ($query) use ($surveyId) {
-        $query->where('survey_id', $surveyId)
-              ->whereNotNull('survey_user.completed_at');
-    })
-    ->get();
-
-    if ($responses->isEmpty()) {
-        return response()->json(['message' => 'No completed responses found'], 404);
-    }
-
-    return response()->json($responses);
-}
 
 
     public function checkSubmission($surveyId)
@@ -260,6 +261,14 @@ public function getSurveyResponses($surveyId)
                 ]);
             }
 
+            // Notify students if survey is mandatory
+            if ($survey->visibility_mode === 'mandatory') {
+                $students = User::where('role', 'student')->get();
+                foreach ($students as $student) {
+                    $student->notify(new MandatorySurveyNotification($survey));
+                }
+            }
+
             DB::commit();
             return response()->json([
                 'message' => 'Survey and questions saved successfully.',
@@ -297,8 +306,10 @@ public function getSurveyResponses($surveyId)
         ]);
 
         DB::beginTransaction();
+
         try {
-            $survey = Survey::findOrFail($id);
+            $survey = Survey::where('id', $id)->firstOrFail();
+
             $survey->update([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
@@ -342,6 +353,14 @@ public function getSurveyResponses($surveyId)
             SurveyQuestion::where('survey_id', $survey->id)
                 ->whereNotIn('id', $existingQuestionIds)
                 ->delete();
+
+            // Send notification if visibility is mandatory
+            if ($survey->visibility_mode === 'mandatory') {
+                $students = User::where('role', 'student')->get();
+                foreach ($students as $student) {
+                    $student->notify(new MandatorySurveyNotification($survey));
+                }
+            }
 
             DB::commit();
             return response()->json(['message' => 'Survey updated successfully.']);

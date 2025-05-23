@@ -53,7 +53,6 @@ class OTPNotification extends Notification
     private function getSubject()
     {
         return match ($this->messageType) {
-            'forgot_password' => 'Reset Your Password OTP',
             'new_password' => 'Confirm New Password OTP',
             'unrecognized_device' => 'Verify Your Login Attempt',
             default => 'Your OTP Code',
@@ -66,7 +65,6 @@ class OTPNotification extends Notification
     private function getMessage()
     {
         return match ($this->messageType) {
-            'forgot_password' => 'We received a request to reset your password.',
             'new_password' => 'To set a new password, please verify with this OTP.',
             'unrecognized_device' => 'We detected a login attempt from a new device. If this was you, enter the OTP below.',
             default => 'Here is your one-time password for verification.',
