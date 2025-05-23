@@ -22,4 +22,9 @@ class StudentInformation extends Model
         return $this->hasMany(EnrolleeRecord::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 }

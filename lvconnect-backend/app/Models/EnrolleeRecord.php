@@ -27,10 +27,4 @@ class EnrolleeRecord extends Model
         return $this->belongsTo(EnrollmentSchedule::class, 'enrollment_schedule_id');
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-    
-
 }
