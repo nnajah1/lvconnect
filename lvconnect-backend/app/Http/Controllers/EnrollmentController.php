@@ -208,6 +208,29 @@ class EnrollmentController extends Controller
             ], 500);
         }
     }
+    public function showAllStudentInfo(Request $request)
+    {
+        try {
+            $user = JWTAuth::authenticate();
+
+            if (!$user->hasRole('registrar')) {
+                return response()->json(['message' => 'Unauthorized. Only registrars can access this data.'], 403);
+            }
+
+            $studentIds = StudentInformation::pluck('id');
+
+            return response()->json([
+                'message' => 'Student information IDs retrieved successfully.',
+                'data' => $studentIds,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while fetching student IDs.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
     /**
      * Show Information for pre-filled enrollment for student and registrar.
