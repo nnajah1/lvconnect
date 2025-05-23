@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { actionConditions, actions, registrarSchema } from "@/tableSchemas/enrollment";
+import { actionConditions, actions, enrollActionConditions, enrollActions, registrarNotEnrolledSchema, registrarSchema } from "@/tableSchemas/enrollment";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateFormModal from "@/pages/admins/psas/CreateForm";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
@@ -42,17 +42,17 @@ const Enrollment = () => {
 
 
   const loadEnrollment = async () => {
-  if (!selectedYearObj || !semester) return;
-  setIsLoading(true);
-  try {
-    const data = await getEnrollees({ academic_year_id: selectedYearObj.id, semester });
-    setEnrollment(data);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    if (!selectedYearObj || !semester) return;
+    setIsLoading(true);
+    try {
+      const data = await getEnrollees({ academic_year_id: selectedYearObj.id, semester });
+      setEnrollment(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -66,7 +66,7 @@ const Enrollment = () => {
       setIsLoading(true);
       try {
         const data = await getNotEnrolled();
-        setNotEnrolled(data);
+        setNotEnrolled(data.students);
       } catch (err) {
         console.error(err);
       } finally {
@@ -98,26 +98,26 @@ const Enrollment = () => {
   }, [activeTab, enrollment]);
 
   const notEnrolledData = useMemo(() => {
-    return enrollment.filter(s => s.enrollee_record[0].enrollment_status === "not_enrolled");
+    return notEnrolled.filter(student => student.status === "not_enrolled");
   }, [notEnrolled]);
 
   const getBulkActions = (tab) => {
     switch (tab) {
+      case "enrolled":
+        return [{ label: "Export Selected", onClick: handleBulkExport }];
       case "pending":
         return [
           { label: "Approve Selected", onClick: handleBulkApprove },
           // { label: "Delete Selected", onClick: handleBulkDelete },
         ];
-      case "enrolled":
-        return [{ label: "Export Selected", onClick: handleBulkExport }];
-      case "not_enrolled":
-        return [
-          { label: "Send Reminder", onClick: handleBulkRemind },
-          // { label: "Delete Selected", onClick: handleBulkDelete },
-        ];
       case "rejected":
         return [
           { label: "Send Reminder", onClick: handleBulkRemindRejected },
+          // { label: "Delete Selected", onClick: handleBulkDelete },
+        ];
+      case "not_enrolled":
+        return [
+          { label: "Send Reminder", onClick: handleBulkRemind },
           // { label: "Delete Selected", onClick: handleBulkDelete },
         ];
       default:
@@ -137,6 +137,16 @@ const Enrollment = () => {
     openDirectModal,
     showSelectionColumn: activeTab !== "all",
   });
+   const notEnrolledColumns = getColumns({
+    userRole,
+    schema: registrarNotEnrolledSchema,
+    actions: enrollActions(openDirectModal),
+    actionConditions: enrollActionConditions,
+    context: "formstemplate",
+    openDirectModal,
+    // showSelectionColumn: activeTab !== "all",
+  });
+
 
   const handleBulkExport = async (items) => {
     const ids = items.map((item) => item.id);
@@ -209,9 +219,9 @@ const Enrollment = () => {
     } catch (error) {
       console.error(error);
       toast.error("Failed to approve.");
-    }finally {
-    setIsLoading(false);
-  }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBulkDelete = async (items) => {
@@ -318,10 +328,10 @@ const Enrollment = () => {
       <DynamicTabs
         tabs={[
           { label: "All", value: "all" },
-          { label: "Pending", value: "pending" },
           { label: "Enrolled", value: "enrolled" },
-          { label: "Not Enrolled", value: "not_enrolled" },
+          { label: "Pending", value: "pending" },
           { label: "Rejected", value: "rejected" },
+          { label: "Not Enrolled", value: "not_enrolled" },
         ]}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -330,7 +340,7 @@ const Enrollment = () => {
 
       {activeTab === "not_enrolled" ? (
         <DataTable
-          columns={templateColumns}
+          columns={notEnrolledColumns}
           data={notEnrolledData}
           bulkActions={getBulkActions("not_enrolled")}
           globalFilter={globalFilter}

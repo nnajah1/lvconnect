@@ -30,6 +30,7 @@ const Enrollees = ({ mode, editType }) => {
   const [studentData, setStudentData] = useState({
     program_id: 1,
     year_level: 1,
+    email: "",
     student_id_number: "",
     first_name: "",
     middle_name: "",
@@ -109,10 +110,25 @@ const Enrollees = ({ mode, editType }) => {
     return <Loader2 />;
   }
 
-  const handleChangeImage = () => {
+  // change image
+  // const fileInputRef = useRef(null);
 
-    console.log("Change image clicked")
-  }
+  const handleChangeImage = () => {
+    // fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    // const file = e.target.files[0];
+    // if (file) {
+    //   // Preview image by reading as data URL
+    //   const reader = new FileReader();
+    //   reader.onload = () => {
+    //     setProfileImage(reader.result);
+    //   };
+    //   reader.readAsDataURL(file);
+
+    // }
+  };
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing)
@@ -163,45 +179,74 @@ const Enrollees = ({ mode, editType }) => {
   };
 
   function mapToApiPayload(data, studentId) {
-    return {
+    const baseLoad = {
       user_id: studentId,
+      profileImage: data.user.avatar,
       program_id: data.enrollee_record?.[0].program_id,
       year_level: data.enrollee_record?.[0].year_level,
       privacy_policy: true,
-      address: {
-        building_no: data["floor/unit/building_no"],
-        street: data["house_no/street"],
-        barangay: data.barangay,
-        city: data.city_municipality,
-        province: data.province,
-        zip: data.zip_code,
-      },
+      "floor/unit/building_no": data["floor/unit/building_no"],
+      "house_no/street": data["house_no/street"],
+      barangay: data.barangay,
+      city_municipality: data.city_municipality,
+      province: data.province,
+      zip_code: data.zip_code,
       mobile_number: data.mobile_number,
       student_id_number: data.student_id_number,
       fb_link: data.fb_link,
-      guardian: {
-        first_name: data.student_family_info.guardian_first_name,
-        middle_name: data.student_family_info.guardian_middle_name,
-        last_name: data.student_family_info.guardian_last_name,
-        religion: data.student_family_info.guardian_religion,
-        occupation: data.student_family_info.guardian_occupation,
-        monthly_income: data.student_family_info.guardian_monthly_income,
-        mobile_number: data.student_family_info.guardian_mobile_number,
-        relationship: data.student_family_info.guardian_relationship,
-      },
-      mother: {
-        religion: data.student_family_info.mother_religion,
-        occupation: data.student_family_info.mother_occupation,
-        monthly_income: data.student_family_info.mother_monthly_income,
-        mobile_number: data.student_family_info.mother_mobile_number,
-      },
-      father: {
-        religion: data.student_family_info.father_religion,
-        occupation: data.student_family_info.father_occupation,
-        monthly_income: data.student_family_info.father_monthly_income,
-        mobile_number: data.student_family_info.father_mobile_number,
-      }
+      last_school_attended: data.last_school_attended,
+      previous_school_address: data.previous_school_address,
+      school_type: data.school_type,
+      mobile_number: data.mobile_number,
+      religion: data.religion,
+      fb_link: data.fb_link,
+      government_subsidy: data.government_subsidy,
+      num_children_in_family: data.student_family_info.num_children_in_family,
+      birth_order: data.student_family_info.birth_order,
+      has_sibling_in_lvcc: data.student_family_info.has_sibling_in_lvcc,
+      guardian_first_name: data.student_family_info.guardian_first_name,
+      guardian_middle_name: data.student_family_info.guardian_middle_name,
+      guardian_last_name: data.student_family_info.guardian_last_name,
+      guardian_religion: data.student_family_info.guardian_religion,
+      guardian_occupation: data.student_family_info.guardian_occupation,
+      guardian_monthly_income: data.student_family_info.guardian_monthly_income,
+      guardian_mobile_number: data.student_family_info.guardian_mobile_number,
+      guardian_relationship: data.student_family_info.guardian_relationship,
+      mother_religion: data.student_family_info.mother_religion,
+      mother_occupation: data.student_family_info.mother_occupation,
+      mother_monthly_income: data.student_family_info.mother_monthly_income,
+      mother_mobile_number: data.student_family_info.mother_mobile_number,
+      father_religion: data.student_family_info.father_religion,
+      father_occupation: data.student_family_info.father_occupation,
+      father_monthly_income: data.student_family_info.father_monthly_income,
+      father_mobile_number: data.student_family_info.father_mobile_number,
+
     };
+    if (editType === "partial") {
+      return baseLoad;
+    }
+
+    if (editType === "full") {
+      return {
+        ...baseLoad,
+        email: data.user.email,
+        first_name: data.first_name,
+        middle_name: data.middle_name,
+        last_name: data.last_name,
+        civil_status: data.civil_status,
+        gender: data.gender,
+        birth_date: data.birth_date,
+        birth_place: data.birth_place,
+        student_type: data.student_type,
+        scholarship_status: data.scholarship_status,
+        mother_first_name: data.student_family_info.mother_first_name,
+        mother_middle_name: data.student_family_info.mother_middle_name,
+        mother_last_name: data.student_family_info.father_last_name,
+        father_first_name: data.student_family_info.father_first_name,
+        father_middle_name: data.student_family_info.father_middle_name,
+        father_last_name: data.student_family_info.father_last_name,
+      };
+    }
   }
 
   const handleSave = async () => {
@@ -209,7 +254,7 @@ const Enrollees = ({ mode, editType }) => {
     setSuccess(null);
 
     try {
-      const payload = mapToApiPayload(studentData, studentId);
+      const payload = mapToApiPayload(studentData, studentId, editType);
 
       let response;
       if (editType === "partial") {
@@ -265,6 +310,7 @@ const Enrollees = ({ mode, editType }) => {
           canEditField={canEditField}
           onChange={handleFieldChange}
           programOptions={programOptions}
+          handleFileChange={handleFileChange}
         />
       </div>
 

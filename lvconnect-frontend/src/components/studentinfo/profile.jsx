@@ -2,8 +2,9 @@
 
 import FormField from "./form_field"
 import '@/styles/student_information.css'
+import placeholderImg from "@/assets/placeholder.svg"
 
-export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange, canEditField, programOptions }) {
+export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange, canEditField, programOptions, handleFileChange }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     onChange(name, value);
@@ -16,16 +17,24 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
         <div className="profile_image_wrapper">
           <div className="profile_image_box">
             <img
-              src={profileImage || "/placeholder.svg?height=100&width=100"}
+              src={profileImage || placeholderImg}
               alt="Profile"
               className="profile_image"
             />
+
+            {/* <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            /> */}
           </div>
-          {isEditing && (
+          {/* {isEditing && (
             <button onClick={onChangeImage} className="profile_change_btn">
               Change
             </button>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -65,7 +74,7 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
           />
           <FormField
             label="Email Address"
-            value={profileData.email}
+            value={profileData.user?.email}
             isEditing={canEditField("email")}
             onChange={handleChange}
             name="email"

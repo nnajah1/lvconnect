@@ -14,7 +14,7 @@ export const registrarSchema = {
     }
   },
   student_id_number: { header: "ID", display: true },
-  course: { header: "Course", display: true },
+  program_name: { header: "Course", display: true },
   year: {
     header: "Year", display: true,
     customCell: (value, original) => {

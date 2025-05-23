@@ -104,3 +104,63 @@ export const actionConditions = {
   reject: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'pending',
   enroll: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'not_enrolled',
 };
+
+
+export const registrarNotEnrolledSchema = {
+
+    name: {
+    header: "Name",
+    display: true,
+    filterable: true, 
+  },
+  student_id: { header: "ID", display: true, },
+  // program_name: { header: "Course", display: true },
+  // year: {
+  //   header: "Year", display: true, sortable: true,
+  //   customCell: (value, original) => {
+  //     const year = original?.enrollee_record?.[0]?.year_level;
+  //     const yearMap = {
+  //       1: "1st Year",
+  //       2: "2nd Year",
+  //       3: "3rd Year",
+  //       4: "4th Year",
+  //     };
+  //     return year ? yearMap[year] || `${year}th Year` : "-";
+  //   }
+
+  // },
+  status: {
+    header: "Status",
+    sortable: false,
+    display: true,
+     customCell: (value, original) => {
+    const formattedStatus = value
+      .replace(/_/g, ' ')                      // Replace underscores with spaces
+      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize each word
+
+    return formattedStatus;
+  }
+
+  },
+};
+
+export const enrollActions = ( openDirectModal) => ({
+
+  enroll: {
+    icon: (item) => 
+          <div className="flex items-center justify-center gap-1.5">
+            <Pencil className="h-4 w-4 text-white" />
+            <span className="hidden sm:inline text-white font-medium">Direct Enroll</span>
+          </div>,
+  
+    fn: (id, item) => openDirectModal(item),
+    variant: (item) => "default",
+    className: "hover:bg-blue-300 bg-blue-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+  },
+
+})
+
+
+export const enrollActionConditions = {
+  enroll: (item, context, userRole) => true,
+};

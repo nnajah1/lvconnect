@@ -13,16 +13,15 @@ export const incomeOptions = [
 ]
 
 export const religionOptions = [
+  "MCGI",
   "Catholic",
-  "Islam",
+  "Muslim",
   "Protestant",
-  "Iglesia ni Cristo",
+  "Christian",
   "Seventh Day Adventist",
-  "Born Again Christian",
   "Buddhist",
   "Hindu",
   "Judaism",
-  "Other",
 ]
 
 export const programOptions = [

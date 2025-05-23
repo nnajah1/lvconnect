@@ -70,7 +70,8 @@ export default function StudentInfoSection({ personalInfo, canEditField, onChang
           isEditing={canEditField("gender")}
           onChange={handleChange}
           name="gender"
-          options={["Male", "Female", "Other"]}
+          options={[{ value: "male", label: "Male" },
+          { value: "female", label: "Female" },]}
         />
         <FormField
           label="Civil Status"
@@ -79,7 +80,11 @@ export default function StudentInfoSection({ personalInfo, canEditField, onChang
           isEditing={canEditField("civil_status")}
           onChange={handleChange}
           name="civil_status"
-          options={["Single", "Married", "Widowed", "Separated", "Divorced"]}
+          options={[{ value: "single", label: "Single" },
+          { value: "married", label: "Married" },
+          { value: "widowed", label: "Widowed" },
+          { value: "separated", label: "Separated" },
+          { value: "divorced", label: "Divorced" },]}
         />
       </div>
 
