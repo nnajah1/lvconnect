@@ -3,11 +3,11 @@
 import "@/styles/student_information.css"
 import FormField from "./form_field"
 
-export default function SchoolInfoSection({ educationInfo, isEditing, onChange }) {
+export default function SchoolInfoSection({ educationInfo, isEditing, onChange, canEditField }) {
   const handleChange = (e) => {
-    const { name, value } = e.target
-    onChange("education", name, value)
-  }
+    const { name, value } = e.target;
+    onChange(name, value);
+  };
 
   return (
     <div className="school_section_container">
@@ -15,24 +15,24 @@ export default function SchoolInfoSection({ educationInfo, isEditing, onChange }
         <FormField
           label="School Last Attended"
           value={educationInfo.last_school_attended}
-          isEditing={isEditing}
+          isEditing={canEditField("last_school_attended")}
           onChange={handleChange}
-          name="schoolLastAttended"
+          name="last_school_attended"
         />
         <FormField
           label="Address"
           value={educationInfo.previous_school_address}
-          isEditing={isEditing}
+          isEditing={canEditField("previous_school_address")}
           onChange={handleChange}
-          name="schoolAddress"
+          name="previous_school_address"
         />
         <FormField
           label="Type"
           value={educationInfo.school_type}
           maxWidth="md:max-w-[150px]"
-          isEditing={isEditing}
+          isEditing={canEditField("school_type")}
           onChange={handleChange}
-          name="schoolType"
+          name="school_type"
           options={["Public", "Private", "State University"]}
         />
       </div>

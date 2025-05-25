@@ -6,22 +6,21 @@ import { useAuthContext } from "@/context/AuthContext";
 import { roleMenus } from "@/config/roleMenus";
 
 const Sidebar = ({ isExpanded, setIsExpanded }) => {
-  const { user } = useAuthContext(); 
+  const { user } = useAuthContext();
 
-    // Get user role and set menu dynamically
-    const userRole = user?.roles?.[0]?.name || "student"; // Default to student
-    const menuItems = roleMenus[userRole] || [];
-  
+  // Get user role and set menu dynamically
+  const userRole = user?.roles?.[0]?.name || "student"; // Default to student
+  const menuItems = roleMenus[userRole] || [];
+
   return (
     <div
-      className={`fixed h-screen bg-sidebar-foreground text-white p-4 flex flex-col transition-all duration-300 ${
-        isExpanded ? "w-64" : "w-20"
-      }`}
+      className={`fixed h-screen bg-sidebar-foreground text-white p-4 flex flex-col transition-all duration-300 ${isExpanded ? "w-64" : "w-20"
+        }`}
     >
       {/* Sidebar Toggle Button */}
       <div className={`flex ${isExpanded ? "justify-end" : "justify-center"} mb-4`}>
         <button onClick={() => setIsExpanded(!isExpanded)} className="text-white">
-          {isExpanded ? <RxTextAlignJustify  size={21} /> : <RxTextAlignJustify size={21} />}
+          {isExpanded ? <RxTextAlignJustify size={21} /> : <RxTextAlignJustify size={21} />}
         </button>
       </div>
 
@@ -40,14 +39,17 @@ const Sidebar = ({ isExpanded, setIsExpanded }) => {
 
       {/* Navigation Menu */}
       <nav>
-      <ul className="space-y-2">
-          {menuItems.map(({ name, path, solidIcon, outlineIcon }) => {
-            const Icon = location.pathname === path ? solidIcon : outlineIcon;
+        <ul className="space-y-2">
+          {menuItems.map(({ name, path, match, solidIcon, outlineIcon }) => {
+            const isActive = location.pathname === path || location.pathname.startsWith(match + "/");
+
+            const Icon = isActive ? solidIcon : outlineIcon;
             return (
               <li key={name}>
                 <Link
                   to={path}
-                  className={`flex items-center ${isExpanded ? "space-x-3" : "justify-center"} p-2 rounded-md ${location.pathname === path ? "bg-[#20C1FB]" : ""}`}
+                  className={`flex items-center ${isExpanded ? "space-x-3" : "justify-center"
+                    } p-2 rounded-md ${isActive ? "bg-[#20C1FB]" : ""}`}
                 >
                   <Icon size={21} className="text-white" />
                   {isExpanded && <span>{name}</span>}

@@ -6,9 +6,10 @@ import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import UserCreateSurveyModal from './UserCreateSurvey';
 import { getSurveys } from '@/services/surveyAPI';
 import SearchBar from '@/components/dynamic/searchBar';
+import { useUserRole } from '@/utils/userRole';
 
-const VisibleSurveys = ({ userRole }) => {
-
+const VisibleSurveys = () => {
+  const userRole = useUserRole();
   const [survey, setSurvey] = useState([]);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
@@ -41,18 +42,21 @@ const VisibleSurveys = ({ userRole }) => {
     sorting,
     setSorting
   });
-  
+
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold mb-4">Surveys</h1>
+        <h1 className="text-2xl font-bold mb-4"></h1>
         {/* Search Input */}
-       <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
+        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
-
-       <DataTable columns={Columns} data={survey} context="Surveys" globalFilter={globalFilter} />
-      
+      <div className="student-service-school-forms-container">
+        <div className="student-service-school-forms-header">
+          Surveys
+        </div>
+        <DataTable columns={Columns} data={survey} context="Surveys" globalFilter={globalFilter} />
+      </div>
       {/* Modals */}
       {formItem && (
         <UserCreateSurveyModal

@@ -9,21 +9,28 @@ import SchoolInfoSection from "@/components/studentinfo/school_info"
 import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
 import ActionButtons from "@/components/studentinfo/action"
-import { getEnrollee } from "@/services/enrollmentAPI";
-import { program, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
+import { createEnrollee, editStudentData, getEnrollee } from "@/services/enrollmentAPI";
+import {mapToApiPayload, programOptions, religionOptions, incomeOptions, partialFieldsAdmin, partialFieldsStudent } from "@/utils/enrollmentHelper.js"
+import { useUserRole } from "@/utils/userRole";
+import { Loader2 } from "@/components/dynamic/loader";
 
-const Enrollees = ({ userRole }) => {
+const Enrollees = ({ mode, editType }) => {
+  const userRole = useUserRole();
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || '/';
+  const isLoadingFromNav = location.state?.isLoading || false;
+
   const { studentId } = useParams();
   const handleBack = () => navigate(from);
 
   const [profileImage, setProfileImage] = useState("")
-  const [isEditing, setIsEditing] = useState(false)
-
+  const [isEditing, setIsEditing] = useState(mode === "edit")
 
   const [studentData, setStudentData] = useState({
+    program_id: 1,
+    year_level: 1,
+    email: "",
     student_id_number: "",
     first_name: "",
     middle_name: "",
@@ -43,16 +50,17 @@ const Enrollees = ({ userRole }) => {
     previous_school_address: "",
     school_type: "",
     academic_awards: "",
-    floorUnitBuildingNo: "",
-    houseNoStreet: "",
+    "floor/unit/building_no": "",
+    "house_no/street": "",
     barangay: "",
     city_municipality: "",
     province: "",
     zip_code: "",
+    privacy_policy: "",
     student_family_info: {
-      num_children_in_family: 4,
-      birth_order: 4,
-      has_siibling_in_lvcc: 0,
+      num_children_in_family: 0,
+      birth_order: 0,
+      has_sibling_in_lvcc: false,
       mother_first_name: "",
       mother_middle_name: "",
       mother_last_name: "",
@@ -78,27 +86,52 @@ const Enrollees = ({ userRole }) => {
     }
   });
 
+  const [isLoading, setIsLoading] = useState(isLoadingFromNav);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
   useEffect(() => {
+    if (!studentId) return;
+
     const loadStudentInfo = async () => {
-      const data = await getEnrollee(studentId);
-      setStudentData(data);
+      setIsLoading(true);
+      try {
+        const data = await getEnrollee(studentId);
+        setStudentData(data);
+      } finally {
+        setIsLoading(false);
+      }
     };
+
     loadStudentInfo();
-  }, []);
+  }, [studentId]);
+
+  if (isLoading) {
+    return <Loader2 />;
+  }
+
+  // change image
+  // const fileInputRef = useRef(null);
 
   const handleChangeImage = () => {
+    // fileInputRef.current.click();
+  };
 
-    console.log("Change image clicked")
-  }
+  const handleFileChange = (e) => {
+    // const file = e.target.files[0];
+    // if (file) {
+    //   // Preview image by reading as data URL
+    //   const reader = new FileReader();
+    //   reader.onload = () => {
+    //     setProfileImage(reader.result);
+    //   };
+    //   reader.readAsDataURL(file);
+
+    // }
+  };
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing)
-  }
-
-  const handleSave = () => {
-
-    console.log("Saving data:", studentData)
-    setIsEditing(false)
   }
 
   const handleArchive = () => {
@@ -112,16 +145,75 @@ const Enrollees = ({ userRole }) => {
     setIsEditing(false)
   }
 
-  const handleFieldChange = (section, field, value) => {
-    setStudentData((prevData) => ({
-      ...prevData,
-      [section]: {
-        ...prevData[section],
-        [field]: value,
-      },
-    }))
-  }
+  const handleFieldChange = (name, value) => {
+    setStudentData((prev) => {
+      const keys = name.split(".");
 
+      if (keys.length === 1) {
+        return { ...prev, [name]: value };
+      } else {
+        const [section, field] = keys;
+        return {
+          ...prev,
+          [section]: {
+            ...prev[section],
+            [field]: value,
+          },
+        };
+      }
+    });
+  };
+
+  const canEditField = (fieldName) => {
+    if (!isEditing) return false;
+
+    if (userRole === "registrar") {
+      return editType === "full" || (editType === "partial" && partialFieldsAdmin.includes(fieldName));
+    }
+
+    if (userRole === "student") {
+      return partialFieldsStudent.includes(fieldName);
+    }
+
+    return false;
+  };
+
+  const handleSave = async () => {
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const payload = mapToApiPayload(studentData, studentId, editType);
+
+      let response;
+      if (editType === "partial") {
+        response = await createEnrollee(studentId, payload);
+        s
+      } else if (editType === "full") {
+        response = await editStudentData(studentId, payload);
+      } else {
+        throw new Error("Unknown edit type.");
+      }
+
+      setSuccess("Enrollment submitted successfully!");
+      setIsEditing(false);
+      console.log("API Response:", response.data);
+    } catch (error) {
+      console.error("Enrollment submission error:", error);
+
+      if (error.response) {
+        if (error.response.status === 422) {
+          setError("Validation failed. Please check your inputs.");
+        } else if (error.response.status === 409) {
+          setError("You have already enrolled.");
+        } else {
+          setError("An error occurred. Please try again.");
+        }
+      } else {
+        setError("Network error. Please try again later.");
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col items-start w-full min-h-screen">
@@ -135,33 +227,44 @@ const Enrollees = ({ userRole }) => {
           handleCancel={handleCancel}
           handleEditToggle={handleEditToggle}
           handleBack={handleBack}
+          mode={mode}
+          userRole={userRole}
+          editType={editType}
         />
 
         <ProfileSection
+          isEditing={isEditing}
           profileData={studentData}
           profileImage={profileImage}
           onChangeImage={handleChangeImage}
-          isEditing={isEditing}
+          canEditField={canEditField}
           onChange={handleFieldChange}
+          programOptions={programOptions}
+          handleFileChange={handleFileChange}
         />
       </div>
 
 
       <div className="w-full">
         <StudentInfoSection
-          personalInfo={studentData}
           isEditing={isEditing}
+          personalInfo={studentData}
+          canEditField={canEditField}
           onChange={handleFieldChange}
           religionOptions={religionOptions}
         />
 
-        <AddressSection addressInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
+        <AddressSection addressInfo={studentData}
+          canEditField={canEditField} onChange={handleFieldChange} />
 
 
-        <FamilyInfoSection familyInfo={studentData.student_family_info} isEditing={isEditing} onChange={handleFieldChange} />
+        <FamilyInfoSection familyInfo={studentData.student_family_info}
+          isEditing={isEditing}
+          canEditField={canEditField} onChange={handleFieldChange} />
 
 
-        <SchoolInfoSection educationInfo={studentData} isEditing={isEditing} onChange={handleFieldChange} />
+        <SchoolInfoSection educationInfo={studentData}
+          canEditField={canEditField} onChange={handleFieldChange} />
 
 
         <div className="w-full">
@@ -171,7 +274,7 @@ const Enrollees = ({ userRole }) => {
           <GuardianInfoComponent
             title="Mother's Information"
             guardianData={studentData.student_family_info}
-            isEditing={isEditing}
+            canEditField={canEditField}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
             religionOptions={religionOptions}
@@ -182,7 +285,7 @@ const Enrollees = ({ userRole }) => {
           <GuardianInfoComponent
             title="Father's Information"
             guardianData={studentData.student_family_info}
-            isEditing={isEditing}
+            canEditField={canEditField}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
             religionOptions={religionOptions}
@@ -193,7 +296,7 @@ const Enrollees = ({ userRole }) => {
           <GuardianInfoComponent
             title="Guardian's Information"
             guardianData={studentData.student_family_info}
-            isEditing={isEditing}
+            canEditField={canEditField}
             onChange={handleFieldChange}
             incomeOptions={incomeOptions}
             religionOptions={religionOptions}

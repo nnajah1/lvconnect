@@ -21,18 +21,17 @@ import VisibleForms from "./pages/student/UserSchoolForm";
 import StudentView from "./components/school_forms/userSubmitForm";
 import Surveys from "./pages/admins/psas/Surveys";
 import VisibleSurveys from "./pages/student/UserSurvey";
-import CreateNewFormsz from "./Psas_pages/schoolforms/create_forms/create_new_forms";
-import Psos from "./Psas_pages/schoolforms/view_weather_response";
-import InclementWeatherForm from "./student_pages/student_response/weather_response";
 import SurveyResponses from "./pages/admins/psas/SurveyResponses";
 import Enrollment from "./pages/registrar/Enrollment";
 import Enrollees from "./pages/registrar/Enrollees";
-import StudentServices from "./student_pages/student_services/allcontent_student_services";
 import StudentSoa from "./pages/student/UserSOA";
 import UserEnrollment from "./pages/student/UserEnrollment";
 import AdminSoa from "./pages/registrar/Soa";
-import StudentInformationForms from "./student_pages/enrollment/enrollment_form";
-import StudentInformationFormk from "./student_pages/enrollment/enrollment_form";
+import EditStudentInformation from "./pages/registrar/DirectEnrollment";
+import StudentInformation from "./pages/registrar/StudentInformation";
+import DirectEnrollment from "./pages/registrar/DirectEnrollment";
+import SemesterGrades from "./student_pages/grades/semestergrades";
+import Grades from "./pages/student/UserGrade";
 
 
 
@@ -81,8 +80,8 @@ const router = createBrowserRouter([
                         handle: { roles: ['student'] },
                         children: [
                             { index: true, element: <UserDashboard /> },
-                            { path: "enrollment", element: <UserEnrollment /> },
-                            { path: "grades", element: <UserDashboard /> },
+                            { path: "enrollment", element: <UserEnrollment mode="edit" editType="partial"/> },
+                            { path: "grades", element: <Grades /> },
                             { path: "soa", element: <StudentSoa /> },
                             { path: "surveys", element: <VisibleSurveys /> },
                             { path: "student-services", element: <VisibleForms /> },
@@ -125,8 +124,11 @@ const router = createBrowserRouter([
                         children: [
                             { index: true, element: <AdminDashboard /> },
                             { path: "enrollment", element: <Enrollment /> },
-                            { path: "enrollment/student-information/:studentId", element: <Enrollees /> },
-                            { path: "student-information-management", element: <AdminDashboard /> },
+                            { path: "enrollment/student-information/:studentId", element: <Enrollees mode="view"/> },
+                            { path: "enrollment/student-information/:studentId/edit", element: <Enrollees mode="edit" editType="partial"/>},
+                            { path: "student-information-management/:studentId/edit", element: <Enrollees mode="edit" editType="full"/>},
+                            { path: "student-information-management", element: <StudentInformation /> },
+                            { path: "", element: <StudentInformation /> },
                             { path: "soa", element: <AdminSoa /> },
                         ],
                     },
@@ -146,8 +148,7 @@ const router = createBrowserRouter([
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
     { path: "/trial", element: <StudentView /> },
-    // { path: "/app", element: <StudentInformationForm/> }
-    { path: "/app", element: <StudentInformationFormk /> }
+    { path: "/app", element: <SemesterGrades /> }
 
 
 

@@ -2,18 +2,24 @@
 
 import { useEffect, useRef, useState } from "react"
 import { ChevronLeft } from "lucide-react"
-import "../student_styling/student_enrollment_form.css"
+import "@/styles/student_enrollment_form.css"
 import StudentInfoSection from "@/components/studentinfo/student_info"
 import AddressSection from "@/components/studentinfo/address"
 import FamilyInfoSection from "@/components/studentinfo/family_info"
 import SchoolInfoSection from "@/components/studentinfo/school_info"
 import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
+import { programOptions, religionOptions, incomeOptions, partialFieldsStudent } from "@/utils/enrollmentHelper.js"
 
-import { program, religionOptions, incomeOptions } from "@/utils/enrollmentHelper.js"
 import { getEnrollee } from "@/services/enrollmentAPI"
+import { useUserRole } from "@/utils/userRole"
 
-export default function StudentInformationFormk() {
+export default function EnrollmentForm({ mode, editType }) {
+  const userRole = useUserRole();
+  const [isEditing, setIsEditing] = useState(mode === "edit")
+  const [step, setStep] = useState(1)
+  const [isAgreed, setIsAgreed] = useState(false)
+
   const schoolyear = () => {
     // "2025-2026"
   }
@@ -27,66 +33,63 @@ export default function StudentInformationFormk() {
   const dataPrivacyPolicy = () => {
     // "lorem"
   }
- 
 
-   const [studentData, setStudentData] = useState({
-      student_id_number: "",
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      civil_status: "",
-      gender: "",
-      birth_date: "",
-      birth_place: "",
-      mobile_number: "",
-      religion: "",
-      lrn: "",
-      fb_link: "",
-      student_type: "",
-      government_subsidy: "",
-      scholarship_status: "",
-      last_school_attended: "",
-      previous_school_address: "",
-      school_type: "",
-      academic_awards: "",
-      floorUnitBuildingNo: "",
-      houseNoStreet: "",
-      barangay: "",
-      city_municipality: "",
-      province: "",
-      zip_code: "",
-      student_family_info: {
-        num_children_in_family: 4,
-        birth_order: 4,
-        has_siibling_in_lvcc: 0,
-        mother_first_name: "",
-        mother_middle_name: "",
-        mother_last_name: "",
-        mother_religion: "",
-        mother_occupation: "",
-        mother_monthly_income: "",
-        mother_mobile_number: "",
-        father_first_name: "",
-        father_middle_name: "",
-        father_last_name: "",
-        father_religion: "",
-        father_occupation: "",
-        father_monthly_income: "",
-        father_mobile_number: "",
-        guardian_first_name: "",
-        guardian_middle_name: "",
-        guardian_last_name: "",
-        guardian_religion: "",
-        guardian_occupation: "",
-        guardian_monthly_income: "",
-        guardian_mobile_number: "",
-  
-      }
-    });
 
-  const [isEditing, setIsEditing] = useState(true)
-  const [step, setStep] = useState(1)
-  const [isAgreed, setIsAgreed] = useState(false)
+  const [studentData, setStudentData] = useState({
+    student_id_number: "",
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    civil_status: "",
+    gender: "",
+    birth_date: "",
+    birth_place: "",
+    mobile_number: "",
+    religion: "",
+    lrn: "",
+    fb_link: "",
+    student_type: "",
+    government_subsidy: "",
+    scholarship_status: "",
+    last_school_attended: "",
+    previous_school_address: "",
+    school_type: "",
+    academic_awards: "",
+    floorUnitBuildingNo: "",
+    houseNoStreet: "",
+    barangay: "",
+    city_municipality: "",
+    province: "",
+    zip_code: "",
+    student_family_info: {
+      num_children_in_family: 0,
+      birth_order: 0,
+      has_sibling_in_lvcc: true,
+      mother_first_name: "",
+      mother_middle_name: "",
+      mother_last_name: "",
+      mother_religion: "",
+      mother_occupation: "",
+      mother_monthly_income: "",
+      mother_mobile_number: "",
+      father_first_name: "",
+      father_middle_name: "",
+      father_last_name: "",
+      father_religion: "",
+      father_occupation: "",
+      father_monthly_income: "",
+      father_mobile_number: "",
+      guardian_first_name: "",
+      guardian_middle_name: "",
+      guardian_last_name: "",
+      guardian_religion: "",
+      guardian_occupation: "",
+      guardian_monthly_income: "",
+      guardian_mobile_number: "",
+
+    }
+  });
+
 
   useEffect(() => {
     const fetchStudentInfo = async () => {
@@ -96,7 +99,7 @@ export default function StudentInformationFormk() {
 
         setStudentData((prev) => ({
           ...prev,
-          contact_number: data.mobile_number,
+          mobile_number: data.mobile_number,
           address: {
             building_no: data["floor/unit/building_no"],
             street: data["house_no/street"],
@@ -129,16 +132,16 @@ export default function StudentInformationFormk() {
   const goToPreviousStep = () => setStep((prev) => prev - 1)
 
   const formRef = useRef(null);
-const handleNextStep = (e) => {
-  e.preventDefault();
+  const handleNextStep = (e) => {
+    e.preventDefault();
 
-  if (!formRef.current.checkValidity()) {
-    formRef.current.reportValidity();
-    return;
-  }
+    if (!formRef.current.checkValidity()) {
+      formRef.current.reportValidity();
+      return;
+    }
 
-  goToNextStep();
-};
+    goToNextStep();
+  };
 
 
   const handleSubmit = async () => {
@@ -154,14 +157,21 @@ const handleNextStep = (e) => {
       }
     }
   };
+    const canEditField = (fieldName) => {
+      if (!isEditing) return false;
+  
+      if (userRole === "registrar") {
+        return editType === "full" || (editType === "partial" && partialFieldsAdmin.includes(fieldName));
+      }
+  
+      if (userRole === "student") {
+        return partialFieldsStudent.includes(fieldName);
+      }
+  
+      return false;
+    };
 
   return (
-    <div className="student-form-wrapper">
-      <h1 className="student-form-title">Enrollment</h1>
-
-      <div className="student-form-container">
-        <div className="student-form-header">School Year: {schoolyear}</div>
-
         <form ref={formRef}>
           <div className="student-form-content">
 
@@ -173,54 +183,58 @@ const handleNextStep = (e) => {
                 </div>
 
                 <StudentInfoSection
-                  personalInfo={studentData}
                   isEditing={isEditing}
+                  personalInfo={studentData}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   religionOptions={religionOptions}
                 />
-                <AddressSection
-                  addressInfo={studentData}
+
+                <AddressSection addressInfo={studentData}
+                  canEditField={canEditField} onChange={handleFieldChange} />
+
+
+                <FamilyInfoSection familyInfo={studentData.student_family_info}
                   isEditing={isEditing}
-                  onChange={handleFieldChange}
-                />
-                <FamilyInfoSection
-                  familyInfo={studentData.student_family_info}
-                  isEditing={isEditing}
-                  onChange={handleFieldChange}
-                />
-                <SchoolInfoSection
-                  educationInfo={studentData}
-                  isEditing={isEditing}
-                  onChange={handleFieldChange}
-                />
+                  canEditField={canEditField} onChange={handleFieldChange} />
+
+
+                <SchoolInfoSection educationInfo={studentData}
+                  canEditField={canEditField} onChange={handleFieldChange} />
+
               </>
             )}
 
             {step === 2 && (
               <div className="guardian-section">
                 <SectionHeader title="GUARDIAN INFORMATION" />
+
                 <GuardianInfoComponent
                   title="Mother's Information"
-                  guardianData={studentData}
-                  isEditing={isEditing}
+                  guardianData={studentData.student_family_info}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
                   religionOptions={religionOptions}
                   prefix="mother"
                 />
+
+
                 <GuardianInfoComponent
                   title="Father's Information"
-                  guardianData={studentData}
-                  isEditing={isEditing}
+                  guardianData={studentData.student_family_info}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
                   religionOptions={religionOptions}
                   prefix="father"
                 />
+
+
                 <GuardianInfoComponent
                   title="Guardian's Information"
-                  guardianData={studentData}
-                  isEditing={isEditing}
+                  guardianData={studentData.student_family_info}
+                  canEditField={canEditField}
                   onChange={handleFieldChange}
                   incomeOptions={incomeOptions}
                   religionOptions={religionOptions}
@@ -287,7 +301,5 @@ const handleNextStep = (e) => {
           </div>
 
         </form>
-      </div>
-    </div>
   )
 }

@@ -36,7 +36,9 @@ class StudentFamilyInformation extends Model
         'created_at', 
         'updated_at'
     ];
-
+    protected $casts = [
+    'has_sibling_in_lvcc' => 'boolean',
+];
     public function studentInfo() {
         return $this->belongsTo(StudentInformation::class, 'student_information_id');
     }

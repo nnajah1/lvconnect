@@ -11,8 +11,10 @@ import { Navigate } from "react-router-dom";
 import { ConfirmationModal } from "@/components/dynamic/alertModal";
 import SearchBar from "@/components/dynamic/searchBar";
 import { toast } from "react-toastify";
+import { useUserRole } from "@/utils/userRole";
 
-const Surveys = ({ userRole }) => {
+const Surveys = () => {
+  const userRole = useUserRole();
   const [survey, setSurvey] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,6 +32,8 @@ const Surveys = ({ userRole }) => {
   const openResponseModal = (item) => {
     setresponseItem(item);
   };
+
+  console.log(userRole)
 
   const columns = getColumns({
     userRole,
@@ -93,6 +97,7 @@ const Surveys = ({ userRole }) => {
           closeModal={() => setFormItem(null)}
           formItem={formItem}
           onDeleteModal={() => setIsSuccessModalOpen(true)}
+          onSuccessModal={() => setIsSuccessModalOpen(false)}
         />
       )}
 

@@ -4,11 +4,11 @@ import FormField from "./form_field"
 import SectionHeader from "./header_section"
 import '@/styles/student_information.css'
 
-export default function AddressSection({ addressInfo, isEditing, onChange }) {
+export default function AddressSection({ addressInfo, onChange, canEditField }) {
   const handleChange = (e) => {
-    const { name, value } = e.target
-    onChange("address", name, value)
-  }
+    const { name, value } = e.target;
+    onChange(name, value);
+  };
 
   return (
     <div className="address-container">
@@ -18,21 +18,21 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
         <FormField
           label="Province"
           value={addressInfo.province}
-          isEditing={isEditing}
+          isEditing={canEditField("province")}
           onChange={handleChange}
           name="province"
         />
         <FormField
           label="City/Municipality"
           value={addressInfo.city_municipality}
-          isEditing={isEditing}
+          isEditing={canEditField("city_municipality")}
           onChange={handleChange}
-          name="cityMunicipality"
+          name="city_municipality"
         />
         <FormField
           label="Barangay"
           value={addressInfo.barangay}
-          isEditing={isEditing}
+          isEditing={canEditField("barangay")}
           onChange={handleChange}
           name="barangay"
         />
@@ -59,7 +59,7 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
         <FormField
           label="Building No."
           value={addressInfo["floor/unit/building_no"]}
-          isEditing={isEditing}
+          isEditing={canEditField("floor/unit/building_no")}
           onChange={handleChange}
           name="floor/unit/building_no"
         />
@@ -67,16 +67,19 @@ export default function AddressSection({ addressInfo, isEditing, onChange }) {
         <FormField
           label="House No./street"
           value={addressInfo["house_no/street"]}
-          isEditing={isEditing}
+          isEditing={canEditField("house_no/street")}
           onChange={handleChange}
           name="house_no/street"
         />
         <FormField
+          type="text"
+          maxLength={4}
+          inputMode="numeric"
           label="Zip Code"
           value={addressInfo.zip_code}
-          isEditing={isEditing}
+          isEditing={canEditField("zip_code")}
           onChange={handleChange}
-          name="zipCode"
+          name="zip_code"
         />
         <div className="address-empty-col" />
       </div>

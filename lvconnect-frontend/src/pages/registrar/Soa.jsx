@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import "@/styles/admin_soa.css";
-import { getSoa } from "@/services/enrollmentAPI";
+import { createSoa, getSoa } from "@/services/enrollmentAPI";
 import { toast } from "react-toastify";
 
 const AdminSoa = () => {
@@ -11,10 +11,13 @@ const AdminSoa = () => {
       ratePerUnit: "",
       units: "",
     },
-    miscFees: [],
+    miscFees: [], // each fee must have fee_category_id, fee_name, amount
     scholarshipDiscount: "",
     programInfo: "",
+    status: "saved", // or "archived"
+    is_visible: true, // or false
   });
+
 
   const [newFee, setNewFee] = useState({
     name: "",
@@ -120,35 +123,29 @@ const AdminSoa = () => {
 
   const { tuitionTotal, miscTotal, semesterTotal, yearTotal, totalPayment } = calculateTotals();
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const payload = {
-      ...formData,
-      tuitionFee: {
-        ...formData.tuitionFee,
-        total: tuitionTotal,
-      },
-      miscTotal,
-      semesterTotal,
-      yearTotal,
-      totalPayment,
+      status: formData.status,
+      is_visible: formData.is_visible,
+      fees: formData.miscFees.map((fee) => ({
+        fee_category_id: fee.fee_category_id,
+        fee_name: fee.fee_name || fee.name,
+        amount: parseFloat(fee.amount),
+      })),
     };
 
     try {
-      if (isEditing) {
-        await updateSoa(formData.schoolYear, payload);
-        toast.success("SOA updated successfully!");
-      } else {
-        await createSoa(payload);
-        toast.success("SOA created successfully!");
-        setIsEditing(true);
-      }
+      const res = await createSoa(payload);
+      toast.success("SOA created successfully!");
+      setIsEditing(true);
     } catch (error) {
       console.error("Failed to submit SOA", error);
       toast.error("Something went wrong.");
     }
   };
+
 
   return (
     <div className="admin-container">
@@ -160,20 +157,37 @@ const AdminSoa = () => {
 
       <div className="form-container">
         <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label>Status</label>
+              <select name="status" value={formData.status} onChange={handleInputChange} className="input-field">
+                <option value="saved">Saved</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+            <div>
+              <label>Visible to Students?</label>
+              <select name="is_visible" value={formData.is_visible} onChange={handleInputChange} className="input-field">
+                <option value={true}>Yes</option>
+                <option value={false}>No</option>
+              </select>
+            </div>
+          </div>
+
           <div className="mb-6">
             <h2 className="section-title">General Information</h2>
             {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
-              <div>
-                <label className="input-label">School Year</label>
-                <input
-                  type="text"
-                  name="schoolYear"
-                  value={formData.schoolYear}
-                  onChange={handleInputChange}
-                  className="input-field"
-                />
-              </div>
-              {/* <div>
+            <div>
+              <label className="input-label">School Year</label>
+              <input
+                type="text"
+                name="schoolYear"
+                value={formData.schoolYear}
+                onChange={handleInputChange}
+                className="input-field"
+              />
+            </div>
+            {/* <div>
                 <label className="input-label">Program & Year Level</label>
                 <input
                   type="text"
@@ -284,14 +298,14 @@ const AdminSoa = () => {
                       />
                     </td>
                     <td>
-                    <button
-                      type="button"
-                      onClick={addNewFee}
-                      className="add-fee-button"
-                      disabled={!newFee.name.trim() || !newFee.amount}
-                    >
-                      Add Fee
-                    </button>
+                      <button
+                        type="button"
+                        onClick={addNewFee}
+                        className="add-fee-button"
+                        disabled={!newFee.name.trim() || !newFee.amount}
+                      >
+                        Add Fee
+                      </button>
 
                     </td>
                   </tr>

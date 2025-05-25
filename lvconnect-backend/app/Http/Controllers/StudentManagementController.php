@@ -86,9 +86,11 @@ class StudentManagementController extends Controller
 
         // Get student profile info
         $studentInfo = StudentInformation::where('user_id', $user->id)
-            ->with(['enrolleeRecords' => function ($query) {
-                $query->latest()->limit(1)->with('program');
-            }])
+            ->with([
+                'enrolleeRecords' => function ($query) {
+                    $query->latest()->limit(1)->with('program');
+                }
+            ])
             ->first();
 
         if (!$studentInfo) {
@@ -146,7 +148,7 @@ class StudentManagementController extends Controller
             'birth_place' => 'required|string|max:255',
             'mobile_number' => 'required|string|max:20',
             'religion' => 'required|string|max:255',
-            'lrn' => 'required|string|max:50',
+            // 'lrn' => 'required|string|max:50',
             'fb_link' => 'required|url|max:255',
             'student_type' => 'required|in:regular,irregular',
             'government_subsidy' => 'required|string|max:255',
@@ -154,7 +156,7 @@ class StudentManagementController extends Controller
             'last_school_attended' => 'required|string|max:255',
             'previous_school_address' => 'required|string|max:255',
             'school_type' => 'required|string|max:255',
-            'academic_awards' => 'required|string|max:255',
+            // 'academic_awards' => 'required|string|max:255',
             'floor/unit/building_no' => 'required|string|max:255',
             'house_no/street' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
@@ -261,6 +263,33 @@ class StudentManagementController extends Controller
     /**
      * Button to archived student information.
      */
+
+    public function bulkArchive(Request $request)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('registrar')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $ids = $request->input('ids'); 
+
+        foreach ($ids as $studentId) {
+            $enrolleeRecord = EnrolleeRecord::where('student_information_id', $studentId)
+                ->latest()
+                ->first();
+
+            if ($enrolleeRecord) {
+                $enrolleeRecord->update(['enrollment_status' => 'archived']);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Selected students archived successfully.',
+        ]);
+    }
+
     public function archive($studentId)
     {
         $user = JWTAuth::authenticate();

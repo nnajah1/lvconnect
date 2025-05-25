@@ -31,10 +31,18 @@ class UserRoleSeeder extends Seeder
             $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'api']);
 
             foreach (range(1, 5) as $i) {
+                $lastName = "lv";
+                $firstName = ucfirst($roleName) . $i; 
+                $email = strtolower($roleName) . $i . '_' . strtolower($lastName) . '@email.com';
+
                 $user = User::create([
-                    'name' => $faker->name,
-                    'email' => $faker->unique()->safeEmail,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $email,
                     'password' => Hash::make('password123'),
+                    'avatar' => $faker->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'notify_via_email' => true,
+                    'must_change_password' => false,
                 ]);
 
                 $user->assignRole($role);

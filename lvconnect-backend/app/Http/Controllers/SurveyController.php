@@ -12,7 +12,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Models\EnrolleeRecord;
+use App\Notifications\MandatorySurveyNotification;
 
 class SurveyController extends Controller
 {
@@ -51,31 +51,31 @@ class SurveyController extends Controller
         return response()->json(['message' => 'Unauthorized'], 403);
     }
 
-public function getSurveyResponses($surveyId)
-{
-    $user = JWTAuth::authenticate();
+    public function getSurveyResponses($surveyId)
+    {
+        $user = JWTAuth::authenticate();
 
-    if (!$user->hasRole('psas')) {
-        return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $responses = SurveyResponse::with([
+            'student', 
+            'answers.question'
+        ])
+        ->where('survey_id', $surveyId)
+        ->whereHas('student.surveys', function ($query) use ($surveyId) {
+            $query->where('survey_id', $surveyId)
+                ->whereNotNull('survey_user.completed_at');
+        })
+        ->get();
+
+        if ($responses->isEmpty()) {
+            return response()->json(['message' => 'No completed responses found'], 404);
+        }
+
+        return response()->json($responses);
     }
-
-    $responses = SurveyResponse::with([
-        'student', 
-        'answers.question'
-    ])
-    ->where('survey_id', $surveyId)
-    ->whereHas('student.surveys', function ($query) use ($surveyId) {
-        $query->where('survey_id', $surveyId)
-              ->whereNotNull('survey_user.completed_at');
-    })
-    ->get();
-
-    if ($responses->isEmpty()) {
-        return response()->json(['message' => 'No completed responses found'], 404);
-    }
-
-    return response()->json($responses);
-}
 
 
     public function checkSubmission($surveyId)
@@ -151,59 +151,56 @@ public function getSurveyResponses($surveyId)
        /**
      * Display the submitted survey responses for admin.
      */
-public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
-{
-    $user = JWTAuth::authenticate();
+    public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
+    {
+        $user = JWTAuth::authenticate();
 
-    if (!$user->hasRole('psas')) {
-        return response()->json(['message' => 'Unauthorized'], 403);
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Fetch a single submitted survey response with answers and related questions
+        $response = SurveyResponse::with([
+            'student', // Change this to student_information later
+            'answers.question',
+            'survey'
+        ])
+        ->where('id', $surveyResponseId)
+        ->whereNotNull('submitted_at')
+        ->first();
+
+        if (!$response) {
+            return response()->json(['message' => 'Submitted survey response not found.'], 404);
+        }
+
+        // Format the response
+        $formatted = [
+            'survey_response_id' => $response->id,
+            'survey' => [
+                'id' => $response->survey_id,
+                'title' => $response->survey->title,
+                'description' => $response->survey->description,
+            ],
+            'student' => [
+                'id' => $response->student->id,
+                // 'name' => $response->student->name,
+            ],
+            'submitted_at' => $response->submitted_at,
+            'answers' => $response->answers->map(function ($answer) {
+                return [
+                    'question' => [
+                        'id' => $answer->question->id,
+                        'question_data' => $answer->question->question,
+                        'type' => $answer->question->survey_question_type, 
+                    ],
+                    'answer' => $answer->answer,
+                    'img_url' => $answer->img_url,
+                ];
+            }),
+        ];
+
+        return response()->json($formatted);
     }
-
-    // Fetch a single submitted survey response with answers and related questions
-    $response = SurveyResponse::with([
-        'student', // Change this to student_information later
-        'answers.question',
-        'survey'
-    ])
-    ->where('id', $surveyResponseId)
-    ->whereNotNull('submitted_at')
-    ->first();
-
-    if (!$response) {
-        return response()->json(['message' => 'Submitted survey response not found.'], 404);
-    }
-
-    // Format the response
-    $formatted = [
-        'survey_response_id' => $response->id,
-        'survey' => [
-            'id' => $response->survey_id,
-            'title' => $response->survey->title,
-            'description' => $response->survey->description,
-        ],
-        'student' => [
-            'id' => $response->student->id,
-            // 'name' => $response->student->name,
-        ],
-        'submitted_at' => $response->submitted_at,
-        'answers' => $response->answers->map(function ($answer) {
-            return [
-                'question' => [
-                    'id' => $answer->question->id,
-                    'question_data' => $answer->question->question,
-                    'type' => $answer->question->survey_question_type, 
-                ],
-                'answer' => $answer->answer,
-                'img_url' => $answer->img_url,
-            ];
-        }),
-    ];
-
-    return response()->json($formatted);
-}
-
-
-
     /**
      * Display the specified survey with questions.
      */
@@ -264,6 +261,14 @@ public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
                 ]);
             }
 
+            // Notify students if survey is mandatory
+            if ($survey->visibility_mode === 'mandatory') {
+                $students = User::where('role', 'student')->get();
+                foreach ($students as $student) {
+                    $student->notify(new MandatorySurveyNotification($survey));
+                }
+            }
+
             DB::commit();
             return response()->json([
                 'message' => 'Survey and questions saved successfully.',
@@ -301,8 +306,10 @@ public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
         ]);
 
         DB::beginTransaction();
+
         try {
-            $survey = Survey::findOrFail($id);
+            $survey = Survey::where('id', $id)->firstOrFail();
+
             $survey->update([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
@@ -346,6 +353,14 @@ public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
             SurveyQuestion::where('survey_id', $survey->id)
                 ->whereNotIn('id', $existingQuestionIds)
                 ->delete();
+
+            // Send notification if visibility is mandatory
+            if ($survey->visibility_mode === 'mandatory') {
+                $students = User::where('role', 'student')->get();
+                foreach ($students as $student) {
+                    $student->notify(new MandatorySurveyNotification($survey));
+                }
+            }
 
             DB::commit();
             return response()->json(['message' => 'Survey updated successfully.']);
@@ -530,55 +545,6 @@ public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
             'must_answer' => false,
             'message' => 'No mandatory surveys pending.',
         ], 200);
-    }
-
-    /**
-     * Analytics for Dashboard.
-     */
-    public function analyticsDashboard()
-    {
-        $user = JWTAuth::authenticate();
-
-        if (!$user->hasRole('psas')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        // Count of students
-        $totalStudents = User::role('student')->count();
-
-        // Visible and mandatory surveys
-        $visibleSurveys = Survey::where('visibility_mode', 'optional')->count();
-        $mandatorySurveys = Survey::where('visibility_mode', 'mandatory')->count();
-
-        // Total survey answers submitted
-        $totalAnswers = SurveyAnswer::count();
-
-        // How many students answered each survey
-        $surveyResponseCounts = Survey::withCount([
-            'questions as responses_count' => function ($query) {
-                $query->join('survey_answers', 'survey_questions.id', '=', 'survey_answers.survey_question_id');
-            }
-        ])->get(['id', 'title']);
-
-        return response()->json([
-            'total_students' => $totalStudents,
-            'visible_surveys' => $visibleSurveys,
-            'mandatory_surveys' => $mandatorySurveys,
-            'total_answers_submitted' => $totalAnswers,
-            'survey_response_counts' => $surveyResponseCounts
-        ]);
-    }
-
-    /**
-     * Analytics for Summary.
-     */
-    public function analytictsSummary()
-    {
-        $user = JWTAuth::authenticate();
-
-        if (!$user->hasRole('psas')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
     }
 
     /**

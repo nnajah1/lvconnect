@@ -8,7 +8,10 @@ export default function ActionButtons({
   handleArchive,
   handleCancel,
   handleEditToggle,
-  handleBack
+  handleBack,
+  mode, 
+  editType,
+  userRole
 }) {
   return (
     <div className="add_actions_container">
@@ -16,27 +19,34 @@ export default function ActionButtons({
         <ChevronLeft className="add_back_icon" />
       </button>
 
-    {isEditing && (
-        <div className="add_btn_group">
-        {isEditing ? (
+    {mode === "edit" && (
+  <div className="add_btn_group">
+    {isEditing ? (
+      <>
+        {userRole === "registrar" && (
           <>
-            <button onClick={handleSave} className="add_action_btn save">
-              Save
-            </button>
-            <button onClick={handleArchive} className="add_action_btn archive">
-              Archive
-            </button>
-            <button onClick={handleCancel} className="add_action_btn cancel">
-              Cancel
-            </button>
+            {editType === "full" && (
+              <>
+                <button onClick={handleSave} className="add_action_btn save">Save</button>
+                {/* <button onClick={handleArchive} className="add_action_btn archive">Archive</button> */}
+              </>
+            )}
+            {editType === "partial" && (
+              <button onClick={handleSave} className="add_action_btn save">Submit</button>
+            )}
           </>
-        ) : (
-          <button onClick={handleEditToggle} className="add_action_btn edit">
-            Edit
-          </button>
         )}
-      </div>
+        {userRole === "student" && (
+          <button onClick={handleSave} className="add_action_btn save">Submit</button>
+        )}
+
+        <button onClick={handleCancel} className="add_action_btn cancel">Cancel</button>
+      </>
+    ) : (
+      <button onClick={handleEditToggle} className="add_action_btn edit">Edit</button>
     )}
+  </div>
+)}
     </div>
   )
 }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('enrollment_schedule_id')->constrained('enrollment_schedules')->onDelete('cascade');
             $table->integer('year_level');
             $table->boolean('privacy_policy');
-            $table->enum('enrollment_status', ['pending', 'enrolled', 'not_enrolled', 'rejected', 'archived']);
+            $table->enum('enrollment_status', ['pending', 'enrolled', 'rejected', 'archived']);
             $table->string('admin_remarks');
             $table->timestamp('submission_date');
             $table->timestamps();

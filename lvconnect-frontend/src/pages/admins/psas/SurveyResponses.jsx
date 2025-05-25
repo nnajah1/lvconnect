@@ -10,8 +10,10 @@ import { getSurveyResponses } from "@/services/surveyAPI";
 import ViewSurveyResponseModal from "./ViewSurvey";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
+import { useUserRole } from "@/utils/userRole";
 
-const SurveyResponses = ({ userRole }) => {
+const SurveyResponses = () => {
+  const userRole = useUserRole();
   const { schoolForms, submittedSurvey, error, fetchForms, fetchSubmitted } = useForms();
   const [survey, setSurvey] = useState(null);
   // const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ const handleBack = () => navigate(from);
     {
       label: "Summary",
       value: "summary",
-      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
+      content: ""
     },
     {
       label: "Individual",

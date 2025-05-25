@@ -47,12 +47,12 @@ export default function Navbar({ user, logout}) {
   const unreadCount = notifications.filter((notification) => !notification.isRead).length
 
   return (
-    <header className="sticky top-0 z-10 bg-secondary text-white shadow-md p-2 m-2 rounded">
+    <header className="sticky top-0 z-10 bg-secondary text-white shadow-basef p-2 m-2 rounded">
       <div className="flex items-center justify-between px-4 py-3 md:px-6">
         {/* Left side - Title and menu toggle */}
         <div className="flex items-center">
           
-          <h1 className="text-lg font-semibold md:text-xl"> {user.name}</h1>
+          <h1 className="text-lg font-semibold md:text-xl"> {user.first_name}</h1>
         </div>
 
         {/* Right side - Search, notifications, and profile */}
@@ -114,7 +114,7 @@ export default function Navbar({ user, logout}) {
             {isProfileOpen && (
               <div className="absolute right-0 mt-2 w-48 rounded-md bg-white text-gray-800 shadow-lg">
                 <div className="border-b border-gray-200 px-4 py-3">
-                  <p className="font-medium">{user.name}</p>
+                  <p className="font-medium">{user.first_name}</p>
                   <p className="text-xs text-gray-500">{user.email || "user@example.com"}</p>
                 </div>
                 <div className="py-1">

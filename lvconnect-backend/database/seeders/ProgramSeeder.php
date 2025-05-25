@@ -14,12 +14,12 @@ class ProgramSeeder extends Seeder
     public function run(): void
     {
         $programs = [
-            'BSIS',   
-            'BSA',    
-            'BAB',   
-            'BSAIS',  
-            'BSSW',   
-            'ACT',    
+            'BSIS',
+            'BSA',
+            'BAB',
+            'BSAIS',
+            'BSSW',
+            'ACT',
         ];
 
         foreach ($programs as $program) {

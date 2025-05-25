@@ -2,12 +2,13 @@
 
 import FormField from "./form_field"
 import '@/styles/student_information.css'
+import placeholderImg from "@/assets/placeholder.svg"
 
-export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange }) {
+export default function ProfileSection({ profileData, profileImage, onChangeImage, isEditing, onChange, canEditField, programOptions, handleFileChange }) {
   const handleChange = (e) => {
-    const { name, value } = e.target
-    onChange("profile", name, value)
-  }
+    const { name, value } = e.target;
+    onChange(name, value);
+  };
 
   return (
     <div className="profile_section">
@@ -16,16 +17,24 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
         <div className="profile_image_wrapper">
           <div className="profile_image_box">
             <img
-              src={profileImage || "/placeholder.svg?height=100&width=100"}
+              src={profileImage || placeholderImg}
               alt="Profile"
               className="profile_image"
             />
+
+            {/* <input
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            /> */}
           </div>
-          {isEditing && (
+          {/* {isEditing && (
             <button onClick={onChangeImage} className="profile_change_btn">
-            Change
-          </button>
-          )}
+              Change
+            </button>
+          )} */}
         </div>
       </div>
 
@@ -33,18 +42,24 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
         <div className="profile_row">
           <FormField
             label="Program"
-            value={profileData.program_id}
-            isEditing={isEditing}
+            value={profileData.enrollee_record?.[0].program_id}
+            isEditing={canEditField("program_id")}
             onChange={handleChange}
-            name="program"
+            name="program_id"
+            options={programOptions}
           />
           <FormField
+            type="text"
+            maxLength={1}
+            pattern="[0-9]*"
+            inputMode="numeric"
             label="Year"
-            value={profileData.year_level}
+            value={profileData.enrollee_record?.[0].year_level}
             maxWidth="md:max-w-[200px]"
-            isEditing={isEditing}
+            isEditing={canEditField("year_level")}
             onChange={handleChange}
-            name="year"
+            name="year_level"
+            numericOnly
           />
         </div>
 
@@ -53,14 +68,14 @@ export default function ProfileSection({ profileData, profileImage, onChangeImag
             label="Student Number"
             value={profileData.student_id_number}
             maxWidth="md:max-w-[200px]"
-            isEditing={isEditing}
+            isEditing={canEditField("student_id_number")}
             onChange={handleChange}
-            name="studentNumber"
+            name="student_id_number"
           />
           <FormField
-            label="Email address"
-            value={profileData.barangay}
-            isEditing={isEditing}
+            label="Email Address"
+            value={profileData.user?.email}
+            isEditing={canEditField("email")}
             onChange={handleChange}
             name="email"
           />

@@ -44,7 +44,7 @@ const FilterPopover = ({ column, config }) => {
               variant="outline"
               size="sm"
               onClick={() => {
-                e.stopPropagation();
+                // e.stopPropagation();
                 column.setFilterValue("")
                 setFilterValue("")
               }}
@@ -166,7 +166,9 @@ export const getColumns = ({
         enableSorting: config.sortable || false,
         enableFiltering: config.filterable || false,
         enableGlobalFilter: true,
+        
       }
+      
     })
 
   const actionColumn = {

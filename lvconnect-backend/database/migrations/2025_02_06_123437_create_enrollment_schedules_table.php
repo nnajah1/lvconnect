@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('enrollment_schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
-            $table->enum('semester',['1st_semester', 'second_semester']);
+            $table->enum('semester',['first_semester', 'second_semester']);
             $table->boolean('is_active')->default(false);
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
+            $table->datetime('start_date')->nullable();
+            $table->datetime('end_date')->nullable();
             $table->timestamps();
         });
     }
