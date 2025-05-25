@@ -27,13 +27,29 @@ class EnrollmentNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
+     * Get the notification's delivery channels based on user preferences.
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database', 'broadcast'];
+        $prefs = $notifiable->notificationPreference;
+
+        $channels = [];
+
+        if ($prefs?->email) {
+            $channels[] = 'mail';
+        }
+
+        if ($prefs?->in_app) {
+            $channels[] = 'database';
+            $channels[] = 'broadcast';
+        }
+
+        // Fallback to email if no preferences are set
+        if (empty($channels)) {
+            $channels = ['mail'];
+        }
+
+        return $channels;
     }
 
     /**
@@ -63,7 +79,7 @@ class EnrollmentNotification extends Notification implements ShouldQueue
     /**
      * Get the broadcast representation of the notification.
      */
-    public function toBroadcast($notifiable)
+    public function toBroadcast($notifiable): BroadcastMessage
     {
         return new BroadcastMessage($this->toArray($notifiable));
     }

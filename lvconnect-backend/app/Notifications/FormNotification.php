@@ -28,10 +28,22 @@ class FormNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        $channels = ['database']; // Always store in-app notification
+        // Fallback: send email if no preferences
+        $preferences = $notifiable->notificationPreference;
 
-        if ($notifiable->notify_via_email) {
-            $channels[] = 'mail'; // Include email if preferred
+        if (!$preferences) {
+            return ['mail'];
+        }
+
+        $channels = [];
+
+        if ($preferences->in_app) {
+            $channels[] = 'database';
+            $channels[] = 'broadcast';
+        }
+
+        if ($preferences->email) {
+            $channels[] = 'mail';
         }
 
         return $channels;
@@ -45,7 +57,7 @@ class FormNotification extends Notification implements ShouldQueue
         $status = $this->formSubmission->status;
 
         if (!in_array($status, ['approved', 'rejected'])) {
-            return null; // Don't send email for other statuses
+            return null;
         }
 
         $message = $status === 'approved'
@@ -60,7 +72,7 @@ class FormNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Database notification.
+     * Database notification (in-app).
      */
     public function toDatabase($notifiable)
     {
@@ -82,7 +94,7 @@ class FormNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Broadcast notification (optional).
+     * Broadcast notification (real-time via websockets).
      */
     public function toBroadcast($notifiable)
     {

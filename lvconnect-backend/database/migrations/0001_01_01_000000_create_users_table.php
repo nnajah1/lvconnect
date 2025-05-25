@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('password');
             $table->string('google_id')->nullable()->unique();
             $table->string('avatar')->nullable();
-            $table->boolean('notify_via_email')->default(true);
             $table->rememberToken();
             $table->boolean('must_change_password')->default(false);
             $table->timestamps();

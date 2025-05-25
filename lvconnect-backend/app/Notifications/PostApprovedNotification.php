@@ -7,7 +7,6 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
-use Illuminate\Notifications\Messages\DatabaseMessage;
 use App\Models\SchoolUpdate;
 
 class PostApprovedNotification extends Notification implements ShouldQueue
@@ -21,21 +20,48 @@ class PostApprovedNotification extends Notification implements ShouldQueue
         $this->post = $post;
     }
 
+    /**
+     * Determine which notification channels to use.
+     */
     public function via($notifiable)
     {
-        return ['mail', 'database', 'broadcast']; // Send via email, store in database, and broadcast event
+        $preferences = $notifiable->notificationPreference;
+
+        // Fallback to email if no preferences exist
+        if (!$preferences) {
+            return ['mail'];
+        }
+
+        $channels = [];
+
+        if ($preferences->in_app) {
+            $channels[] = 'database';
+            $channels[] = 'broadcast';
+        }
+
+        if ($preferences->email) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
+    /**
+     * Email notification.
+     */
     public function toMail($notifiable)
     {
         return (new MailMessage)
             ->subject('Post Approved: ' . $this->post->title)
             ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('Your post titled **' . $this->post->title . '** has been approved by the school admin.')
+            ->line('Your post titled "' . $this->post->title . '" has been approved by the school admin.')
             ->action('View Post', url('/school-updates/' . $this->post->id))
             ->line('Thank you for your contribution!');
     }
 
+    /**
+     * Database (in-app) notification.
+     */
     public function toDatabase($notifiable)
     {
         return [
@@ -46,6 +72,9 @@ class PostApprovedNotification extends Notification implements ShouldQueue
         ];
     }
 
+    /**
+     * Broadcast (real-time) notification.
+     */
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([

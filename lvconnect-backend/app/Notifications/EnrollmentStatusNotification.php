@@ -4,8 +4,8 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class EnrollmentStatusNotification extends Notification implements ShouldQueue
 {
@@ -24,11 +24,28 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the notification's delivery channels.
+     * Get the notification's delivery channels based on user preferences.
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $prefs = $notifiable->notificationPreference;
+
+        $channels = [];
+
+        if ($prefs?->email) {
+            $channels[] = 'mail';
+        }
+
+        if ($prefs?->in_app) {
+            $channels[] = 'database';
+        }
+
+        // Fallback to mail if no preferences are set
+        if (empty($channels)) {
+            $channels = ['mail'];
+        }
+
+        return $channels;
     }
 
     /**
@@ -36,42 +53,41 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        if ($this->status === 'enrolled') {
-            return (new MailMessage)
-                ->subject("You're officially enrolled!")
-                ->line("Congratulations! You have been officially enrolled for Academic Year {$this->academicYear->school_year}.")
-                ->line('Please check your student portal for confirmation and next steps.');
-        }
+        switch ($this->status) {
+            case 'enrolled':
+                return (new MailMessage)
+                    ->subject("You're officially enrolled!")
+                    ->line("Congratulations! You have been officially enrolled for Academic Year {$this->academicYear->school_year}.")
+                    ->line('Please check your student portal for confirmation and next steps.');
 
-        if ($this->status === 'rejected') {
-            return (new MailMessage)
-                ->subject("Enrollment Application Rejected")
-                ->line("We regret to inform you that your enrollment application for Academic Year {$this->academicYear->school_year} has been rejected.")
-                ->line('Please check your student portal for more details or contact the registrar for assistance.');
-        }
+            case 'rejected':
+                return (new MailMessage)
+                    ->subject("Enrollment Application Rejected")
+                    ->line("We regret to inform you that your enrollment application for Academic Year {$this->academicYear->school_year} has been rejected.")
+                    ->line('Please check your student portal for more details or contact the registrar for assistance.');
 
-        if ($this->status === 'not_enrolled') {
-            return (new MailMessage)
-                ->subject("Enrollment Application Reminder")
-                ->line("Reminder! You have not yet enrolled for Academic Year {$this->academicYear->school_year}.")
-                ->line('Please log in to your student portal to begin the enrollment process or contact the registrar for assistance.');
-        }
+            case 'not_enrolled':
+                return (new MailMessage)
+                    ->subject("Enrollment Application Reminder")
+                    ->line("Reminder! You have not yet enrolled for Academic Year {$this->academicYear->school_year}.")
+                    ->line('Please log in to your student portal to begin the enrollment process or contact the registrar for assistance.');
 
-        if ($this->status === 'remind_rejected') {
-            return (new MailMessage)
-                ->subject("Enrollment Application Reminder")
-                ->line("Reminder! Please reprocess your enrollment application for Academic Year {$this->academicYear->school_year}.")
-                ->line('Please check your student portal for more details or contact the registrar for assistance.');
-        }
+            case 'remind_rejected':
+                return (new MailMessage)
+                    ->subject("Enrollment Application Reminder")
+                    ->line("Reminder! Please reprocess your enrollment application for Academic Year {$this->academicYear->school_year}.")
+                    ->line('Please check your student portal for more details or contact the registrar for assistance.');
 
-        return (new MailMessage)
-            ->subject('Enrollment Status Update')
-            ->line('Your enrollment status has been updated.')
-            ->line('Please check your student portal for details.');
+            default:
+                return (new MailMessage)
+                    ->subject('Enrollment Status Update')
+                    ->line('Your enrollment status has been updated.')
+                    ->line('Please check your student portal for details.');
+        }
     }
 
     /**
-     * Get the array representation of the notification (for database/in-app).
+     * Get the array representation of the notification (for in-app).
      */
     public function toArray(object $notifiable): array
     {
