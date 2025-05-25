@@ -241,9 +241,9 @@ class SchoolFormsController extends Controller
     }
 
     /**
-     * Download the form into PDF.
+     * Fetch approved data to frontend.
      */
-    public function downloadApprovedForm($submissionId)
+    public function getApprovedFormData($submissionId)
     {
         $user = JWTAuth::authenticate();
 
@@ -261,60 +261,21 @@ class SchoolFormsController extends Controller
             return response()->json(['message' => 'Form not approved'], 403);
         }
 
-        // Prepare data
-        $formTypeName = e($submission->formType->title);
-        $fields = $submission->submissionData->map(function ($item) {
-            $decoded = json_decode($item->answer_data, true);
-            return [
-                'field_name' => $item->field_name,
-                'value' => is_array($decoded) || is_string($decoded) ? $decoded : $item->answer_data,
-            ];
-        });
+        $response = [
+            'form_title' => $submission->formType->title,
+            'submission_id' => $submission->id,
+            'fields' => $submission->submissionData->map(function ($item) {
+                $decoded = json_decode($item->answer_data, true);
+                return [
+                    'field_name' => $item->field_name,
+                    'value' => is_array($decoded) || is_string($decoded) ? $decoded : $item->answer_data,
+                ];
+            })->values(),
+        ];
 
-        // Build HTML content manually
-        $html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Form</title>';
-        $html .= '<style>body { font-family: DejaVu Sans, sans-serif; } .field { margin-bottom: 10px; }</style>';
-        $html .= '</head><body>';
-        $html .= "<h1>{$formTypeName}</h1>";
-
-        foreach ($fields as $field) {
-            $value = is_array($field['value']) ? implode(', ', $field['value']) : $field['value'];
-
-            if (is_string($value) && preg_match('/^http.*\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i', $value)) {
-                $relativePath = parse_url($value, PHP_URL_PATH); // e.g. /storage/2x2/filename.png
-                $imagePath = public_path($relativePath);
-
-                if (file_exists($imagePath)) {
-                    $base64 = base64_encode(file_get_contents($imagePath));
-                    $ext = pathinfo($imagePath, PATHINFO_EXTENSION);
-                    $src = 'data:image/' . $ext . ';base64,' . $base64;
-                    $value = "<img src='{$src}' style='max-width:200px; max-height:200px;' />";
-                } else {
-                    $value = "{$relativePath}";
-                }
-            }
-
-            $html .= '<div class="field">';
-            $html .= '<strong>' . e($field['field_name']) . ':</strong>';
-
-            if (str_starts_with($value, '<img')) {
-                // Put the image on the next line
-                $html .= '<br>' . $value . '<br>';
-            } else {
-                $html .= ' ' . e($value);
-            }
-
-            $html .= '</div>';
-
-        }
-
-        $html .= '</body></html>';
-
-        // Generate PDF from HTML
-        $pdf = Pdf::loadHTML($html);
-
-        return $pdf->download("submission_{$submission->id}.pdf");
+        return response()->json($response);
     }
+
     // For student
     public function upload2x2Image(Request $request)
     {
