@@ -11,24 +11,27 @@ import ViewSurveyResponseModal from "./ViewSurvey";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
 import { useUserRole } from "@/utils/userRole";
+import { ChevronLeft } from "lucide-react";
+import { toast } from "react-toastify";
+import SummaryAnalytics from "@/components/dashboards/psas_dashboard/analyticsSummary";
+import { getAnalytics } from "@/services/dashboardAPI";
 
 const SurveyResponses = () => {
   const userRole = useUserRole();
-  const { schoolForms, submittedSurvey, error, fetchForms, fetchSubmitted } = useForms();
   const [survey, setSurvey] = useState(null);
-  // const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
   const [submittedItem, setSubmittedItem] = useState(null);
-  const [activeTab, setActiveTab] = useState("summary");
+  const [activeTab, setActiveTab] = useState("individual");
   const [globalFilter, setGlobalFilter] = useState("");
+
 
   const { surveyId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || '/';
-
-const handleBack = () => navigate(from);
+  const handleBack = () => navigate(from);
 
   const openSubmittedModal = (item) => {
     setSubmittedItem(item); // full item, not just id
@@ -51,34 +54,42 @@ const handleBack = () => navigate(from);
     openSubmittedModal
   });
 
-   useEffect(() => {
-      const loadSurveyResponses = async () => {
+  useEffect(() => {
+    const loadSurveyResponses = async () => {
+      setLoading(true)
+      try {
         const data = await getSurveyResponses(surveyId);
         setSurvey(data);
-      };
-      loadSurveyResponses();
-    }, []);
-  
+      } catch (err) {
+        console.error("Failed to load surveys", err);
+        console.error("Failed to load responses.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSurveyResponses();
+  }, []);
 
+  
+   
   const tabs = [
     {
       label: "Summary",
       value: "summary",
-      content: ""
+      content: <SummaryAnalytics surveyId={surveyId}/>
     },
     {
       label: "Individual",
-      value: "Individual",
-      content: <DataTable columns={submittedColumns} data={survey} globalFilter={globalFilter} />
+      value: "individual",
+      content: <DataTable columns={submittedColumns} data={survey} globalFilter={globalFilter} isLoading={loading} />
     },
   ];
 
   return (
     <div className="container mx-auto p-4">
-      {error && <p>{error}</p>}
-      <button onClick={handleBack} className="text-blue-500 hover:underline">
-      ← Go Back
-    </button>
+      <button onClick={handleBack} className="text-black hover:underline bg-white p-1 rounded cursor-pointer">
+        <ChevronLeft />
+      </button>
 
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-4">Responses</h1>
@@ -87,9 +98,9 @@ const handleBack = () => navigate(from);
       </div>
 
 
-      <DynamicTabs tabs={tabs} activeTab={activeTab}
+      <DynamicTabs tabs={tabs} activeTab={activeTab} 
         onTabChange={setActiveTab}
-        className="mb-2"/>
+        className="mb-2" />
 
       {/* Modals */}
 
@@ -99,7 +110,7 @@ const handleBack = () => navigate(from);
           closeModal={() => setSubmittedItem(false)}
           submittedItem={submittedItem}
         />
-        )}
+      )}
 
     </div>
   );

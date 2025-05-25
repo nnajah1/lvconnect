@@ -16,7 +16,7 @@ import { useUserRole } from "@/utils/userRole";
 
 const Forms = () => {
   const userRole = useUserRole();
-  const { schoolForms, submittedForms, isLoading , fetchForms, fetchSubmitted } = useForms();
+  const { schoolForms, submittedForms , fetchForms, fetchSubmitted } = useForms();
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
@@ -27,7 +27,24 @@ const Forms = () => {
   const [activeTab, setActiveTab] = useState("form Template");
   const [globalFilter, setGlobalFilter] = useState("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+     useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+       try {
+          await fetchForms();
+          await fetchSubmitted();
+        } catch (err) {
+          console.error("Failed to load forms", err);
+          toast.error("Failed to load forms.");
+        } finally {
+          setLoading(false); 
+        }
+    };
+  
+    fetchAll();
+  }, []);
   const openFormModal = (item) => {
     setFormItem(item); // full item, not just id
   };
@@ -58,12 +75,12 @@ const Forms = () => {
     {
       label: "Form Templates",
       value: "form Template",
-      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} isLoading={isLoading}/>
+      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} isLoading={loading}/>
     },
     {
       label: "Submitted Forms",
       value: "submitted form",
-      content: <DataTable columns={submittedColumns} data={submittedForms} globalFilter={globalFilter} />
+      content: <DataTable columns={submittedColumns} data={submittedForms} globalFilter={globalFilter} isLoading={loading} />
     },
   ];
 
@@ -103,6 +120,7 @@ const Forms = () => {
           closeModal={() => setFormItem(false)}
           formItem={formItem}
           onDeleteModal={() => setIsSuccessModalOpen(true)}
+          onSuccessModal={() => setIsSuccessModalOpen(false)}
         />
       )}
       {submittedItem && (

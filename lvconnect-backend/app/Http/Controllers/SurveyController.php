@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\StudentInformation;
 use App\Models\Survey;
 use App\Models\User;
 use App\Models\SurveyAnswer;
@@ -24,24 +25,30 @@ class SurveyController extends Controller
         $user = JWTAuth::authenticate();
 
         if ($user->hasRole('student')) {
+
+            $student = $user->studentInformation;
+
+            if (!$student) {
+                return response()->json(['error' => 'Student information not found'], 404);
+            }
+
             // Get all visible surveys
             $surveys = Survey::with('questions')
                 ->whereIn('visibility_mode', ['optional', 'mandatory'])
                 ->get();
-        
+
             // Get survey IDs the student has completed
-            $completed = $user->surveys()->pluck('completed_at', 'survey_id');
-        
+            $completed = $student->surveys()->pluck('survey_student.completed_at', 'survey_id');
+
             // Merge completion status into each survey
-            $surveys->map(function ($survey) use ($completed) {
-                $survey->completed_at = $completed[$survey->id] ?? null;
-                return $survey;
-            });
-        
+            $surveys->each(function ($survey) use ($completed) {
+            $survey->completed_at = $completed[$survey->id] ?? null;
+        });
+
             return $surveys;
         }
-        
-        
+
+
         if ($user->hasRole('psas')) {
             // PSAS admin can see all surveys
             return Survey::with('questions')
@@ -60,15 +67,15 @@ class SurveyController extends Controller
         }
 
         $responses = SurveyResponse::with([
-            'student', 
+            'student',
             'answers.question'
         ])
-        ->where('survey_id', $surveyId)
-        ->whereHas('student.surveys', function ($query) use ($surveyId) {
-            $query->where('survey_id', $surveyId)
-                ->whereNotNull('survey_user.completed_at');
-        })
-        ->get();
+            ->where('survey_id', $surveyId)
+            ->whereHas('student.surveys', function ($query) use ($surveyId) {
+                $query->where('survey_id', $surveyId)
+                    ->whereNotNull('survey_student.completed_at');
+            })
+            ->get();
 
         if ($responses->isEmpty()) {
             return response()->json(['message' => 'No completed responses found'], 404);
@@ -81,8 +88,9 @@ class SurveyController extends Controller
     public function checkSubmission($surveyId)
     {
         $user = JWTAuth::authenticate();
+         $studentInformationId = $user->studentInformation->id;
         $submission = SurveyResponse::where('survey_id', $surveyId)
-            // ->where('student_information_id', $user->student_information_id)
+            ->where('student_information_id', $studentInformationId)
             ->first();
 
         if ($submission) {
@@ -106,13 +114,21 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole(['student','psas'])) {
+        if (!$user->hasRole(['student', 'psas'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Find the survey response for this user and survey
+        // Determine student_information_id
+        $studentInformationId = $user->studentInformation->id;
+
+        // If user is psas, allow fetching any student's response
+        if ($user->hasRole('psas') && request()->has('student_id')) {
+            $studentInformationId = request()->input('student_id');
+        }
+
+        // Find the survey response
         $response = SurveyResponse::where('survey_id', $surveyId)
-            // ->where('student_information_id', $user->student_information_id)
+            ->where('student_information_id', $studentInformationId)
             ->first();
 
         if (!$response) {
@@ -122,7 +138,7 @@ class SurveyController extends Controller
             ], 404);
         }
 
-        // Get all answers for this response
+        // Load answers
         $answers = SurveyAnswer::where('survey_response_id', $response->id)->get();
 
         if ($answers->isEmpty()) {
@@ -132,23 +148,26 @@ class SurveyController extends Controller
             ], 404);
         }
 
-        // Format the answers correctly
+        // Format answers
         $formattedAnswers = $answers->map(function ($answer) {
             return [
                 'survey_question_id' => $answer->survey_question_id,
                 'answer' => $answer->answer,
                 'img_url' => $answer->img_url,
                 'taken_at' => $answer->taken_at,
-                'created_at' => $answer->created_at
+                'created_at' => $answer->created_at,
             ];
         });
 
         return response()->json([
-            'answers' => $formattedAnswers
+            'message' => 'Survey response found.',
+            'response_id' => $response->id,
+            'answers' => $formattedAnswers,
         ]);
     }
 
-       /**
+
+    /**
      * Display the submitted survey responses for admin.
      */
     public function getSubmittedSurveyResponseWithQuestions($surveyResponseId)
@@ -161,13 +180,13 @@ class SurveyController extends Controller
 
         // Fetch a single submitted survey response with answers and related questions
         $response = SurveyResponse::with([
-            'student', // Change this to student_information later
+            'student',
             'answers.question',
             'survey'
         ])
-        ->where('id', $surveyResponseId)
-        ->whereNotNull('submitted_at')
-        ->first();
+            ->where('id', $surveyResponseId)
+            ->whereNotNull('submitted_at')
+            ->first();
 
         if (!$response) {
             return response()->json(['message' => 'Submitted survey response not found.'], 404);
@@ -183,7 +202,9 @@ class SurveyController extends Controller
             ],
             'student' => [
                 'id' => $response->student->id,
-                // 'name' => $response->student->name,
+                'name' => $response->student->full_name,
+                'course' => $response->student->program,
+                'year' => $response->student->year_level,
             ],
             'submitted_at' => $response->submitted_at,
             'answers' => $response->answers->map(function ($answer) {
@@ -191,7 +212,7 @@ class SurveyController extends Controller
                     'question' => [
                         'id' => $answer->question->id,
                         'question_data' => $answer->question->question,
-                        'type' => $answer->question->survey_question_type, 
+                        'type' => $answer->question->survey_question_type,
                     ],
                     'answer' => $answer->answer,
                     'img_url' => $answer->img_url,
@@ -394,10 +415,10 @@ class SurveyController extends Controller
             'answers.*.img_url' => 'nullable|string',
             'answers.*.taken_at' => 'nullable|date',
         ]);
-
+        $studentInformationId = $user->studentInformation->id;
         // Prevent duplicate submissions
         $existing = SurveyResponse::where('survey_id', $validated['survey_id'])
-            ->where('student_information_id', operator: $user->student_information_id)
+            ->where('student_information_id', operator: $studentInformationId)
             ->exists();
 
         if ($existing) {
@@ -413,20 +434,20 @@ class SurveyController extends Controller
             $answer = $answers->firstWhere('survey_question_id', $question->id);
             $value = $answer['answer'] ?? null;
             $imgUrl = $answer['img_url'] ?? null;
-    
+
             // Required check
             if ($question->is_required) {
                 $hasAnswer = $question->survey_question_type === 'Upload Photo'
                     ? !empty($imgUrl)
                     : !empty($value);
-    
+
                 if (!$hasAnswer) {
                     return response()->json([
                         'message' => "Answer is required for question: {$question->question}"
                     ], 422);
                 }
             }
-    
+
             // Per-type validation
             if ($question->survey_question_type === 'Checkboxes') {
                 if (!is_array($value)) {
@@ -442,11 +463,16 @@ class SurveyController extends Controller
                 }
             }
         }
+        $student = $user->studentInformation;
+
+        if (!$student) {
+            return response()->json(['message' => 'Student information not found.'], 404);
+        }
 
         // Create survey response
         $response = SurveyResponse::create([
             'survey_id' => $validated['survey_id'],
-            'student_information_id' => 1, //$user->student_information_id,
+            'student_information_id' => $student->id,
             'submitted_at' => now(),
         ]);
 
@@ -474,11 +500,11 @@ class SurveyController extends Controller
                 'taken_at' => $takenAt,
                 'created_at' => now(),
             ]);
-        }   
-        $user->surveys()->syncWithoutDetaching([
-            $validated['survey_id'] => [] 
+        }
+        $user->studentInformation->surveys()->syncWithoutDetaching([
+            $validated['survey_id'] => []
         ]);
-        $user->surveys()->updateExistingPivot($validated['survey_id'], [
+        $user->studentInformation->surveys()->updateExistingPivot($validated['survey_id'], [
             'completed_at' => now(),
         ]);
 
@@ -519,13 +545,14 @@ class SurveyController extends Controller
         if (!$user->hasRole('student')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+        $studentInformationId = $user->studentInformation->id;
 
         // Get IDs of mandatory + visible surveys
         $mandatorySurveyIds = Survey::whereIn('visibility_mode', 'mandatory')
             ->pluck('id');
 
         // Get submitted surveys by student
-        $submittedSurveyIds = SurveyResponse::where('student_information_id', $user->student_information_id)
+        $submittedSurveyIds = SurveyResponse::where('student_information_id', $studentInformationId)
             ->whereIn('survey_id', $mandatorySurveyIds)
             ->pluck('survey_id');
 

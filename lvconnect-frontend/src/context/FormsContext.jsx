@@ -7,7 +7,6 @@ export const FormsProvider = ({ children }) => {
   const [schoolForms, setSchoolForms] = useState([]);
   const [submittedForms, setSubmittedForms] = useState([]);
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const fetchForms = async () => {
     try {
@@ -23,22 +22,12 @@ export const FormsProvider = ({ children }) => {
     try {
       const response = await getSubmittedForms();
       
-      console.log(response.data)
       setSubmittedForms(response.data);
     } catch (err) {
       setError('Error fetching submitted forms');
     }
   };
 
-  useEffect(() => {
-  const fetchAll = async () => {
-    setIsLoading(true);
-    await Promise.all([fetchForms(), fetchSubmitted()]);
-    setIsLoading(false);
-  };
-
-  fetchAll();
-}, []);
   return (
     <FormsContext.Provider
       value={{
@@ -47,7 +36,6 @@ export const FormsProvider = ({ children }) => {
         error,
         fetchForms,
         fetchSubmitted,
-        isLoading 
       }}
     >
       {children}

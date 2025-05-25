@@ -203,7 +203,17 @@ table > tbody > tr > td {
     }
 }
 
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+@layer base {
 :root {
+  --card-background: oklch(0.9758 0.0083 236.56);
   --background: oklch(1 0 0);
   --foreground: oklch(0.32 0 0);
   --card: oklch(1 0 0);
@@ -250,6 +260,7 @@ table > tbody > tr > td {
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
     0 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --green: oklch(0.5198 0.176858 142.4953)
 }
 
 .dark {
@@ -299,6 +310,11 @@ table > tbody > tr > td {
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
     0 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+}
+.scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
 
 @theme inline {

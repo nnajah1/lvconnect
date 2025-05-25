@@ -6,7 +6,7 @@ import Calendar from "./calendar"
 import SchoolUpdates from "./updates"
 import CalendarActivities from "./calendar_of_activities"
 
-const App = () => {
+const AppStudent = () => {
   const [selectedUpdate, setSelectedUpdate] = useState(null)
   const [showCalendarActivities, setShowCalendarActivities] = useState(false)
 
@@ -76,4 +76,4 @@ const App = () => {
   )
 }
 
-export default App
+export default AppStudent

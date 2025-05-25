@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\SchoolFormsController;
 use App\Http\Controllers\SOAController;
@@ -123,6 +124,8 @@ Route::middleware('auth.jwt')->group(function () {
   Route::get('/soa/{schoolYear}', [SOAController::class, 'show']);
   Route::post('/soa', [SOAController::class, 'store']);
   Route::put('/soa/{schoolYear}', [SOAController::class, 'update']);
+
+  Route::get('/analytics-summary/{surveyId}', [DashboardController::class, 'analyticsSummary']);
 
 });
 

@@ -28,9 +28,10 @@ const handleChange = (e) => {
           value={familyInfo.num_children_in_family}
           onChange={handleChange}
           isEditing={canEditField("num_children_in_family")}
-          type="text"
-          maxLength={1}
+          type="num"
+          maxLength={2}
           inputMode="numeric"
+          placeholder="e.g. 1"
         />
 
         <FormField
@@ -39,14 +40,15 @@ const handleChange = (e) => {
           value={familyInfo.birth_order}
           onChange={handleChange}
           isEditing={canEditField("birth_order")}
-          type="text"
-          maxLength={1}
+          type="num"
+          maxLength={2}
           inputMode="numeric"
+          placeholder="e.g. 1"
         />
 
         {/* Siblings in LVCC */}
           <FormField
-            label="Has Sibling"
+            label="Has Sibling in LVCC"
             name="has_sibling_in_lvcc"
             value={familyInfo.has_sibling_in_lvcc}
             isEditing={canEditField("has_sibling_in_lvcc")}

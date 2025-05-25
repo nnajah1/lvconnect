@@ -27,7 +27,7 @@ export default function SchoolInfoSection({ educationInfo, isEditing, onChange, 
           name="previous_school_address"
         />
         <FormField
-          label="Type"
+          label="School Type"
           value={educationInfo.school_type}
           maxWidth="md:max-w-[150px]"
           isEditing={canEditField("school_type")}

@@ -60,9 +60,10 @@ const Enrollment = () => {
   }, [selectedYearObj, semester]);
 
   const loadNotEnrolled = async () => {
+    if (!selectedYearObj || !semester) return;
     setIsLoading(true);
     try {
-      const data = await getNotEnrolled();
+      const data = await getNotEnrolled({academic_year_id: selectedYearObj.id, semester });
       setNotEnrolled(data.students);
     } catch (err) {
       console.error(err);
@@ -72,7 +73,7 @@ const Enrollment = () => {
   };
   useEffect(() => {
     loadNotEnrolled();
-  }, []);
+  }, [selectedYearObj, semester]);
 
   const openModal = (item) => setItem(item);
   const openAcceptModal = (item) => setAcceptItem(item);
@@ -96,7 +97,7 @@ const Enrollment = () => {
   }, [activeTab, enrollment]);
 
   const notEnrolledData = useMemo(() => {
-    return notEnrolled.filter(student => student.status === "not_enrolled");
+    return notEnrolled.filter(students => students.enrollment_status === "not_enrolled");
   }, [notEnrolled]);
 
   const getBulkActions = (tab) => {

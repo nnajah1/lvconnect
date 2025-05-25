@@ -60,7 +60,7 @@ const DynamicAlertDialog = ({
   return (
     <AlertDialog.Root open={isOpen} onOpenChange={closeModal}>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10" />
+        <AlertDialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50" />
         <div className="fixed top-1/2 left-1/2 w-[95%] sm:w-[85%] md:max-w-md -translate-x-1/2 -translate-y-1/2 z-50">
           <AlertDialog.Content
             className={`${alertStyle.bg} ${alertStyle.border} border rounded-lg shadow-lg p-4 sm:p-6 ${className}`}

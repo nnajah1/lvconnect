@@ -5,7 +5,7 @@ import ConfirmationModal, { InfoModal } from "@/components/dynamic/alertModal";
 import EditSurvey from "@/components/survey/EditSurvey";
 import { useState } from "react";
 
-const EditSurveyModal = ({ isOpen, closeModal, formItem, onDeleteModal, onSuccessModal }) => {
+const EditSurveyModal = ({ isOpen, closeModal, formItem, onDeleteModal, onSuccessModal, load, setLoad }) => {
 
     const [isLoading, setIsLoading] = useState(false);
    const handleDelete = () => {
@@ -42,7 +42,7 @@ const EditSurveyModal = ({ isOpen, closeModal, formItem, onDeleteModal, onSucces
                     showDescription={false}
                     className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <EditSurvey closeModal={closeModal} surveyId={formItem.id} onDelete={handleDelete} onSuccess={handleSuccess}/>
+                    <EditSurvey closeModal={closeModal} surveyId={formItem.id} onDelete={handleDelete} onSuccess={handleSuccess} isLoading={load} setIsLoading={setLoad}/>
 
                 </DynamicModal>
             )}

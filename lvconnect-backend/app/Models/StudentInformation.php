@@ -40,17 +40,28 @@ class StudentInformation extends Model
     protected $casts = [
         'birth_date' => 'date',
     ];
-    protected $appends = ['full_name', 'program_name'];
+    protected $appends = ['full_name', 'program_id', 'program', 'year_level'];
 
     public function getFullNameAttribute()
     {
         return trim("{$this->first_name} {$this->last_name}");
     }
-    public function getProgramNameAttribute()
+    public function getProgramAttribute()
     {
         return $this->enrolleeRecord
-        ->first()?->program?->program_name;
+            ->first()?->program?->program_name;
     }
+    public function getProgramIdAttribute()
+    {
+        return $this->enrolleeRecord
+            ->first()?->program?->id;
+    }
+
+    public function getYearLevelAttribute()
+    {
+        return $this->enrolleeRecord->first()?->year_level;
+    }
+
 
     public function studentFamilyInfo()
     {
@@ -65,6 +76,13 @@ class StudentInformation extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function surveys()
+    {
+        return $this->belongsToMany(Survey::class, 'survey_student', 'student_information_id', 'survey_id')
+            ->withPivot('completed_at')
+            ->withTimestamps();
     }
 
 }

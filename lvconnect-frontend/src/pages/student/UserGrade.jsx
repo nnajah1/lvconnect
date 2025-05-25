@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table"
+import { User, GraduationCap, Award } from "lucide-react"
 
 const Grades = () => {
   const [expanded, setExpanded] = useState(false);
@@ -35,7 +39,7 @@ const Grades = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold text-[#1a2b4c]">Grades</h1>
-      
+
       </div>
 
       {/* Semester Card */}
@@ -55,60 +59,120 @@ const Grades = () => {
             </div>
             <button
               onClick={toggleGrades}
-              className="self-start md:self-auto bg-[#1793d1] hover:bg-[#137fb3] text-white text-sm px-4 py-2 rounded shadow flex items-center gap-2"
+              className="self-start md:self-auto bg-[#1793d1] hover:bg-[#137fb3] text-white text-sm px-4 py-2 rounded shadow flex items-center gap-2 cursor-pointer"
             >
               {expanded ? 'Hide Grades' : 'View Grades'}
             </button>
           </div>
 
           {expanded && (
-            <div className="mt-6 overflow-x-auto">
-              <div className="mb-4 text-sm">
-                <p className="font-semibold">Summary of Grades</p>
-                <div className="flex flex-col md:flex-row justify-between mt-2">
-                  <div>
-                    <p><span className="font-semibold">Name:</span> {data.student.name}</p>
-                    <p><span className="font-semibold">Student No.:</span> {data.student.number}</p>
-                    <p><span className="font-semibold">Scholarship Status:</span> {data.student.scholarship}</p>
+        <div className="p-6">
+          <Card className="shadow-sm border-0">
+            <CardHeader className="bg-white border-b border-gray-100">
+              <CardTitle className="text-lg text-gray-900">Summary of Grades</CardTitle>
+            </CardHeader>
+
+            <CardContent className=" space-y-6">
+              {/* Student Information Section */}
+              <div className="bg-gray-100 p-5 rounded-lg border border-gray-100">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-gray-700">Name:</span>
+                    <span className="text-gray-900">{data.student.name}</span>
                   </div>
-                 
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-gray-700">Student No.:</span>
+                    <Badge variant="outline" className="font-mono text-sm">
+                      {data.student.number}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-gray-700">Scholarship Status:</span>
+                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">
+                      {data.student.scholarship}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
-              <table className="w-full text-sm border border-collapse">
-                <thead className="bg-gray-100">
-                  <tr className="text-left">
-                    <th className="border px-2 py-2">#</th>
-                    <th className="border px-2 py-2">Subject Code</th>
-                    <th className="border px-2 py-2">Subject Title</th>
-                    <th className="border px-2 py-2">Units</th>
-                    <th className="border px-2 py-2">Grade</th>
-                    <th className="border px-2 py-2">Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.grades.map((subject, index) => (
-                    <tr key={index}>
-                      <td className="border px-2 py-1">{index + 1}</td>
-                      <td className="border px-2 py-1">{subject.code}</td>
-                      <td className="border px-2 py-1">{subject.title}</td>
-                      <td className="border px-2 py-1 text-center">{subject.units}</td>
-                      <td className="border px-2 py-1 text-center">{subject.grade}</td>
-                      <td className="border px-2 py-1 text-center">{subject.remarks}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colSpan="3" className="border px-2 py-1 text-right font-semibold">Gen. Average:</td>
-                    <td className="border px-2 py-1 text-center">{data.generalAverage.units}</td>
-                    <td className="border px-2 py-1 text-center">{data.generalAverage.grade}</td>
-                    <td className="border px-2 py-1"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          )}
+              {/* Grades Table Section */}
+              {data.grades ? (
+                <div className="bg-white rounded-lg border border-gray-100 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="text-center font-semibold text-gray-700">#</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Subject Code</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Subject Title</TableHead>
+                        <TableHead className="text-center font-semibold text-gray-700">Units</TableHead>
+                        <TableHead className="text-center font-semibold text-gray-700">Grade</TableHead>
+                        <TableHead className="text-center font-semibold text-gray-700">Remarks</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.grades.map((subject, index) => (
+                        <TableRow key={index} className="hover:bg-gray-50/50 transition-colors">
+                          <TableCell className="text-center font-medium text-gray-500">{index + 1}</TableCell>
+                          <TableCell className="font-mono text-sm font-medium text-gray-900">{subject.code}</TableCell>
+                          <TableCell className="font-medium text-gray-900">{subject.title}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="secondary" className="font-mono">
+                              {subject.units}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant={subject.grade.startsWith("A") ? "default" : "secondary"}
+                              className={`font-mono font-medium ${
+                                subject.grade.startsWith("A")
+                                  ? "bg-green-100 text-green-800 hover:bg-green-200 border-green-200"
+                                  : "bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200"
+                              }`}
+                            >
+                              {subject.grade}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">
+                              {subject.remarks}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                    <TableFooter>
+                      <TableRow className="bg-blue-50 hover:bg-blue-50 border-t-2 border-blue-100">
+                        <TableCell colSpan={3} className="text-right font-bold text-gray-800">
+                          General Average:
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="secondary" className="font-mono font-bold">
+                            {data.generalAverage.units}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className="bg-blue-600 hover:bg-blue-700 font-mono font-bold text-white">
+                            {data.generalAverage.grade}
+                          </Badge>
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    </TableFooter>
+                  </Table>
+                </div>
+              ) : (
+                <Card className="p-8 text-center border-2 border-dashed border-gray-200 bg-gray-50/50">
+                  <div className="text-gray-500">
+                    <GraduationCap className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-lg font-medium text-gray-600">No grade data available</p>
+                    <p className="text-sm text-gray-500">Grades will appear here once they are recorded.</p>
+                  </div>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
         </div>
       </div>
     </div>

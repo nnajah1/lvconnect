@@ -12,8 +12,9 @@ import { checkSubmission, getSurveyById, getSurveyResponse, getSurveyResponses, 
 import { toast } from 'react-toastify';
 import WebcamCapture from './captureCamera';
 import api from '@/services/axios';
+import { ConfirmationModal, InfoModal } from "../dynamic/alertModal"
 
-const SurveyAnswerView = ({ surveyId }) => {
+const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
   const [survey, setSurvey] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,6 +22,9 @@ const SurveyAnswerView = ({ surveyId }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedAt, setSubmittedAt] = useState(null);
   const formDisabled = isSubmitted;
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [confirmingSubmit, setConfirmingSubmit] = useState(false);
+  // const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,7 +48,7 @@ const SurveyAnswerView = ({ surveyId }) => {
         if (submissionRes.data.submitted) {
           const previousAnswersRes = await getSurveyResponse(surveyId);
           if (previousAnswersRes.data && Array.isArray(previousAnswersRes.data.answers)) {
-            // Map questions to answers, ensuring we maintain structure
+            // Map questions to answers
             const formattedAnswers = surveyRes.data.questions.map(q => {
               // Find matching answer for this question
               const matchingAnswer = previousAnswersRes.data.answers.find(
@@ -120,6 +124,13 @@ const SurveyAnswerView = ({ surveyId }) => {
     setAnswers(updated);
   };
 
+  const handleModal = async () => {
+    if (isSubmitting || isSubmitted) return;
+
+    setIsConfirmModalOpen(true);
+    setConfirmingSubmit(false);
+  };
+
   const handleSubmit = async () => {
     if (isSubmitting || isSubmitted) return;
 
@@ -136,9 +147,8 @@ const SurveyAnswerView = ({ surveyId }) => {
       return;
     }
 
-    const confirmSubmit = window.confirm('Once submitted, you will not be able to edit your responses. Are you sure you want to submit?');
-
-    if (!confirmSubmit) return;
+    setIsConfirmModalOpen(false);
+    setConfirmingSubmit(true);
 
     setIsSubmitting(true);
     try {
@@ -169,10 +179,11 @@ const SurveyAnswerView = ({ surveyId }) => {
           taken_at: ans.taken_at || null,
         })),
       });
-
+      await load();
       setIsSubmitted(true);
       setSubmittedAt(new Date().toISOString());
-
+      onSuccess();
+      // closeModal();
       toast.success('Survey submitted successfully!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -183,7 +194,7 @@ const SurveyAnswerView = ({ surveyId }) => {
     }
   };
 
-  if (loading) return <div>loading</div>;
+  if (loading) return <div className="flex items-center justify-center">loading...</div>;
   if (!survey)
     return (
       <div className="max-w-2xl mx-auto p-8 text-center">
@@ -194,7 +205,7 @@ const SurveyAnswerView = ({ surveyId }) => {
     )
 
   return (
-    <div className="mx-auto p-6 md:p-8 ">
+      <div className="w-full p-6 md:p-8">
 
       {isSubmitted && (
         <Alert className="mb-8 bg-green-50 border-green-200 text-green-800">
@@ -207,7 +218,7 @@ const SurveyAnswerView = ({ surveyId }) => {
         </Alert>
       )}
 
-      <div className="text-center mb-8 bg-white rounded-xl p-2">
+      <div className="text-center mb-8 bg-white rounded-xl p-2 w-full">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{survey.title}</h1>
         <p className="mt-2 text-gray-600">{survey.description}</p>
       </div>
@@ -215,12 +226,12 @@ const SurveyAnswerView = ({ surveyId }) => {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          handleSubmit()
+          handleModal()
         }}
       >
-        <div className="space-y-8">
+        <div className="space-y-8 w-lg">
           {survey.questions.sort((a, b) => a.order - b.order).map((q, index) => (
-            <Card key={q.id} className="overflow-hidden border border-gray-200 shadow-sm bg-white">
+            <Card key={q.id} className=" overflow-hidden border border-gray-200 shadow-sm bg-white">
               <CardContent className="px-6">
                 <div className="mb-4">
                   <div className="flex items-start gap-2">
@@ -359,6 +370,41 @@ const SurveyAnswerView = ({ surveyId }) => {
             </Card>
           ))}
         </div>
+        {isConfirmModalOpen && (
+          <InfoModal
+            isOpen={isConfirmModalOpen}
+            closeModal={() => setIsConfirmModalOpen(false)}
+            title="Confirm Submission"
+            description="Once submitted, you will not be able to edit your responses. Are you sure you want to submit?"
+          >
+            <div className="flex justify-end space-x-4">
+              <button
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                onClick={() => setIsConfirmModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={handleSubmit}
+              >
+                Yes, Submit
+              </button>
+            </div>
+          </InfoModal>
+        )}
+        {/* {confirmingSubmit && (
+          <ConfirmationModal
+
+            isOpen={isSuccessModalOpen}
+            closeModal={() => setIsSuccessModalOpen(false)}
+            title="Response Submitted"
+            description="Your response has been successfully submitted."
+          >
+            Manage Surveys
+          </ConfirmationModal>
+        )
+        } */}
 
         <div className="mt-8 text-center">
           {!isSubmitted ? (

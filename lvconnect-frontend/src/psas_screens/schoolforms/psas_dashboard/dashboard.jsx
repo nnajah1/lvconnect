@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
 import { HiOutlineUsers } from 'react-icons/hi2';
-import "../dashboard.css";  // Make sure this file contains styles for your dashboard
+import "./dashboard.css";  // Make sure this file contains styles for your dashboard
 
-const Dashboard = () => {
+const DashboardPsas = () => {
   const stats = [
     {
       label: 'Total students',
@@ -126,4 +126,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPsas;

@@ -7,7 +7,7 @@ import { actionConditions, actions, surveySchema } from "@/tableSchemas/survey";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateSurveyModal from "./CreateSurvey";
 import EditSurveyModal from "./EditSurvey";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { ConfirmationModal } from "@/components/dynamic/alertModal";
 import SearchBar from "@/components/dynamic/searchBar";
 import { toast } from "react-toastify";
@@ -24,6 +24,8 @@ const Surveys = () => {
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
+
+  const navigate = useNavigate();
 
   const openModal = (item) => {
     setFormItem(item);
@@ -45,12 +47,13 @@ const Surveys = () => {
 
  useEffect(() => {
     const loadSurveys = async () => {
+      setLoading(true)
       try {
         const data = await getSurveys();
         setSurvey(data);
       } catch (err) {
         console.error("Failed to load surveys", err);
-        toast.error("Failed to load surveys.");
+        console.error("Failed to load surveys.");
       } finally {
         setLoading(false); 
       }
@@ -59,10 +62,15 @@ const Surveys = () => {
     loadSurveys(); 
   }, []);
 
-  // if (error) {
-  //   return <p className="text-red-500">Error: {error}</p>;
-  // }
-
+  useEffect(() => {
+      if (responseItem) {
+        setLoading(true);
+        navigate(`/psas-admin/surveys/survey-responses/${responseItem.id}`, {
+          state: { from: location.pathname, loading: true },
+        });
+      }
+    }, [responseItem, navigate, location.pathname]);
+  
 
   return (
     <div className="container mx-auto p-4">
@@ -87,7 +95,7 @@ const Surveys = () => {
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
 
-      <DataTable columns={columns} data={survey} context="Surveys" globalFilter={globalFilter} />
+      <DataTable columns={columns} data={survey} context="Surveys" globalFilter={globalFilter} isLoading={loading}/>
 
       {/* Modals */}
       <CreateSurveyModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
@@ -114,11 +122,6 @@ const Surveys = () => {
           Back to Surveys
         </button>
       </ConfirmationModal>
-
-      {responseItem && (
-        <Navigate to={`/psas-admin/survey-responses/${responseItem.id}`} />
-      )}
-
 
     </div>
   );

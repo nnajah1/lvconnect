@@ -21,3 +21,8 @@ export const formatDateTime = (dateString) => {
     hour12: true,
   });
 };
+
+export const formatLabel = (value) =>
+  value
+    .replace(/_/g, ' ')                      // Replace underscores with spaces
+    .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize first letter of each word

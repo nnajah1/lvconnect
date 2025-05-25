@@ -23,9 +23,27 @@ const VisibleForms = () => {
   const [activeTab, setActiveTab] = useState("form Template");
   const [globalFilter, setGlobalFilter] = useState("");
 
+  const [isLoading, setIsLoading] = useState(true);
   const [formItem, setFormItem] = useState(null);
   const [submittedItem, setSubmittedItem] = useState(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setIsLoading(true);
+      try {
+        await fetchForms();
+        await fetchSubmitted();
+      } catch (err) {
+        console.error("Failed to load forms", err);
+        toast.error("Failed to load forms.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, []);
 
   const openFormModal = (item) => {
     setFormItem(item); // full item, not just id
@@ -56,12 +74,12 @@ const VisibleForms = () => {
     {
       label: "Form Templates",
       value: "form Template",
-      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} />
+      content: <DataTable columns={templateColumns} data={schoolForms} globalFilter={globalFilter} isLoading={isLoading} />
     },
     {
       label: "Submitted Forms",
       value: "submitted form",
-      content: <DataTable columns={submittedColumns} data={submittedForms} globalFilter={globalFilter} />
+      content: <DataTable columns={submittedColumns} data={submittedForms} globalFilter={globalFilter} isLoading={isLoading} />
     },
   ], [schoolForms, submittedForms, globalFilter, templateColumns, submittedColumns]);
 

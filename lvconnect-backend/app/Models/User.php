@@ -82,13 +82,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(TrustedDevice::class);
     }
 
-    public function surveys()
-    {
-        return $this->belongsToMany(Survey::class, 'survey_user', 'student_information_id', 'survey_id')
-                    ->withPivot('completed_at')
-                    ->withTimestamps();
-    }
-
     public function studentInformation()
     {
         return $this->hasOne(StudentInformation::class);

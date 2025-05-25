@@ -108,7 +108,9 @@ export default function StudentInfoSection({ personalInfo, canEditField, onChang
           onChange={handleChange}
           name="mobile_number"
           inputMode="numeric"
-          pattern="[0-9]*"
+          pattern="^09\d{9}$"
+          maxLength={11}
+          placeholder="e.g. 09123456789"
         />
         <FormField
           label="Facebook Profile link"
