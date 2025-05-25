@@ -7,6 +7,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
 use App\Models\Survey;
 use App\Models\SurveyAnswer;
+use App\Models\EnrolleeRecord;
 use DB;
 
 class DashboardController extends Controller
@@ -39,29 +40,52 @@ class DashboardController extends Controller
         // Total survey answers submitted
         $totalAnswers = SurveyAnswer::count();
 
-        // How many students from different programs answered each survey
-        $responsesByProgram = Survey::get()->map(function ($survey) {
-            $programCounts = DB::table('survey_responses')
-                ->join('enrollee_records', 'survey_responses.student_information_id', '=', 'enrollee_records.student_information_id')
-                ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
-                ->where('survey_responses.survey_id', $survey->id)
-                ->select('programs.id as program_id', 'programs.program_name', DB::raw('COUNT(DISTINCT survey_responses.student_information_id) as student_count'))
-                ->groupBy('programs.id', 'programs.program_name')
-                ->get();
-
-            return [
-                'survey_id' => $survey->id,
-                'survey_title' => $survey->title,
-                'responses_by_program' => $programCounts,
-            ];
-        });
+        // Student Demographics
+        $demographics = DB::table('enrollee_records')
+            ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
+            ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
+            ->where('enrollee_records.enrollment_status', 'enrolled') 
+            ->select(
+                'programs.id as program_id',
+                'programs.program_name',
+                'student_information.province',
+                'student_information.city_municipality',
+                'student_information.barangay',
+                DB::raw('`student_information`.`house_no/street` as street'),
+                DB::raw('COUNT(*) as student_count')
+            )
+            ->groupBy(
+                'programs.id',
+                'programs.program_name',
+                'student_information.province',
+                'student_information.city_municipality',
+                'student_information.barangay',
+                DB::raw('`student_information`.`house_no/street`')
+            )
+            ->get()
+            ->groupBy('program_id')
+            ->map(function ($group) {
+                $programName = $group->first()->program_name;
+                return [
+                    'program_name' => $programName,
+                    'addresses' => $group->map(function ($item) {
+                        return [
+                            'province' => $item->province,
+                            'city_municipality' => $item->city_municipality,
+                            'barangay' => $item->barangay,
+                            'street' => $item->street,
+                            'student_count' => $item->student_count,
+                        ];
+                    })->values(),
+                ];
+            })->values();
 
         return response()->json([
             'total_students' => $totalStudents,
             'visible_surveys' => $visibleSurveys,
             'mandatory_surveys' => $mandatorySurveys,
             'total_answers_submitted' => $totalAnswers,
-            'responses_by_program' => $responsesByProgram,
+            'student_demographics' => $demographics,
         ]);
     }
 
