@@ -19,56 +19,6 @@ use App\Models\TrustedDevice;
 
 class AuthController extends Controller
 {
-    public function createUser(Request $request)
-    {
-        $user = JWTAuth::authenticate();
-
-        // Checks user if authorized
-        if (!$user) {
-            return response()->json(['error' => 'not authorized'], 404);
-        }
-
-        // Define allowed roles
-        $allowedRoles = $user->hasRole('superadmin')
-            ? ['student', 'admin', 'superadmin']
-            : ['student'];
-
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'role' => ['required', Rule::in($allowedRoles)],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Generate a random password
-        $randomPassword = Str::random(10);
-
-        // Create new user (store first and last name only)
-        $newUser = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($randomPassword),
-        ]);
-
-        // Assign role
-        $newUser->assignRole($request->role);
-
-        // Create full name for display purposes (not stored)
-        $name = $request->first_name . ' ' . $request->last_name;
-
-        // Send email with credentials
-        Mail::to($newUser->email)->send(new UserCredentialsMail($newUser, $randomPassword));
-
-        return response()->json([
-            'message' => "User created successfully",
-            'name' => $name,
-        ], 201);
-    }
 
     public function login(Request $request)
     {

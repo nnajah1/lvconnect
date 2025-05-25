@@ -50,7 +50,6 @@ class CreateAccountController extends Controller
         $email = $firstName . '.' . $lastName . '@example.com';
 
         // Ensure email is unique (append number if needed)
-        $originalEmail = $email;
         $counter = 1;
         while (User::where('email', $email)->exists()) {
             $email = $firstName . '.' . $lastName . $counter . '@example.com';
@@ -83,6 +82,9 @@ class CreateAccountController extends Controller
         ], 201);
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function createStudentAccount(Request $request)
     {
         $user = JWTAuth::authenticate();
@@ -100,12 +102,14 @@ class CreateAccountController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Generate email from name
-        $firstName = strtolower(preg_replace('/\s+/', '', $request->first_name));
-        $lastName  = strtolower(preg_replace('/\s+/', '', $request->last_name));
+        // convert first and last name: only letters and lowercase
+        $firstName = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->first_name));
+        $lastName  = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->last_name));
+
+        // Create base email
         $email = $firstName . $lastName . '@student.laverdad.edu.ph';
 
-        // Make email unique if needed
+        // Ensure email is unique
         $counter = 1;
         while (User::where('email', $email)->exists()) {
             $email = $firstName . $lastName . $counter . '@student.laverdad.edu.ph';
@@ -125,7 +129,7 @@ class CreateAccountController extends Controller
 
         $student->assignRole('student');
 
-        // Send notification with credentials
+        // Notify student with credentials
         $student->notify(new UserCredentialsNotification($randomPassword));
 
         return response()->json([
@@ -135,6 +139,72 @@ class CreateAccountController extends Controller
                 'email' => $student->email,
                 'role'  => 'student',
             ]
+        ], 201);
+    }
+
+    /**
+     * Create more than one student.
+     */
+    public function batchCreateStudents(Request $request)
+    {
+        $authUser = JWTAuth::authenticate();
+
+        if (! $authUser || ! $authUser->hasRole('registrar')) {
+            return response()->json(['error' => 'Not authorized'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'users' => 'required|array|min:1',
+            'users.*.first_name' => 'required|string|max:255',
+            'users.*.last_name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $createdUsers = [];
+
+        foreach ($request->users as $userData) {
+            // convert first and last name: only letters and lowercase
+            $first = strtolower(preg_replace('/[^a-zA-Z]/', '', $userData['first_name']));
+            $last = strtolower(preg_replace('/[^a-zA-Z]/', '', $userData['last_name']));
+
+            // Build base email
+            $emailBase = $first . $last;
+            $email = $emailBase . '@student.laverdad.edu.ph';
+
+            // Ensure uniqueness
+            $counter = 1;
+            while (User::where('email', $email)->exists()) {
+                $email = $emailBase . $counter . '@student.laverdad.edu.ph';
+                $counter++;
+            }
+
+            $randomPassword = Str::random(10);
+
+            $newUser = User::create([
+                'first_name' => $userData['first_name'],
+                'last_name' => $userData['last_name'],
+                'email' => $email,
+                'password' => Hash::make($randomPassword),
+                'is_active' => true,
+            ]);
+
+            $newUser->assignRole('student');
+
+            $newUser->notify(new UserCredentialsNotification($randomPassword));
+
+            $createdUsers[] = [
+                'name' => $newUser->first_name . ' ' . $newUser->last_name,
+                'email' => $email,
+                'role' => 'student',
+            ];
+        }
+
+        return response()->json([
+            'message' => 'Student accounts created successfully',
+            'users' => $createdUsers,
         ], 201);
     }
 
