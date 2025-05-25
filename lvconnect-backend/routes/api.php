@@ -11,6 +11,7 @@ use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\SchoolUpdateController;
 use App\Http\Controllers\TrustedDeviceController;
+use App\Http\Controllers\CreateAccountController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -34,7 +35,7 @@ Route::post('/auth/google/token', [OAuthController::class, 'exchangeGoogleToken'
 Route::middleware('auth.jwt')->group(function () {
   Route::get('/me', [AuthController::class, 'me']);
   Route::get('/logout', [AuthController::class, 'logout']);
-  Route::post('/create-user', [AuthController::class, 'createUser']);
+  Route::post('/create-student', [CreateAccountController::class, 'createStudentAccount']);
   Route::get('/trusted-devices', [TrustedDeviceController::class, 'index']); // List all trusted devices
   Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
   Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
