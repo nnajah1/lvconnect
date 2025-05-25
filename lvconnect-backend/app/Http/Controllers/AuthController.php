@@ -92,11 +92,16 @@ class AuthController extends Controller
 
         // Get the authenticated user
         $user = User::where('email', $request->email)->first();
+
         if (!$user || !Hash::check($request->password, $user->password)) {
             // Return an error if email or password does not match
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+        // Check if user is active
+        if (!$user->is_active) {
+            return response()->json(['message' => 'Account is deactivated. Please contact administrator.'], 403);
+        }
 
         // Hash device ID for security
         $hashedDeviceId = hash('sha256', $request->device_id);
@@ -106,10 +111,9 @@ class AuthController extends Controller
             ->where('device_id', $hashedDeviceId)
             ->first();
 
-
         if (!$trustedDevice) {
             $OTPController = App::make(OTPController::class);
-            //If device is NOT trusted, send OTP
+            // If device is NOT trusted, send OTP
             $OTPController->sendOTP(new Request([
                 'user_id' => $user->id,
                 'purpose' => 'unrecognized_device'
@@ -127,15 +131,13 @@ class AuthController extends Controller
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
         return response()->json([
-            'message' => 'Login successful', 
+            'message' => 'Login successful',
             'must_change_password' => $user->must_change_password,
             'user_id' => encrypt($user->id),
-            ])
-            ->cookie('auth_token', $token, 60, '/', null, false, true)
-            ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
-
+        ])
+        ->cookie('auth_token', $token, 60, '/', null, false, true)
+        ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
     }
-
 
     // Get Authenticated User
     public function me(Request $request)

@@ -20,9 +20,11 @@ return new class extends Migration
             $table->string('password');
             $table->string('google_id')->nullable()->unique();
             $table->string('avatar')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->boolean('must_change_password')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
