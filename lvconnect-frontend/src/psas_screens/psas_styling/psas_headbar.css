@@ -248,3 +248,111 @@ border-bottom: 1px solid #e5e7eb;
     color: #374151;
   }
   
+
+  .summary-tab-container {
+    padding: 1.5rem;
+    font-family: sans-serif;
+  }
+  
+  .summary-box {
+    background-color: #f8fbfd;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+  }
+  
+  .summary-box h2 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+  }
+  
+  .response-count {
+    font-size: 1.25rem;
+
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  /* Bar layout */
+  .bar-row-horizontal {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    gap: 1rem;
+  }
+  
+  .bar-label {
+    flex: 0 0 150px;
+  }
+  
+  .bar {
+    background-color: #e1ecf4;
+    border-radius: 10px;
+    height: 24px;
+    flex: 1;
+    position: relative;
+  }
+  
+  .bar-fill {
+    background-color: #23a06d;
+    height: 100%;
+    color: white;
+    text-align: right;
+    padding-right: 8px;
+    line-height: 24px;
+    border-radius: 10px;
+  }
+  
+  /* Additional Details styling */
+  .detail-text-filled {
+    background-color: #f1f5f9;
+    color: black;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  
+  .see-all-right {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+  
+  .see-all-link {
+    color: #2b99ce;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  
+  /* Uploads */
+  .upload-header,
+  .upload-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr 2fr;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .upload-header {
+    font-weight: bold;
+    background: #E9ECEF;
+  }
+  
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.5rem;
+  }
+  
+  .uploader-info {
+    display: flex;
+    align-items: center;
+  }
