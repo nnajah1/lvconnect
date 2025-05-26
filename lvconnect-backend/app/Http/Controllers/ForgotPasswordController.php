@@ -15,13 +15,16 @@ class ForgotPasswordController extends Controller
     public function sendResetLink(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => 'required|email',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user->notify_via_email) {
-            return response()->json(['message' => 'User has disabled email notifications.'], 403);
+        // Check if the email exists
+        if (!$user) {
+            return response()->json([
+                'message' => 'The email you entered does not exist in our records. Please provide a registered email address.',
+            ], 404);
         }
 
         $token = Str::random(64);
@@ -36,7 +39,7 @@ class ForgotPasswordController extends Controller
 
         $resetLink = url('/reset-password?token=' . $token . '&email=' . urlencode($request->email));
 
-        // Send the reset link using a Laravel notification
+        // Send the reset link
         $user->notify(new PasswordResetNotification($resetLink));
 
         return response()->json(['message' => 'Reset password link sent to your email.']);
