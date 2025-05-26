@@ -36,7 +36,7 @@ Route::post('/auth/google/token', [OAuthController::class, 'exchangeGoogleToken'
 Route::middleware('auth.jwt')->group(function () {
   Route::get('/me', [AuthController::class, 'me']);
   Route::get('/logout', [AuthController::class, 'logout']);
-  Route::post('/create-student', [CreateAccountController::class, 'createStudentAccount']);
+  Route::post('/create-admin', [CreateAccountController::class, 'createAdminAccount']);
   Route::get('/trusted-devices', [TrustedDeviceController::class, 'index']); // List all trusted devices
   Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
   Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);

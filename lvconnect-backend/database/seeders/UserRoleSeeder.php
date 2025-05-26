@@ -24,15 +24,16 @@ class UserRoleSeeder extends Seeder
             'comms',
             'scadmin',
             'psas',
-            'student',
         ];
 
         foreach ($roles as $roleName) {
             $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'api']);
 
-            foreach (range(1, 5) as $i) {
+            $userCount = $roleName === 'superadmin' ? 2 : 1;
+
+            foreach (range(1, $userCount) as $i) {
                 $lastName = "lv";
-                $firstName = ucfirst($roleName) . $i; 
+                $firstName = ucfirst($roleName) . $i;
                 $email = strtolower($roleName) . $i . '_' . strtolower($lastName) . '@email.com';
 
                 $user = User::create([
@@ -48,7 +49,7 @@ class UserRoleSeeder extends Seeder
                 $user->assignRole($role);
             }
 
-            $this->command->info("5 users created and assigned role: {$roleName}");
+            $this->command->info("{$userCount} user(s) created and assigned role: {$roleName}");
         }
     }
 }

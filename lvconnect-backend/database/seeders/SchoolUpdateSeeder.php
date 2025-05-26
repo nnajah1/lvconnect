@@ -21,25 +21,58 @@ class SchoolUpdateSeeder extends Seeder
             return;
         }
 
-        foreach (range(1, 10) as $i) {
+        $updates = [
+            [
+                'type' => 'event',
+                'title' => 'Intramurals 2025',
+                'content' => 'Join us for the week-long Intramurals event! There will be sports, contests, and performances from all departments.',
+                'is_urgent' => false,
+            ],
+            [
+                'type' => 'announcement',
+                'title' => 'Cancelled Classes due to Typhoon Alert',
+                'content' => 'All classes are cancelled from May 27–29 due to the typhoon warning. Stay safe and follow advisories.',
+                'is_urgent' => true,
+            ],
+            [
+                'type' => 'event',
+                'title' => 'Teachers’ Day Program',
+                'content' => 'We invite all students to join the celebration of Teachers’ Day this Friday at the Auditorium. Bring your messages and tokens of appreciation!',
+                'is_urgent' => false,
+            ],
+            [
+                'type' => 'announcement',
+                'title' => 'General Assembly for All Students',
+                'content' => 'A mandatory general assembly will be held on June 3. Topics include updates on the academic calendar and student policies.',
+                'is_urgent' => true,
+            ],
+            [
+                'type' => 'announcement',
+                'title' => 'Final Exams Schedule Released',
+                'content' => 'Check the student portal now for your final exam schedules. Review guidelines and room assignments carefully.',
+                'is_urgent' => false,
+            ],
+        ];
+
+        foreach ($updates as $data) {
             $createdBy = $faker->randomElement($commsUsers);
             $approvedBy = $scAdminUsers->isNotEmpty() ? $faker->optional(0.7)->randomElement($scAdminUsers) : null;
 
             SchoolUpdate::create([
                 'created_by' => $createdBy->id,
                 'approved_by' => $approvedBy?->id,
-                'type' => $faker->randomElement(['announcement', 'event']),
-                'title' => $faker->sentence(6, true),
-                'content' => $faker->paragraphs(3, true),
+                'type' => $data['type'],
+                'title' => $data['title'],
+                'content' => $data['content'],
                 'image_url' => $faker->optional()->imageUrl(),
-                'status' => $faker->randomElement(['draft', 'pending', 'approved', 'rejected', 'for_revision', 'published']),
+                'status' => $faker->randomElement(['approved', 'pending', 'published']),
                 'is_notified' => $faker->boolean(30),
-                'is_urgent' => $faker->boolean(20),
-                'revision_fields' => $faker->optional()->randomElement([json_encode(['title', 'content']), null]),
-                'revision_remarks' => $faker->optional()->sentence(),
-                'post_to_facebook' => $faker->boolean(20),
-                'facebook_post_id' => $faker->optional()->uuid(),
-                'rejected_at' => $faker->optional()->dateTimeThisYear(),
+                'is_urgent' => $data['is_urgent'],
+                'revision_fields' => null,
+                'revision_remarks' => null,
+                'post_to_facebook' => $faker->boolean(10),
+                'facebook_post_id' => null,
+                'rejected_at' => null,
                 'published_at' => $faker->optional()->dateTimeThisYear(),
                 'archived_at' => $faker->optional()->dateTimeThisYear(),
                 'created_at' => now(),
@@ -47,6 +80,6 @@ class SchoolUpdateSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('School updates seeded successfully.');
+        $this->command->info('5 Real-life school updates seeded successfully.');
     }
 }
