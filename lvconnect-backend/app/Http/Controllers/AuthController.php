@@ -85,8 +85,11 @@ class AuthController extends Controller
             // 'must_change_password' => $user->must_change_password,
             'user_id' => encrypt($user->id),
         ])
-        ->cookie('auth_token', $token, 60, '/', null, false, true)
-        ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
+            ->cookie('auth_token', $token, 60, '/', config('session.domain'),  app()->environment('production'), true)
+            ->cookie('refresh_token', $refreshToken, 43200, '/',  config('session.domain'),  app()->environment('production'), true);
+
+        // ->cookie('auth_token', $token, 60, '/', null, false, true)
+        // ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
     }
 
     // Get Authenticated User
@@ -110,17 +113,17 @@ class AuthController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
 
-                // Load roles from Spatie
-                $user->load('roles');
+            // Load roles from Spatie
+            $user->load('roles');
 
-                //get permissions
-                $permissions = $user->getAllPermissions()->pluck('name');
+            //get permissions
+            $permissions = $user->getAllPermissions()->pluck('name');
 
-                // Return the user data
-                return response()->json([
-                    'user' => $user,
-                    'permissions' => $permissions,
-                    
+            // Return the user data
+            return response()->json([
+                'user' => $user,
+                'permissions' => $permissions,
+
             ], 200);  // 200 OK
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return response()->json(['error' => 'Token expired'], 401);
@@ -144,8 +147,8 @@ class AuthController extends Controller
             }
 
             return response()->json(['message' => 'Logged out successfully'])
-                ->cookie('auth_token', '', -1, '/', null, false, true)  // Remove auth token
-                ->cookie('refresh_token', '', -1, '/', null, false, true); // Remove refresh token
+                ->cookie('auth_token', '', -1, '/', config('session.domain'), app()->environment('production'), true)  // Remove auth token
+                ->cookie('refresh_token', '', -1, '/', config('session.domain'), app()->environment('production'), true); // Remove refresh token
         } catch (JWTException $e) {
             return response()->json(['error' => 'Failed to log out'], 500);
         }
@@ -160,7 +163,7 @@ class AuthController extends Controller
             $newToken = JWTAuth::refresh();
 
             return response()->json(['message' => 'Token refreshed'])
-                ->cookie('auth_token', $newToken, 60, '/', null, false, true);
+                ->cookie('auth_token', $newToken, 60, '/', config('session.domain'),  app()->environment('production'), true);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Refresh token expired'], 401);
         }
