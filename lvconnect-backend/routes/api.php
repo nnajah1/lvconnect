@@ -75,6 +75,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::get('/submissions', [SchoolFormsController::class, 'submissions']);
   Route::get('/forms/submissions/{id}', [SchoolFormsController::class, 'showSubmission']);
   Route::get('/submissions/{submissionId}/download', [SchoolFormsController::class, 'downloadApprovedForm']);
+  Route::get('/approved-form-data/{submissionId}', [SchoolFormsController::class, 'getApprovedFormData']);
 
 
   Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
