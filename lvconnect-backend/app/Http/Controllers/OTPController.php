@@ -153,8 +153,8 @@ class OTPController extends Controller
         return response()->json([
             'message' => 'OTP Verified, Login Successful'
         ], 200)
-            ->cookie('auth_token', $token, 60, '/', config('session.domain'), app()->environment('production'), true)
-            ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.domain'), app()->environment('production'), true);
+            ->cookie('auth_token', $token, 60, '/', null, request()->secure(), true)
+            ->cookie('refresh_token', $refreshToken, 43200, '/', null, request()->secure(), true);
 
     }
     public function verifyOtpForPasswordChange(Request $request)

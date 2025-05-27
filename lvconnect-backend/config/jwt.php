@@ -250,7 +250,7 @@ return [
     |
     */
 
-    'cookie' => 'auth_token',    
+    'cookie' => 'auth_token',    s
     
     'decrypt_cookies' => false,
 
