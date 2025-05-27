@@ -112,8 +112,8 @@ class OAuthController extends Controller
                 // 'must_change_password' => $user->must_change_password,
                 'user_id' => encrypt($user->id),
             ])
-                ->cookie('auth_token', $token, 60, '/', null, request()->secure(), true)
-                ->cookie('refresh_token', $refreshToken, 43200, '/', null, request()->secure(), true);
+                ->cookie('auth_token', $token, 60, '/', "https://lvconnect.up.railway.app", request()->secure(), true)
+                ->cookie('refresh_token', $refreshToken, 43200, '/', "https://lvconnect.up.railway.app", request()->secure(), true);
 
         } catch (\Exception $e) {
             \Log::error("Google login failed", ['exception' => $e->getMessage()]);
