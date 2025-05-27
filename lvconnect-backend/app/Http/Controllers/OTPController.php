@@ -164,8 +164,8 @@ class OTPController extends Controller
         return response()->json([
             'message' => 'OTP Verified, Login Successful'
         ], 200)
-            ->cookie('auth_token', $token, 60, '/', "https://lvconnect.up.railway.app", request()->secure(), true)
-            ->cookie('refresh_token', $refreshToken, 43200, '/', "https://lvconnect.up.railway.app", request()->secure(), true);
+            ->cookie('auth_token', $token, 60, '/', "lvconnect.up.railway.app", request()->secure(), true)
+            ->cookie('refresh_token', $refreshToken, 43200, '/', "lvconnect.up.railway.app", request()->secure(), true);
 
     }
     public function verifyOtpForPasswordChange(Request $request)
