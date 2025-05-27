@@ -30,7 +30,7 @@ const UserCreateSurveyModal = ({ isOpen, closeModal, formItem, load, }) => {
                     description="Fill out the survey."
                     showTitle={false}
                     showDescription={false}
-                    className="">
+                    className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
                     <SurveyAnswerView isOpen={isOpen} closeModal={closeModal} onSuccess={handleSuccess} surveyId={formItem.id} load={load}/>
 

@@ -12,6 +12,7 @@ import { FaUser } from "react-icons/fa6";
 import { IoLockClosed } from "react-icons/io5";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import "@/styles/login.css";
+import { toast } from "react-toastify";
 
 
 export default function Login() {
@@ -50,7 +51,7 @@ export default function Login() {
 
     if (!response.success) {
       if (response.otpRequired) {
-        setTimer(5); // Start the timer immediately
+        setTimer(120); // Start the timer immediately
         localStorage.setItem("otpStartTime", Date.now()); // Save timer start time
         setIsResendDisabled(true);
         navigate("/otp", {
@@ -67,7 +68,7 @@ export default function Login() {
       }
       
       else {
-        setError(response.message || "Login failed.");
+        toast.error(response.message || "Login failed.");
       }
   
     } else {
@@ -80,7 +81,9 @@ export default function Login() {
 
   return (
     <div className="login-container">
-      <Imagebackground src={illustration} alt="illustration" className="absolute" />
+     <div className="image-background">
+    <Imagebackground src={illustration} alt="illustration" />
+  </div>
       <div className="login-card">
         <div className="login-header">
           <LVConnect />
@@ -89,7 +92,7 @@ export default function Login() {
 
         <h2 className="login-subtitle">Sign in to your account to continue.</h2>
 
-        <div>{error && <p style={{ color: "red" }}>{error}</p>}
+        {/* <div>{error && <p style={{ color: "red" }}>{error}</p>} */}
           <form className="login-form" onSubmit={handleSubmit}>
 
             <div className="grid gap-3">
@@ -169,14 +172,15 @@ export default function Login() {
             />
             <span className=" -translate-y-2 ">Remember this device. <a href="#" className="text-blue-500 underline">Learn more</a></span>
           </div>
+          <p className="terms-text">
+          {/* <a href="#" className="underline">Terms of Use</a> and */}
+           <a href="/privacy-policy" target="_blank"
+          rel="noopener noreferrer" className="underline">Privacy Statement</a>
+        </p>
         </div>
 
-        <p className="terms-text">
-          <a href="#" className="underline">Terms of Use</a> and <a href="#" className="underline">Privacy Statement</a>
-        </p>
+        
       </div>
-    </div>
-
   );
 
 };

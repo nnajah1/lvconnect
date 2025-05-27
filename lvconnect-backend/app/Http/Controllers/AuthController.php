@@ -82,7 +82,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'must_change_password' => $user->must_change_password,
+            // 'must_change_password' => $user->must_change_password,
             'user_id' => encrypt($user->id),
         ])
         ->cookie('auth_token', $token, 60, '/', null, false, true)

@@ -14,13 +14,14 @@ import {
     InputOTPGroup,
     InputOTPSlot,
 } from "../../components/ui/input-otp";
+import { toast, ToastContainer } from "react-toastify";
 
 const OTPVerification = () => {
     preventBackNavigation(true);
 
     const location = useLocation();
     const navigate = useNavigate();
-    const { sendOTP, verifyOTP, setTimer, timer, user, isResendDisabled, setIsResendDisabled } = useAuthContext();
+    const { isLoading, resendOTP, verifyOTP, setTimer, timer, user, isResendDisabled, setIsResendDisabled } = useAuthContext();
     const [otp, setOtp] = useState("");
     const [error, setError] = useState(null);
 
@@ -74,11 +75,11 @@ const OTPVerification = () => {
         e.preventDefault();
         setError(null);
         if (!userId) {
-            setError("Invalid request. Please try again.");
+            toast.error("Invalid request. Please try again.");
             return;
         }
         if (!otp) {
-            setError("invalid OTP. Please Try again.");
+            toast.error("invalid OTP. Please Try again.");
             return;
         }
         try {
@@ -93,20 +94,20 @@ const OTPVerification = () => {
                     navigate("/", { replace: true });
                 }
             } else {
-                setError(response.message);
+                toast.error(response.message);
             }
         } catch (error) {
-            setError("OTP verification failed");
+            toast.error("OTP verification failed");
         }
     }
 
     const handleResendOTP = async () => {
         try {
-            const response = await sendOTP(userId, "unrecognized_device"); // Call API to resend OTP
+            const response = await resendOTP(userId, "unrecognized_device"); // Call API to resend OTP
 
             if (response.success) {
-                alert("A new OTP has been sent to your email.");
-                setTimer(5); // Restart the timer (assuming 120 seconds)
+                toast.success("A new OTP has been sent to your email.");
+                setTimer(120); // Restart the timer (assuming 120 seconds)
                 localStorage.setItem("otpStartTime", Date.now()); // Save new start time
                 setIsResendDisabled(true);
 
@@ -115,7 +116,7 @@ const OTPVerification = () => {
             }
         } catch (error) {
             console.error("Resend OTP failed:", error);
-            alert(error.message);
+            toast.error(error.message);
         }
     };
 
@@ -141,9 +142,9 @@ const OTPVerification = () => {
                         Please enter the One-Time Password (OTP) sent to the <br /> email address you provided.
                     </p>
 
-                    {error && <p style={{ color: "red" }}>{error}</p>}
+                    {/* {error && <p style={{ color: "red" }}>{error}</p>} */}
 
-                    <div className="flex justify-center space-x-2 mb-2">
+                    <div className="flex justify-center space-x-2 mb-2 ">
                         <InputOTP maxLength={6} value={otp}
                             onChange={handleOtpChange} className="mb-4">
                             <InputOTPGroup>
@@ -154,14 +155,19 @@ const OTPVerification = () => {
                         </InputOTP>
                     </div>
 
-                    <div className=" text-sm text-gray-600 w-full flex justify-end mb-2 pr-4">
+                    <div className="text-sm text-gray-600 w-full flex justify-end mb-2 pr-4">
                         {isResendDisabled ? (
                             <span>
                                 Resend OTP in <span className="text-red-500 font-semibold">{formatTime(timer)}</span>
                             </span>
+                        ) : isLoading ? (
+                            <span className="text-blue-500 font-semibold">Sending...</span>
                         ) : (
-                            <button onClick={handleResendOTP} disabled={isResendDisabled}
-                                className="text-blue-500 font-semibold hover:underline">
+                            <button
+                                onClick={handleResendOTP}
+                                disabled={isResendDisabled || isLoading}
+                                className="text-blue-500 font-semibold hover:underline"
+                            >
                                 Resend OTP
                             </button>
                         )}

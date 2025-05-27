@@ -205,7 +205,7 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
     )
 
   return (
-      <div className="w-full p-6 md:p-8">
+      <div className="w-[50vw] flex flex-col items-center p-2 md:p-8">
 
       {isSubmitted && (
         <Alert className="mb-8 bg-green-50 border-green-200 text-green-800">

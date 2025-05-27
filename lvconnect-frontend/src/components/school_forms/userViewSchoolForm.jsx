@@ -4,7 +4,7 @@ import { useForms } from '@/context/FormsContext';
 import { toast } from 'react-toastify';
 import StudentEditForm from './userSubmitForm';
 import { Button } from '../ui/button';
-import { WarningModal } from '../dynamic/alertModal';
+import { InfoModal, WarningModal } from '../dynamic/alertModal';
 
 const ShowSubmission = ({ formId, userRole }) => {
   const { fetchForms, fetchSubmitted } = useForms();
@@ -13,8 +13,6 @@ const ShowSubmission = ({ formId, userRole }) => {
   const [loading, setLoading] = useState(true);
   const [adminRemarks, setAdminRemarks] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviewStatus, setReviewStatus] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const loadForm = async () => {
@@ -48,8 +46,6 @@ const ShowSubmission = ({ formId, userRole }) => {
   }, [formId]);
 
   const handleReview = async (status) => {
-    setReviewStatus(status);
-    setIsReviewModalOpen(true);
     setIsReviewing(true);
     try {
       await reviewSubmission(form.id, {
@@ -65,6 +61,7 @@ const ShowSubmission = ({ formId, userRole }) => {
       setIsReviewing(false);
     }
   };
+
   const htmlEncode = (str) => {
     const div = document.createElement('div');
     div.textContent = str;
@@ -161,23 +158,34 @@ const ShowSubmission = ({ formId, userRole }) => {
 
 
       {/* Admin Review Section for PSAS only */}
-      {userRole === 'psas' && status === 'pending' && (
-         <div className="flex justify-end gap-2">
+         {userRole === 'psas'&& status === 'pending' && (
+        <div className="mt-6 p-4 border rounded-md bg-gray-50 space-y-4">
+          <h3 className="text-lg font-semibold">Admin Review</h3>
+          <textarea
+            className="w-full p-2 border"
+            rows="4"
+            placeholder="Add your remarks here..."
+            value={adminRemarks}
+            onChange={(e) => setAdminRemarks(e.target.value)}
+          />
+
+          <div className="flex gap-2">
             <button
-              onClick={() => setReviewStatus('approved') || setIsReviewModalOpen(true)}
+              onClick={() => handleReview('approved')}
               disabled={isReviewing}
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             >
               Approve
             </button>
             <button
-              onClick={() => setReviewStatus('rejected') || setIsReviewModalOpen(true)}
+              onClick={() => handleReview('rejected')}
               disabled={isReviewing}
               className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
             >
               Reject
             </button>
           </div>
+        </div>
       )}
 
       {userRole === 'student' && form.admin_remarks && (
@@ -202,40 +210,46 @@ const ShowSubmission = ({ formId, userRole }) => {
         </div>
       )}
 
-      {isReviewModalOpen && (
-        <WarningModal
+      {/* {isReviewModalOpen && (
+        <InfoModal
           isOpen={isReviewModalOpen}
-          closeModal={() => setIsReviewModalOpen(false)}
+          closeModal={() => {setIsReviewModalOpen(false); setAdminRemarks("");}}
           title={`Confirm ${reviewStatus}`}
           description={`Are you sure you want to ${reviewStatus} this submission?`}
-          onConfirm={async () => {
-            setIsReviewing(true);
-            try {
-              await reviewSubmission(form.id, {
-                status: reviewStatus,
-                admin_remarks: adminRemarks,
-              });
-              toast.success(`Submission ${reviewStatus} successfully!`);
-              loadForm(); // refresh
-            } catch (err) {
-              toast.error('Failed to submit review.');
-            } finally {
-              setIsReviewing(false);
-              setIsReviewModalOpen(false);
-            }
-          }}
         >
-          <textarea
-            className="w-full p-2 border rounded mb-4"
-            rows="4"
-            placeholder="Add your remarks here..."
-            value={adminRemarks}
-            onChange={(e) => setAdminRemarks(e.target.value)}
-          />
-        </WarningModal>
-      )}
+           <div className="flex w-full flex-col">
+            <div className="w-full">
+              <input
+                type="text"
+                placeholder="Enter admin remarks"
+                className="w-full px-3 py-2 border rounded mb-4"
+                value={adminRemarks}
+                onChange={(e) => setAdminRemarks(e.target.value)}
+                required
+              />
+            </div>
 
-
+            <div className='flex gap-2'>
+              <button
+                className='cursor-pointer bg-gray-300 p-2 rounded'
+                onClick={() =>{ setIsReviewModalOpen(false); setAdminRemarks("");}}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleReview(reviewStatus)}
+                disabled={isReviewing}
+                className={`cursor-pointer p-2 border rounded ${reviewStatus === 'approve'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-red-500 text-white'
+                  }`}
+              >
+                {reviewStatus}
+              </button>
+            </div>
+          </div>
+        </InfoModal>
+      )} */}
 
     </div>
   );

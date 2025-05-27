@@ -9,7 +9,7 @@ const GuidelinesAndPolicies = () => {
       <div className="guidelines-header">Guidelines and Policies</div>
       <div className="guidelines-grid">
         <a
-          href="https://lvcc.edu.ph/student-handbook"
+          href="/coming-soon"
           target="_blank"
           rel="noopener noreferrer"
           className="guidelines-card"
@@ -19,7 +19,7 @@ const GuidelinesAndPolicies = () => {
         </a>
 
         <a
-          href="https://lvcc.edu.ph/data-privacy"
+          href="/privacy-policy"
           target="_blank"
           rel="noopener noreferrer"
           className="guidelines-card"

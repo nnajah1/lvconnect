@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
                 'email'      => $email,
                 'password'   => Hash::make('password'),
                 'avatar'     => $faker->imageUrl(200, 200, 'people', true, 'Avatar'),
-                'notify_via_email' => true,
+                // 'notify_via_email' => true,
                 'must_change_password' => false,
             ]);
 

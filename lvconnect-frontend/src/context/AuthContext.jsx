@@ -20,6 +20,7 @@ export const ContextProvider = ({ children }) => {
     const [timer, setTimer] = useState(120);
     const [isResendDisabled, setIsResendDisabled] = useState(true);
     const [deviceId, setDeviceId] = useState(null);
+    const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
         const loadDeviceId = async () => {
@@ -94,13 +95,13 @@ export const ContextProvider = ({ children }) => {
                 };
             }
 
-            if (response.data.must_change_password) {
-                return {
-                    mustChangePassword: true,
-                    userId: response.data.user_id,
-                    message: "Password change required",
-                };
-            }
+            // if (response.data.must_change_password) {
+            //     return {
+            //         mustChangePassword: true,
+            //         userId: response.data.user_id,
+            //         message: "Password change required",
+            //     };
+            // }
 
             if (response.status === 200) {
 
@@ -131,6 +132,23 @@ export const ContextProvider = ({ children }) => {
             return { success: false, message: "Failed to send OTP" };
         }
     };
+    const resendOTP = async (userId, purpose) => {
+        setIsLoading(true);
+        try {
+            const response = await api.post("/resend-otp", { user_id: userId, purpose });
+
+            if (response.status === 200) {
+                return { success: true, message: "OTP sent successfully" };
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 429) {
+                return { success: false, message: "Please wait before requesting a new OTP" };
+            }
+            return { success: false, message: "Failed to send OTP" };
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Verify OTP
     const verifyOTP = async (userId, otp, rememberDevice, isOAuth = false) => {
@@ -144,9 +162,9 @@ export const ContextProvider = ({ children }) => {
 
             });
 
-            if (response.data.must_change_password) {
-                return { success: true, mustChangePassword: true, userId }; // Redirect to change password
-            }
+            // if (response.data.must_change_password) {
+            //     return { success: true, mustChangePassword: true, userId }; // Redirect to change password
+            // }
 
             await refreshToken();
             await fetchUser(); // Fetch user details after successful OTP verification
@@ -197,7 +215,7 @@ export const ContextProvider = ({ children }) => {
                 device_id: deviceId,
                 remember_device: rememberDevice,
             });
-    
+
             if (response.data.otp_required) {
                 return {
                     success: false,
@@ -206,23 +224,23 @@ export const ContextProvider = ({ children }) => {
                     message: "OTP required",
                 };
             }
-    
-            if (response.data.must_change_password) {
-                return {
-                    mustChangePassword: true,
-                    userId: response.data.user_id,
-                    message: "Password change required",
-                };
-            }
-    
+
+            // if (response.data.must_change_password) {
+            //     return {
+            //         mustChangePassword: true,
+            //         userId: response.data.user_id,
+            //         message: "Password change required",
+            //     };
+            // }
+
             if (response.status === 200) {
                 await refreshToken();
                 await fetchUser(); // Fetch the user after login
                 return { success: true, userId: response.data.user_id };
             }
-    
+
             return { success: false, message: "Unexpected response from server" };
-    
+
         } catch (error) {
             console.error("Google Auth Error:", error.response?.data || error);
             return {
@@ -231,7 +249,7 @@ export const ContextProvider = ({ children }) => {
             };
         }
     };
-    
+
 
 
 
@@ -256,7 +274,8 @@ export const ContextProvider = ({ children }) => {
             setIsResendDisabled,
             deviceId,
             exchangeGoogleToken,
-
+            resendOTP,
+            isLoading,
         }}>
             {children}
         </AuthContext.Provider>

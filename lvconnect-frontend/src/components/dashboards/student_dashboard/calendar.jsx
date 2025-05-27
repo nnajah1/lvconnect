@@ -37,12 +37,12 @@ const Calendar = ({ onDateClick }) => {
 
   const renderHeader = () => (
     <div className="flex justify-between items-center mb-2">
-      <h2 className="text-md font-semibold text-gray-700">{format(currentMonth, "MMMM yyyy")}</h2>
-      <div className="space-x-2">
-        <button onClick={handlePrevMonth} className="text-gray-500 hover:text-gray-700 p-1">
+      <h2 className="text-sm sm:text-md font-semibold text-gray-700">{format(currentMonth, "MMMM yyyy")}</h2>
+      <div className="space-x-1 sm:space-x-2">
+        <button onClick={handlePrevMonth} className="text-gray-500 hover:text-gray-700 p-1 text-sm sm:text-base">
           ❮
         </button>
-        <button onClick={handleNextMonth} className="text-gray-500 hover:text-gray-700 p-1">
+        <button onClick={handleNextMonth} className="text-gray-500 hover:text-gray-700 p-1 text-sm sm:text-base">
           ❯
         </button>
       </div>
@@ -52,7 +52,7 @@ const Calendar = ({ onDateClick }) => {
   const renderDays = () => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     return (
-      <div className="grid grid-cols-7 text-center text-sm text-gray-600 mb-2">
+      <div className="grid grid-cols-7 text-center text-xs sm:text-sm text-gray-600 mb-2">
         {days.map((day) => (
           <div key={day} className="py-1">
             {day}
@@ -85,11 +85,11 @@ const Calendar = ({ onDateClick }) => {
         days.push(
           <div
             key={day}
-            className={`text-sm text-center rounded-full w-8 h-8 flex items-center justify-center cursor-pointer transition-colors mx-auto ${
+            className={`text-xs sm:text-sm text-center rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center cursor-pointer transition-colors mx-auto ${
               isToday
                 ? "bg-blue-500 text-white"
                 : isSelected
-                  ? "bg-blue-100 text-blue-700 ring-2 ring-blue-300"
+                  ? "bg-blue-100 text-blue-700 ring-1 sm:ring-2 ring-blue-300"
                   : !isCurrentMonth
                     ? "text-gray-300"
                     : "text-gray-700 hover:bg-gray-200"
@@ -112,13 +112,13 @@ const Calendar = ({ onDateClick }) => {
   }
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
+    <div className="bg-white p-3 sm:p-4 rounded-lg shadow-md">
       {renderHeader()}
       {renderDays()}
       {renderCells()}
       {selectedDate && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <p className="text-xs text-gray-600">Selected: {format(selectedDate, "MMMM d, yyyy")}</p>
+        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-600">Selected: {format(selectedDate, "MMM d, yyyy")}</p>
         </div>
       )}
     </div>

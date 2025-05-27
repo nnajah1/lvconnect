@@ -180,7 +180,7 @@ const CalendarActivities = ({ onBack, selectedDate }) => {
       )}
       {renderHeader()}
       {renderDaysHeader()}
-      <div className="h-[calc(100vh-20rem)] overflow-y-auto">{renderCalendarGrid()}</div>
+      <div className="h-[calc(100vh-300px)] overflow-y-auto">{renderCalendarGrid()}</div>
     </div>
   )
 }
