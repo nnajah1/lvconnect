@@ -88,11 +88,11 @@ const OTPVerification = () => {
 
             if (response.success) {
                 //Redirect to Change Password if password must change
-                if (response.mustChangePassword) {
-                    navigate("/change-password", { state: { userId: response.userId }, replace: true });
-                } else {
+                // if (response.mustChangePassword) {
+                //     navigate("/change-password", { state: { userId: response.userId }, replace: true });
+                // } else {
                     navigate("/", { replace: true });
-                }
+                // }
             } else {
                 toast.error(response.message);
             }
@@ -174,7 +174,7 @@ const OTPVerification = () => {
                     </div>
 
 
-                    <Button onClick={handleVerifyOTP} className=" w-[90%] mt-2">Verify</Button>
+                    <Button onClick={handleVerifyOTP} className=" w-[90%] mt-2" disabled={isLoading}>{isLoading ? "verifying" : "Verify"}</Button>
                 </div>
             </div>
         </div>
