@@ -201,7 +201,7 @@ export const ContextProvider = ({ children }) => {
     // Google OAuth login 
     const handleGoogleLogin = async () => {
         try {
-            window.location.href = "http://localhost:8000/api/login/google/redirect";
+            window.location.href = import.meta.env.VITE_GOOGLE_LOGIN_URL;
 
         } catch (error) {
             return { message: "google login failed" }

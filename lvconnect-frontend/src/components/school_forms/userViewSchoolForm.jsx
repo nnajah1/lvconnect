@@ -24,7 +24,7 @@ const htmlEncode = (str) => {
 const renderContentWithAnswers = (content, submissionData) => {
   if (!content) return '';
 
-  const baseURL = 'http://localhost:8000/';
+  const baseURL = import.meta.env.VITE_BASE_URL;
   let updatedContent = content;
 
   submissionData.forEach(field => {
