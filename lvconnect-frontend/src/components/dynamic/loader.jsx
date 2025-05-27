@@ -22,3 +22,15 @@ export function Loader3() {
       </div>
   );
 };
+
+export function Authenticate() {
+   return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-center items-center bg-gray-100 bg-opacity-90">
+      <div className="w-14 h-14 border-4 border-t-transparent border-blue-600 border-solid rounded-full animate-spin"></div>
+      <p className="mt-4 text-gray-700 text-lg font-medium select-none">
+        Authenticating...
+      </p>
+    </div>
+  );
+}
+

@@ -33,7 +33,7 @@ export default function ProtectedRoute() {
     user.roles.some((role) => allowedRoles.includes(role.name));
 
   if (!hasAccess) {
-    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+    return <Unauthorized />;
   }
 
     return <Outlet />;

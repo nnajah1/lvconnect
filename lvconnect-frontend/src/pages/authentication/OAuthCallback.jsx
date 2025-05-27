@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
+import { Authenticate } from "@/components/dynamic/loader";
 
 const OAuthCallback = () => {
     const { exchangeGoogleToken, deviceId } = useAuthContext();
@@ -69,7 +70,7 @@ const OAuthCallback = () => {
         handleOAuthLogin();
     }, [location.search, navigate, exchangeGoogleToken,]);
 
-    return <p>authenticating...</p>;
+    return <Authenticate />;
 };
 
 export default OAuthCallback;

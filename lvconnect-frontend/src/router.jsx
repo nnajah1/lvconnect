@@ -33,6 +33,7 @@ import Unauthorized from "./layouts/Unauthorized";
 import ComingSoon from "./layouts/ComingSoon";
 import ResetPassword from "./pages/authentication/ResetPassword";
 import PrivacyPolicy  from "./layouts/PrivacyPolicy";
+import { Authenticate } from "./components/dynamic/loader";
 
 
 
@@ -151,9 +152,6 @@ const router = createBrowserRouter([
     },
     { path: "/privacy-policy", element: <PrivacyPolicy/> },,
     { path: "/coming-soon", element: <ComingSoon/> },
-    { path: "/unauthorized", element: <Unauthorized /> },
-    { path: "/trial", element: <StudentView /> },
-    { path: "/app", element: <ComingSoon/> }
 
 
 
