@@ -18,10 +18,9 @@ class OTPController extends Controller
 {
     public function sendOTP(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'user_id' => 'required|exists:users,id',
-            'purpose' => 'required|string|in:forgot_password,new_password,unrecognized_device', // Ensure valid purpose
+            'purpose' => 'required|string|in:forgot_password,new_password,unrecognized_device',
         ]);
 
         if ($validator->fails()) {
@@ -29,14 +28,18 @@ class OTPController extends Controller
         }
 
         $user = User::find($request->user_id);
-        if (RateLimiter::tooManyAttempts('otp-' . $user, 5)) {
+
+        // Use user ID for rate limiter key
+        $rateLimiterKey = 'otp-' . $user->id;
+
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
             return response()->json([
                 'error' => 'Too many attempts. Try again later.'
             ], 429);
         }
 
         // Increment the attempt count (expires in 1 minute)
-        RateLimiter::hit('otp-' . $user, 60);
+        RateLimiter::hit($rateLimiterKey, 60);
 
         // Check if an OTP was recently requested
         $existingOTP = Otp::where('user_id', $user->id)->latest()->first();
@@ -45,25 +48,33 @@ class OTPController extends Controller
             return response()->json(['error' => 'Please wait before requesting a new OTP'], 429);
         }
 
-
         // Generate OTP
         $otpCode = rand(100000, 999999);
-        // $otpCode = 123456;
+        // $otpCode = 123456; // for testing
 
-
-        // Store OTP in otps table with expiration
-        Otp::create([
+        // Logging before saving
+        \Log::info('Attempting to create OTP for user', [
             'user_id' => $user->id,
             'otp' => $otpCode,
-            'expires_at' => Carbon::now()->addMinutes(2),
         ]);
+
+        try {
+            $otpRecord = Otp::create([
+                'user_id' => $user->id,
+                'otp' => $otpCode,
+                'expires_at' => Carbon::now()->addMinutes(2),
+            ]);
+            \Log::info('OTP saved successfully', ['otp_id' => $otpRecord->id]);
+        } catch (\Throwable $e) {
+            \Log::error('Failed to save OTP', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Server error while saving OTP'], 500);
+        }
 
         // Send OTP via notification (dynamic purpose)
         $user->notify(new OTPNotification($otpCode, $request->purpose));
 
-
-        // Reset attempt count on success
-        RateLimiter::clear('otp-' . $user);
+        // Clear rate limiter on success
+        RateLimiter::clear($rateLimiterKey);
 
         return response()->json(['message' => 'OTP sent to your email'], 200);
     }
