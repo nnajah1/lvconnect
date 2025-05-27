@@ -112,8 +112,8 @@ class OAuthController extends Controller
                 // 'must_change_password' => $user->must_change_password,
                 'user_id' => encrypt($user->id),
             ])
-                ->cookie('auth_token', $token, 60, '/', config('session.domain'), app()->environment('production'), true,  false, 'none')
-                ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.domain'), app()->environment('production'), true, false, 'none');
+                ->cookie('auth_token', $token, 60, '/', config('session.domain'), app()->environment('production'), true)
+                ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.domain'), app()->environment('production'), true);
 
         } catch (\Exception $e) {
             \Log::error("Google login failed", ['exception' => $e->getMessage()]);
