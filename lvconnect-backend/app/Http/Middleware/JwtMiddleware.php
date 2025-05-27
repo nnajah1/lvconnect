@@ -3,6 +3,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use \Tymon\JWTAuth\Facades\JWTAuth;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,6 +15,7 @@ class JwtMiddleware
         if (!$request->bearerToken() && $request->cookie('auth_token')) {
             JWTAuth::setToken($request->cookie('auth_token'));
             $user = JWTAuth::authenticate();
+            Log::error('JWT Authentication Failed');
             if (!$user) {
                 return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
             }

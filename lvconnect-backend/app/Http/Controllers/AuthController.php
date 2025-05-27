@@ -85,8 +85,8 @@ class AuthController extends Controller
             // 'must_change_password' => $user->must_change_password,
             'user_id' => encrypt($user->id),
         ])
-            ->cookie('auth_token', $token, 60, '/', null, request()->secure(), true,)
-            ->cookie('refresh_token', $refreshToken, 43200, '/', null, request()->secure(), true,);
+            ->cookie('auth_token', $token, 60, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'))
+            ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'));
 
         // ->cookie('auth_token', $token, 60, '/', null, false, true)
         // ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
@@ -147,8 +147,8 @@ class AuthController extends Controller
             }
 
             return response()->json(['message' => 'Logged out successfully'])
-                ->cookie('auth_token', '', -1, '/', null, request()->secure(), true,)  // Remove auth token
-                ->cookie('refresh_token', '', -1, '/', null, request()->secure(), true,); // Remove refresh token
+                ->cookie('auth_token', '', -1, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'))  // Remove auth token
+                ->cookie('refresh_token', '', -1, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site')); // Remove refresh token
         } catch (JWTException $e) {
             return response()->json(['error' => 'Failed to log out'], 500);
         }
@@ -163,7 +163,7 @@ class AuthController extends Controller
             $newToken = JWTAuth::refresh();
 
             return response()->json(['message' => 'Token refreshed'])
-                ->cookie('auth_token', $newToken, 60, '/', null, app()->environment('production'), true,);
+                ->cookie('auth_token', $newToken, 60, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'));
         } catch (JWTException $e) {
             return response()->json(['error' => 'Refresh token expired'], 401);
         }
