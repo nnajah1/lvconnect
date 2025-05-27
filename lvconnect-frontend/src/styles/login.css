@@ -1,0 +1,78 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+.login-container {
+  @apply flex flex-col lg:flex-row w-full h-full;
+}
+
+.login-card {
+  @apply absolute left-0 top-0 h-full w-[540px] flex flex-col justify-center p-12 bg-white/75 backdrop-blur-xl shadow-lg;
+}
+
+.image-background {
+  @apply absolute inset-0 w-full h-full object-cover;
+}
+
+.login-header {
+  @apply flex flex-row items-center justify-center;
+}
+
+.login-subtitle {
+  @apply text-lg text-gray-500 font-semibold text-center mb-4;
+}
+
+.login-form {
+  @apply space-y-4;
+}
+
+.login-label {
+  @apply block text-base font-bold text-gray-600;
+}
+
+.input-group {
+  @apply relative ;
+}
+
+.input-icon {
+  @apply absolute left-3 top-6 transform -translate-y-1/2 text-gray-500 ;
+}
+
+.input-field {
+  @apply w-full h-[46px] pl-8 pr-4 border bg-white rounded-md text-sm font-medium focus:outline-none focus:ring-0 focus:border-black;
+}
+
+.input-icon-right {
+  @apply absolute right-3 top-6 transform -translate-y-1/2 text-gray-500;
+}
+
+.forgot-password {
+  @apply text-gray-600 text-sm hover:underline ml-auto -mt-4;
+}
+
+.or-divider {
+  @apply flex items-center my-4;
+}
+
+.divider-line {
+  @apply flex-1 border-gray-400;
+}
+
+.or-text {
+  @apply mx-2 text-black text-xs font-bold;
+}
+
+.google-signin-btn {
+  @apply w-full h-12 border border-gray-400 text-gray-500 bg-white rounded-md flex items-center justify-center text-sm font-medium cursor-pointer;
+}
+
+.google-icon {
+  @apply w-5 h-5 mr-2;
+}
+
+.remember-me {
+  @apply w-full my-3 flex items-center gap-2 pt-4 text-base;
+}
+
+.terms-text {
+  @apply text-center text-sm text-black ;
+}

@@ -1,0 +1,80 @@
+@tailwind utilities;
+@import "tailwindcss";
+
+
+/* Container spacing */
+.welcome-banner-container {
+    @apply px-4 sm:px-8 mt-4 relative;
+  }
+  
+  /* Blue banner styling */
+  .welcome-banner-content {
+    @apply bg-[#1e3264] text-white px-6 py-6 rounded-md flex justify-between items-center flex-wrap gap-4;
+  }
+  
+  /* Text styling */
+  .welcome-text {
+    @apply text-lg sm:text-xl font-semibold;
+  }
+  
+  /* Icons container */
+  .welcome-icons {
+    @apply flex items-center gap-6 relative;
+  }
+  
+  /* Icons */
+  .icon {
+    @apply w-7 h-7 sm:w-8 sm:h-8;
+  }
+  
+  .clickable {
+    @apply cursor-pointer;
+  }
+  
+  /* Notification badge */
+  .notification-badge {
+    @apply absolute top-0 right-0 h-2.5 w-2.5 bg-red-500 rounded-full ring-2 ring-white;
+  }
+  
+  /* Dropdown */
+  .notifications-dropdown {
+    @apply absolute top-14 right-0 bg-white text-black rounded-md shadow-md w-80 sm:w-96 p-4 z-50;
+  }
+  
+  /* Dropdown Header */
+  .dropdown-header {
+    @apply flex items-center justify-between mb-4;
+  }
+  
+  /* Title */
+  .dropdown-title {
+    @apply text-lg font-semibold;
+  }
+  
+  /* Tab Buttons */
+  .tab-buttons {
+    @apply flex bg-gray-100 rounded-full p-1;
+  }
+  
+  .tab-button {
+    @apply px-3 py-1 text-sm rounded-full font-medium text-gray-600 hover:text-sky-500;
+  }
+  
+  .tab-button.active {
+    @apply bg-sky-500 text-white;
+  }
+  
+  /* Empty Text */
+  .empty-text {
+    @apply text-gray-500 text-sm;
+  }
+  
+  /* Notifications List */
+  .notifications-list {
+    @apply space-y-2 max-h-60 overflow-y-auto;
+  }
+  
+  .notification-item {
+    @apply text-sm text-gray-800 bg-gray-50 p-2 rounded hover:bg-gray-100 transition;
+  }
+  
