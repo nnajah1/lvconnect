@@ -1,0 +1,38 @@
+.switchRoot {
+	width: 30px;
+	height: 14px;
+	background-color: gray;
+	border-radius: 9999px;
+	position: relative;
+	transition: background-color 0.2s ease-in-out;
+	cursor: pointer;
+}
+
+.switchRoot[data-state="checked"] {
+	background-color: #4f46e5;
+}
+
+.switchThumb {
+	width: 10px;
+	height: 10px;
+	background-color: white;
+	border-radius: 50%;
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	transition: transform 0.2s ease-in-out;
+}
+
+.switchRoot[data-state="checked"] .switchThumb {
+	transform: translateX(17px);
+
+}
+
+.tooltipContent {
+	background-color: black;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 5px;
+	font-size: 12px;
+	z-index: 50;
+}

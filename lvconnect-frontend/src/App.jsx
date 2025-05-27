@@ -1,11 +1,17 @@
 
-import './App.css'
+import { RouterProvider } from 'react-router-dom';
 
-function App() {
+import './index.css';
+import router from './router.jsx'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+export default function App() {
 
   return (
-    <div>bading</div>
-  )
+    <>
+      <RouterProvider router={router} />
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
+  );
 }
-
-export default App
