@@ -15,11 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:5173', 'https://lvconnect.up.railway.app'],
+    'allowed_origins' => ['http://localhost:5173', [env('FRONTEND_URL')]],
 
     'allowed_origins_patterns' => [],
 
