@@ -16,7 +16,6 @@ class UserRoleSeeder extends Seeder
     {
         $roles = [
             'registrar',
-            'superadmin',
             'admin',
             'comms',
             'scadmin',
@@ -24,29 +23,46 @@ class UserRoleSeeder extends Seeder
             'student',
         ];
 
+        // Seed roles except superadmin
         foreach ($roles as $roleName) {
             $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'api']);
 
-            $userCount = $roleName === 'superadmin' ? 2 : 1;
+            $firstName = ucfirst($roleName);
+            $lastName = 'lv';
+            $email = strtolower($roleName) . '_' . $lastName . '@email.com';
 
-            for ($i = 1; $i <= $userCount; $i++) {
-                $firstName = ucfirst($roleName) . $i;
-                $lastName = 'lv';
-                $email = strtolower($roleName) . $i . '_' . $lastName . '@email.com';
+            $user = User::create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'password' => Hash::make('password123'),
+                'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                'must_change_password' => false,
+            ]);
 
-                $user = User::create([
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'email' => $email,
-                    'password' => Hash::make('password123'),
-                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
-                    'must_change_password' => false,
-                ]);
+            $user->assignRole($role);
+            $this->command->info("User created and assigned role: {$roleName}");
+        }
 
-                $user->assignRole($role);
-            }
+        // Separate seeding for superadmins: Mae and Ann
+        $superadminRole = Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'api']);
+        $superadmins = [
+            ['first_name' => 'jannah', 'last_name' => 'delarosa', 'email' => 'jannahdelarosa@student.laverdad.edu.ph'],
+            ['first_name' => 'azhelle', 'last_name' => 'casimiro', 'email' => 'jannahdelarosa@student.laverdad.edu.ph'],
+        ];
 
-            $this->command->info("{$userCount} user(s) created and assigned role: {$roleName}");
+        foreach ($superadmins as $data) {
+            $user = User::create([
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+                'email' => $data['email'],
+                'password' => Hash::make('password123'),
+                'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                'must_change_password' => false,
+            ]);
+
+            $user->assignRole($superadminRole);
+            $this->command->info("Superadmin created: {$data['first_name']} {$data['last_name']}");
         }
     }
 
