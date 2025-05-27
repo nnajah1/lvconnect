@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
-use Faker\Factory as Faker;
 
 class UserRoleSeeder extends Seeder
 {
@@ -15,8 +14,6 @@ class UserRoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
-
         $roles = [
             'registrar',
             'superadmin',
@@ -24,6 +21,7 @@ class UserRoleSeeder extends Seeder
             'comms',
             'scadmin',
             'psas',
+            'student',
         ];
 
         foreach ($roles as $roleName) {
@@ -31,18 +29,17 @@ class UserRoleSeeder extends Seeder
 
             $userCount = $roleName === 'superadmin' ? 2 : 1;
 
-            foreach (range(1, $userCount) as $i) {
-                $lastName = "lv";
+            for ($i = 1; $i <= $userCount; $i++) {
                 $firstName = ucfirst($roleName) . $i;
-                $email = strtolower($roleName) . $i . '_' . strtolower($lastName) . '@email.com';
+                $lastName = 'lv';
+                $email = strtolower($roleName) . $i . '_' . $lastName . '@email.com';
 
                 $user = User::create([
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'email' => $email,
                     'password' => Hash::make('password123'),
-                    'avatar' => $faker->imageUrl(200, 200, 'people', true, 'Avatar'),
-                    // 'notify_via_email' => true,
+                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
                     'must_change_password' => false,
                 ]);
 
@@ -51,5 +48,13 @@ class UserRoleSeeder extends Seeder
 
             $this->command->info("{$userCount} user(s) created and assigned role: {$roleName}");
         }
+    }
+
+    /**
+     * Get a Faker instance.
+     */
+    protected function faker()
+    {
+        return \Faker\Factory::create();
     }
 }
