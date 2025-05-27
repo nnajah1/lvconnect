@@ -33,7 +33,7 @@ class OAuthController extends Controller
                 ->first();
 
             if (!$user) {
-                return redirect("http://localhost:5173/login?error=Account+not+found");
+                return redirect(env('APP_URL') . "/login?error=Account+not+found");
             }
 
             // If user exists but doesn't have a google_id, update it
@@ -49,11 +49,11 @@ class OAuthController extends Controller
             ], 300); // Store for 2 minutes
 
             // Redirect to frontend with the temporary code
-            return redirect("http://localhost:5173/google-auth-success?code={$tempCode}");
+            return redirect(to: env('APP_URL') . "/google-auth-success?code={$tempCode}");
 
         } catch (\Exception $e) {
             Log::error("Google OAuth Callback Error", ['message' => $e->getMessage()]);
-            return redirect('http://localhost:5173/login?error=google_failed');
+            return redirect(env('APP_URL') . '/login?error=google_failed');
         }
     }
 
