@@ -7,6 +7,7 @@ import UserCreateSurveyModal from './UserCreateSurvey';
 import { getSurveys } from '@/services/surveyAPI';
 import SearchBar from '@/components/dynamic/searchBar';
 import { useUserRole } from '@/utils/userRole';
+import { ConfirmationModal } from '@/components/dynamic/alertModal';
 
 const VisibleSurveys = () => {
   const userRole = useUserRole();
@@ -16,12 +17,22 @@ const VisibleSurveys = () => {
   const [formItem, setFormItem] = useState(null);
   const [sorting, setSorting] = useState([])
   const [globalFilter, setGlobalFilter] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadSurveys = async () => {
+  const loadSurveys = async () => {
+    setLoading(true);
+    try {
       const data = await getSurveys();
       setSurvey(data);
-    };
+    } catch (err) {
+      console.error("Failed to load surveys", err);
+      toast.error("Failed to load surveys.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadSurveys();
   }, []);
 
@@ -55,16 +66,19 @@ const VisibleSurveys = () => {
         <div className="student-service-school-forms-header">
           Surveys
         </div>
-        <DataTable columns={Columns} data={survey} context="Surveys" globalFilter={globalFilter} />
+        <DataTable columns={Columns} data={survey} context="Surveys" globalFilter={globalFilter} isLoading={loading} />
       </div>
       {/* Modals */}
       {formItem && (
         <UserCreateSurveyModal
           isOpen={!!formItem}
-          closeModal={() => setFormItem(false)}
+          closeModal={() => setFormItem(null)}
           formItem={formItem}
+          load={loadSurveys}
+          // onConfirmModal={() => setIsSuccessModalOpen(true)}
         />
       )}
+
 
     </div>
   );

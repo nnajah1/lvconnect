@@ -15,49 +15,53 @@ export default function FormField({
   maxLength,
   min,
   numericOnly,
+  placeholder
 }) {
+  const isSelect = Array.isArray(options) && type !== "radio";
+  const isRadio = Array.isArray(options) && type === "radio";
+  const isCheckbox = type === "checkbox";
+
   return (
     <div className={`form-field-container ${maxWidth || ""}`}>
       <label className="form-label">{label}</label>
 
       {isEditing ? (
-        Array.isArray(options) ? (
-          type === "radio" ? (
-            <div className="form-radio-group">
-              {options.map((option, index) => (
-                <label key={index} className="radio-label">
-                  <input
-                    type="radio"
-                    name={name}
-                    value={String(option.value)}
-                    checked={String(value) === String(option.value)}
-                    onChange={onChange}
-                    required
-                  />
-                  {option.label}
-                </label>
-              ))}
-            </div>
-          ) : (
-            <select
-              name={name}
-              value={value}
-              onChange={onChange}
-              className="form-select"
-              required
-            >
-              <option value="">Select {label}</option>
-              {options.map((option, index) => (
-                <option
-                  key={index}
-                  value={typeof option === "object" ? option.id ?? option.value : option}
-                >
-                  {typeof option === "object" ? option.name ?? option.label : option}
+        isRadio ? (
+          <div className="form-radio-group">
+            {options.map((option, index) => (
+              <label key={index} className="radio-label">
+                <input
+                  type="radio"
+                  name={name}
+                  value={String(option.value)}
+                  checked={String(value) === String(option.value)}
+                  onChange={onChange}
+                  required
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        ) : isSelect ? (
+          <select
+            name={name}
+            value={value}
+            onChange={onChange}
+            className="form-select"
+            required
+          >
+            <option value="">Select {label}</option>
+            {options.map((option, index) => {
+              const val = typeof option === "object" ? option.id ?? option.value : option;
+              const labelText = typeof option === "object" ? option.name ?? option.label : option;
+              return (
+                <option key={index} value={val}>
+                  {labelText}
                 </option>
-              ))}
-            </select>
-          )
-        ) : type === "checkbox" ? (
+              );
+            })}
+          </select>
+        ) : isCheckbox ? (
           <input
             type="checkbox"
             name={name}
@@ -77,6 +81,7 @@ export default function FormField({
             pattern={pattern}
             maxLength={maxLength}
             min={min}
+            placeholder={placeholder}
             onKeyDown={(e) => {
               if (
                 numericOnly &&
@@ -91,33 +96,29 @@ export default function FormField({
         )
       ) : (
         <>
-          {(type === "checkbox" || type === "radio") ? (
-            type === "checkbox" ? (
-              <div className="form-display-checkbox">
-                <input type="checkbox" checked={!!value} disabled />
-                <span>{value ? "Yes" : "No"}</span>
-              </div>
-            ) : (
-              <div className="form-display-radio">
-                {Array.isArray(options) ? options.map((opt, i) => (
-                  <label
-                    key={i}
-                    className={`radio-label ${String(opt.value) === String(value) ? "selected" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      checked={String(opt.value) === String(value)}
-                      disabled
-                    />
-                    {opt.label}
-                  </label>
-                )) : (
-                  <span>{String(value)}</span>
-                )}
-              </div>
-            )
+          {isCheckbox ? (
+            <div className="form-display-checkbox">
+              <input type="checkbox" checked={!!value} disabled />
+              <span>{value ? "Yes" : "No"}</span>
+            </div>
+          ) : isRadio ? (
+            <div className="form-display-radio">
+              {options.map((opt, i) => (
+                <label
+                  key={i}
+                  className={`radio-label ${String(opt.value) === String(value) ? "selected" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    checked={String(opt.value) === String(value)}
+                    disabled
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
           ) : (
-            <div className="form-display">
+            <div className="form-display bg-gray-100">
               <span className="form-value">
                 {Array.isArray(options)
                   ? typeof options[0] === "object"
@@ -132,4 +133,5 @@ export default function FormField({
     </div>
   );
 }
+
 

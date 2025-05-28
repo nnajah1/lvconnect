@@ -265,15 +265,18 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
     setIsLoading(true);
 
     try {
+      const cleanedContent = instructions?.trim().replace(/\s+/g, ' ')
+      .replace(/(<p><br><\/p>)+$/g, '') // Remove trailing <p><br></p>
+      .replace(/<p><br><\/p>/g, '');    // Remove any <p><br></p> anywhere;
       if (mode === 'edit') {
-        data.content = instructions;
+        data.content = cleanedContent;
         await onSubmit(data, formFields, deletedFieldIds);
         if (onSuccess) onSuccess();
       } else {
         const formData = new FormData();
         formData.append('title', data.title);
         formData.append('description', data.description);
-        formData.append('content', instructions);
+        formData.append('content', cleanedContent);
         if (pdfFile) {
           formData.append('pdf', pdfFile);
         }

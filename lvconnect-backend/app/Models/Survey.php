@@ -13,9 +13,9 @@ class Survey extends Model
         return $this->hasMany(SurveyQuestion::class);
     }
 
-    public function users()
+    public function students()
     {
-        return $this->belongsToMany(User::class,'survey_user', 'survey_id', 'student_information_id')
+        return $this->belongsToMany(StudentInformation::class,'survey_student', 'survey_id', 'student_information_id')
                     ->withPivot('completed_at')
                     ->withTimestamps();
     }

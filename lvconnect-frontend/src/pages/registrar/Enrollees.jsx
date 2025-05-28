@@ -10,7 +10,7 @@ import GuardianInfoComponent from "@/components/studentinfo/guardian_info"
 import SectionHeader from "@/components/studentinfo/header_section"
 import ActionButtons from "@/components/studentinfo/action"
 import { createEnrollee, editStudentData, getEnrollee } from "@/services/enrollmentAPI";
-import {mapToApiPayload, programOptions, religionOptions, incomeOptions, partialFieldsAdmin, partialFieldsStudent } from "@/utils/enrollmentHelper.js"
+import {mapToApiPayload, programOptions, religionOptions, incomeOptions, fields } from "@/utils/enrollmentHelper.js"
 import { useUserRole } from "@/utils/userRole";
 import { Loader2 } from "@/components/dynamic/loader";
 
@@ -168,11 +168,7 @@ const Enrollees = ({ mode, editType }) => {
     if (!isEditing) return false;
 
     if (userRole === "registrar") {
-      return editType === "full" || (editType === "partial" && partialFieldsAdmin.includes(fieldName));
-    }
-
-    if (userRole === "student") {
-      return partialFieldsStudent.includes(fieldName);
+      return editType === "full" || (editType === "partial" && fields.includes(fieldName));
     }
 
     return false;
@@ -231,7 +227,7 @@ const Enrollees = ({ mode, editType }) => {
           userRole={userRole}
           editType={editType}
         />
-
+   
         <ProfileSection
           isEditing={isEditing}
           profileData={studentData}
@@ -241,6 +237,7 @@ const Enrollees = ({ mode, editType }) => {
           onChange={handleFieldChange}
           programOptions={programOptions}
           handleFileChange={handleFileChange}
+          userRole={userRole}
         />
       </div>
 

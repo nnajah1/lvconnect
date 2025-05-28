@@ -5,9 +5,8 @@ import EditForm from "@/components/school_forms/EditSchoolForm";
 import ConfirmationModal from "@/components/dynamic/alertModal";
 import { useState } from "react";
 
-const EditFormModal = ({ isOpen, closeModal, formItem, onDeleteModal}) => {
+const EditFormModal = ({ isOpen, closeModal, formItem, onDeleteModal, onSuccessModal}) => {
 
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleDelete = () => {
@@ -18,6 +17,16 @@ const EditFormModal = ({ isOpen, closeModal, formItem, onDeleteModal}) => {
             setIsLoading(false);
         }, 2000);
     };
+    const handleSuccess = () => {
+        setIsLoading(true);
+        setTimeout(() => {
+            closeModal();
+            onSuccessModal();
+            setIsLoading(false);
+        }, 1000);
+    };
+ 
+
     return (
         <>
             {isLoading ? (
@@ -33,7 +42,7 @@ const EditFormModal = ({ isOpen, closeModal, formItem, onDeleteModal}) => {
                     showDescription={false}
                     className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <EditForm closeModal={closeModal}  onDelete={handleDelete} formId={formItem.id} />
+                    <EditForm closeModal={closeModal}  onDelete={handleDelete} onSuccess={handleSuccess} formId={formItem.id} />
 
                 </DynamicModal>
             )}

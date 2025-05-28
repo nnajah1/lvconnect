@@ -30,8 +30,8 @@ import AdminSoa from "./pages/registrar/Soa";
 import EditStudentInformation from "./pages/registrar/DirectEnrollment";
 import StudentInformation from "./pages/registrar/StudentInformation";
 import DirectEnrollment from "./pages/registrar/DirectEnrollment";
-import SemesterGrades from "./student_pages/grades/semestergrades";
 import Grades from "./pages/student/UserGrade";
+import SummaryTab from "./psas_screens/psas_header_bar/summarytab";
 
 
 
@@ -114,7 +114,7 @@ const router = createBrowserRouter([
                             { index: true, element: <PsasDashboard /> },
                             { path: "forms", element: <Forms /> },
                             { path: "surveys", element: <Surveys /> },
-                            { path: "survey-responses/:surveyId", element: <SurveyResponses /> },
+                            { path: "surveys/survey-responses/:surveyId", element: <SurveyResponses /> },
 
                         ],
                     },
@@ -148,7 +148,7 @@ const router = createBrowserRouter([
     },
     { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
     { path: "/trial", element: <StudentView /> },
-    { path: "/app", element: <SemesterGrades /> }
+    { path: "/app", element: <SummaryTab/> }
 
 
 

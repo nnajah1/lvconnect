@@ -19,7 +19,7 @@ class DashboardController extends Controller
     {
         //
     }
-        /**
+    /**
      * Analytics for PSAS Dashboard.
      */
     public function analyticsDashboard()
@@ -52,7 +52,7 @@ class DashboardController extends Controller
         $demographics = DB::table('enrollee_records')
             ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
-            ->where('enrollee_records.enrollment_status', 'enrolled') 
+            ->where('enrollee_records.enrollment_status', 'enrolled')
             ->select(
                 'programs.id as program_id',
                 'programs.program_name',
@@ -100,78 +100,99 @@ class DashboardController extends Controller
     /**
      * Analytics for Summary PSAS.
      */
-    public function analytictsSummary()
-    {
-        $user = JWTAuth::authenticate();
+   public function analyticsSummary($surveyId)
+{
+    $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+    if (!$user->hasRole('psas')) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
 
-        // Get all surveys with their questions
-        $surveys = Survey::with('questions')->get();
-        $summary = [];
 
-        foreach ($surveys as $survey) {
-            $questionsSummary = [];
+    if (!$surveyId) {
+        return response()->json(['message' => 'Survey ID is required.'], 400);
+    }
 
-            foreach ($survey->questions as $question) {
-                $questionType = $question->survey_question_type;
-                $questionData = json_decode($question->survey_question_data, true);
-                $questionSummary = [
-                    'question_id' => $question->id,
-                    'question' => $question->question,
-                    'type' => $questionType,
+    $survey = Survey::with('questions')->find($surveyId);
+
+    if (!$survey) {
+        return response()->json(['message' => 'Survey not found.'], 404);
+    }
+
+    $questionsSummary = [];
+
+    foreach ($survey->questions as $question) {
+        $questionType = strtolower($question->survey_question_type);
+        $questionData = $question->survey_question_data;
+
+        $questionSummary = [
+            'question_id' => $question->id,
+            'question' => $question->question,
+            'type' => $questionType,
+        ];
+
+        // Handle choice-based types
+        if (
+            in_array($questionType, ['multiple choice', 'checkboxes', 'dropdown']) &&
+            isset($questionData['choices']) && is_array($questionData['choices'])
+        ) {
+            $optionCounts = [];
+
+            foreach ($questionData['choices'] as $option) {
+                $optionText = is_array($option) ? ($option['label'] ?? $option['value'] ?? '') : $option;
+                $count = SurveyAnswer::where('survey_question_id', $question->id)
+                    ->where('answer', $optionText)
+                    ->count();
+
+                $optionCounts[] = [
+                    'option' => $optionText,
+                    'count' => $count,
                 ];
-
-                if (in_array($questionType, ['Multiple choice', 'Checkboxes', 'Dropdown']) && is_array($questionData)) {
-                    $optionCounts = [];
-
-                    foreach ($questionData as $option) {
-                        $optionText = is_array($option) ? ($option['label'] ?? $option['value'] ?? '') : $option;
-                        $count = SurveyAnswer::where('survey_question_id', $question->id)
-                            ->whereJsonContains('answer', $optionText)
-                            ->count();
-
-                        $optionCounts[] = [
-                            'option' => $optionText,
-                            'count' => $count,
-                        ];
-                    }
-
-                    $questionSummary['options_summary'] = $optionCounts;
-                } elseif ($questionType === 'Short answer') {
-                    $answers = SurveyAnswer::where('survey_question_id', $question->id)
-                        ->pluck('answer');
-
-                    $questionSummary['responses'] = $answers;
-                } elseif ($questionType === 'Upload Photo') {
-                    $images = SurveyAnswer::where('survey_question_id', $question->id)
-                        ->pluck('img_url');
-
-                    $questionSummary['image_responses'] = $images;
-                } else {
-                    $respondentCount = SurveyAnswer::where('survey_question_id', $question->id)
-                        ->join('survey_responses', 'survey_answers.survey_response_id', '=', 'survey_responses.id')
-                        ->where('survey_responses.survey_id', $survey->id)
-                        ->distinct('survey_responses.student_information_id')
-                        ->count('survey_responses.student_information_id');
-
-                    $questionSummary['student_answers_count'] = $respondentCount;
-                }
-
-                $questionsSummary[] = $questionSummary;
             }
 
-            $summary[] = [
-                'survey_id' => $survey->id,
-                'survey_title' => $survey->title,
-                'questions' => $questionsSummary,
-            ];
+            $questionSummary['responses'] = $optionCounts;
         }
 
-        return response()->json($summary);
+        // Handle short answer
+        elseif ($questionType === 'short answer') {
+            $answers = SurveyAnswer::where('survey_question_id', $question->id)
+                ->pluck('answer');
+
+            $questionSummary['responses'] = $answers;
+        }
+
+        // Handle image uploads
+        elseif ($questionType === 'upload photo') {
+            $images = SurveyAnswer::where('survey_question_id', $question->id)
+                ->pluck('img_url');
+
+            $questionSummary['responses'] = $images;
+        }
+
+        // Default case: just count distinct respondents
+        else {
+            $respondentCount = SurveyAnswer::where('survey_question_id', $question->id)
+                ->join('survey_responses', 'survey_answers.survey_response_id', '=', 'survey_responses.id')
+                ->where('survey_responses.survey_id', $survey->id)
+                ->distinct('survey_responses.student_information_id')
+                ->count('survey_responses.student_information_id');
+
+            $questionSummary['student_answers_count'] = $respondentCount;
+        }
+
+        $questionsSummary[] = $questionSummary;
     }
+
+    $summary = [
+        'survey_id' => $survey->id,
+        'survey_title' => $survey->title,
+        'questions' => $questionsSummary,
+    ];
+
+    return response()->json($summary);
+}
+
+
 
     /**
      * Dashboard for School Admin.
@@ -184,7 +205,7 @@ class DashboardController extends Controller
         if (!$user->hasRole('scadmin')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-        
+
         // Count all enrolled students from past to present
         $totalEnrolled = DB::table('enrollee_records')
             ->where('enrollment_status', 'enrolled')
@@ -203,7 +224,7 @@ class DashboardController extends Controller
         $demographics = DB::table('enrollee_records')
             ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
-            ->where('enrollee_records.enrollment_status', 'enrolled') 
+            ->where('enrollee_records.enrollment_status', 'enrolled')
             ->select(
                 'programs.id as program_id',
                 'programs.program_name',

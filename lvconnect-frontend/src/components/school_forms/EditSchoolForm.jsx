@@ -5,7 +5,7 @@ import { Loader } from "@/components/dynamic/loader";
 import { toast } from 'react-toastify';
 import { useForms } from '@/context/FormsContext';
 
-const EditForm = ({ formId, onDelete, closeModal }) => {
+const EditForm = ({ formId, onDelete, closeModal, onSuccess }) => {
    const { fetchForms, fetchSubmitted } = useForms();
   const [formData, setFormData] = useState(null);
   const [formFields, setFormFields] = useState([]);
@@ -32,6 +32,7 @@ const EditForm = ({ formId, onDelete, closeModal }) => {
       await updateFormFields(formId, updatedFields, deletedFieldIds); 
       await fetchForms();
       await fetchSubmitted();
+      onSuccess();
      toast.success('School Form updated successfully');
     } catch (err) {
       console.log('Error updating form');

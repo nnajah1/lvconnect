@@ -25,43 +25,53 @@ const AcademicYear = ({
 
     // Fetch academic years on mount
     useEffect(() => {
-    const fetchYears = async () => {
-        // Restore from localStorage
-        const savedYear = localStorage.getItem("selectedYear");
-        const savedSemester = localStorage.getItem("selectedSemester");
+        const fetchYears = async () => {
+            // Restore from localStorage
+            const savedYear = localStorage.getItem("selectedYear");
+            const savedSemester = localStorage.getItem("selectedSemester");
+            // *** NEW: Retrieve saved enrollment open state ***
+            const savedIsEnrollmentOpen = localStorage.getItem("isEnrollmentOpen");
 
-        if (savedYear) setSelectedYear(savedYear);
-        if (savedSemester) setSemester(savedSemester);
 
-        // Fetch academic years
-        setLoadingYears(true);
-        try {
-            const res = await getAcademicYears();
-            setAcademicYears(res.data.data);
-
-            // If no saved year, set to active or first available
-            if (!savedYear) {
-                const activeYear = res.data.data.find((y) => y.is_active);
-                const defaultYear = activeYear?.school_year || res.data.data[0]?.school_year || "";
-                setSelectedYear(defaultYear);
-                localStorage.setItem("selectedYear", defaultYear);
+            if (savedYear) setSelectedYear(savedYear);
+            if (savedSemester) setSemester(savedSemester);
+            // *** NEW: Apply saved enrollment open state immediately ***
+            if (savedIsEnrollmentOpen !== null) { // Check for null to differentiate from 'false'
+                setIsEnrollmentOpen(JSON.parse(savedIsEnrollmentOpen));
             }
-        } catch (e) {
-            toast.error("Failed to load academic years");
-        } finally {
-            setLoadingYears(false);
-        }
-    };
 
-    fetchYears();
-}, []);
+
+            // Fetch academic years
+            setLoadingYears(true);
+            try {
+                const res = await getAcademicYears();
+                setAcademicYears(res.data.data);
+
+                // If no saved year, set to active or first available
+                if (!savedYear) {
+                    const activeYear = res.data.data.find((y) => y.is_active);
+                    const defaultYear = activeYear?.school_year || res.data.data[0]?.school_year || "";
+                    setSelectedYear(defaultYear);
+                    localStorage.setItem("selectedYear", defaultYear);
+                }
+            } catch (e) {
+                toast.error("Failed to load academic years");
+            } finally {
+                setLoadingYears(false);
+            }
+        };
+
+        fetchYears();
+    }, []);
 
 
     // Fetch enrollment schedule when year and semester change
     useEffect(() => {
         if (!selectedYearObj || !semester) {
             setCurrentSchedule(null);
-            setIsEnrollmentOpen(false);
+            setIsEnrollmentOpen(false); // Reset if no valid selection
+            // *** NEW: Also clear from localStorage if selection is invalid ***
+            localStorage.removeItem("isEnrollmentOpen");
             return;
         }
 
@@ -72,21 +82,27 @@ const AcademicYear = ({
                     semester,
                 });
                 setCurrentSchedule(res.data.data);
-                setIsEnrollmentOpen(res.data.data?.is_active || false);
+                const newStatus = res.data.data?.is_active || false;
+                setIsEnrollmentOpen(newStatus);
+                // *** NEW: Save the actual fetched status to localStorage ***
+                localStorage.setItem("isEnrollmentOpen", JSON.stringify(newStatus));
             } catch {
                 setCurrentSchedule(null);
-                setIsEnrollmentOpen(false);
+                setIsEnrollmentOpen(false); // Reset if fetching fails
+                // *** NEW: Also clear from localStorage if fetching fails ***
+                localStorage.removeItem("isEnrollmentOpen");
             }
         };
 
         fetchSchedule();
     }, [selectedYearObj, semester]);
 
+    // This useEffect is good for saving selectedYear and semester
     useEffect(() => {
         if (selectedYear) {
             localStorage.setItem("selectedYear", selectedYear);
         }
-         if (semester) {
+        if (semester) {
             localStorage.setItem("selectedSemester", semester);
         }
     }, [selectedYear, semester]);
@@ -151,12 +167,15 @@ const AcademicYear = ({
                 id: currentSchedule?.id || null,
 
             });
+            const newStatus = res.data.data?.is_active || false;
             setCurrentSchedule(res.data.data);
-            setIsEnrollmentOpen(!isEnrollmentOpen);
-            toast.success(`Enrollment ${!isEnrollmentOpen ? "opened" : "closed"}`);
+            setIsEnrollmentOpen(newStatus); // Set based on the actual response
+            // *** NEW: Save the updated status to localStorage immediately after toggling ***
+            localStorage.setItem("isEnrollmentOpen", JSON.stringify(newStatus));
+            toast.success(`Enrollment ${newStatus ? "opened" : "closed"}`);
         } catch (e) {
             toast.error("Failed to toggle enrollment");
-            
+
         } finally {
             setLoadingToggle(false);
         }
@@ -216,7 +235,7 @@ const AcademicYear = ({
                     {loadingToggle ? "Processing..." : isEnrollmentOpen ? "Close Enrollment" : "Open Enrollment"}
                 </button>
             </div>
-            
+
             {currentSchedule && (
                 <div className="flex flex-col mb-4 md:mb-0">
                     <div>

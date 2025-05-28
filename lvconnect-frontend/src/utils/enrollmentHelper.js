@@ -27,33 +27,38 @@ export const religionOptions = [
 export const programOptions = [
   {
     "id": 1,
-    "name": "BSIS"
+    "name": "Bachelor of Science in Information Systems",
+    "value": "BSIS"
   },
   {
     "id": 2,
-    "name": "BSA"
+    "name": "Bachelor of Science in Accountancy",
+    "value": "BSA"
   },
   {
     "id": 3,
-    "name": "BAB"
+    "name": "Bachelor of Arts in Broadcasting",
+    "value": "BAB"
   },
   {
     "id": 4,
-    "name": "BSAIS"
+    "name": "Bachelor of Science in Accounting Information System",
+    "value": "BSAIS"
   },
   {
     "id": 5,
-    "name": "BSSW"
+    "name": "Bachelor of Science in Social Work",
+    "value": "BSSW"
   },
   {
     "id": 6,
-    "name": "ACT"
+    "name": "Associate in Computer Technology",
+    "value": "ACT"
   }
 ]
 
 
-
-export const partialFieldsStudent = [
+export const fields = [
   "religion",
   "fb_link",
   "mobile_number",
@@ -83,23 +88,17 @@ export const partialFieldsStudent = [
   "guardian_mobile_number",
   "guardian_relationship",
   "privacy_policy",
-  "civil_status"
-];
-
-export const partialFieldsAdmin = [
-  ...partialFieldsStudent,
-  //image
+  "civil_status",
   "program_id",
   "year_level",
-
 ];
 
 export function mapToApiPayload(data) {
   const baseLoad = {
     user_id: data.user_id,
     profileImage: data.user.avatar,
-    program_id: data.enrollee_record?.[0].program_id,
-    year_level: data.enrollee_record?.[0].year_level,
+    program_id: data.program_id,
+    year_level: data.year_level,
     privacy_policy: true,
     "floor/unit/building_no": data["floor/unit/building_no"],
     "house_no/street": data["house_no/street"],
@@ -164,3 +163,4 @@ export function mapToApiPayload(data) {
     };
   }
 }
+

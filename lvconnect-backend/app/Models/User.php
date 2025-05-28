@@ -8,11 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -31,6 +32,7 @@ class User extends Authenticatable implements JWTSubject
         'google_id',
         'avatar',
         'email_verified_at',
+        'is_active',
         'remember_token',
         'must_change_password',
         'survey_completed'
@@ -80,15 +82,13 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(TrustedDevice::class);
     }
 
-    public function surveys()
-    {
-        return $this->belongsToMany(Survey::class, 'survey_user', 'student_information_id', 'survey_id')
-                    ->withPivot('completed_at')
-                    ->withTimestamps();
-    }
-
     public function studentInformation()
     {
         return $this->hasOne(StudentInformation::class);
+    }
+
+    public function notificationPreference()
+    {
+        return $this->hasOne(NotificationPreference::class);
     }
 }

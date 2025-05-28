@@ -24,37 +24,48 @@ class EnrollmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $user = JWTAuth::authenticate();
+  public function index()
+{
+    $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('student')) {
-            $studentInfoId = $user->student_information_id;
+    if ($user->hasRole('student')) {
+        $studentInfoId = $user->studentInformation?->id;
 
-            $activeSchedule = EnrollmentSchedule::where('is_active', true)
-                ->with([
-                    'academicYear',
-                    'enrollees' => function ($q) use ($studentInfoId) {
-                        // Only include enrollee records for this student
-                        $q->where('student_information_id', $studentInfoId);
-                    },
-                    'enrollees.program'
-                ])
-                ->first();
-
-            if (!$activeSchedule) {
-                return response()->json([
-                    'message' => 'No active enrollment schedule found.'
-                ], 404);
-            }
-
-            return response()->json([
-                'data' => $activeSchedule
-            ]);
+        if (!$studentInfoId) {
+            return response()->json(['message' => 'Student information not found.'], 404);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 403);
+        // Get active enrollment schedule with student's enrollee records and their program
+        $activeSchedule = EnrollmentSchedule::where('is_active', true)
+            ->with([
+                'academicYear',
+                'enrollees' => function ($q) use ($studentInfoId) {
+                    $q->where('student_information_id', $studentInfoId)
+                      ->with('program');
+                }
+            ])
+            ->first();
+
+        // Get all enrollee records for the student across all schedules
+        $allEnrollees = EnrolleeRecord::where('student_information_id', $studentInfoId)
+            ->with(['program', 'enrollmentSchedule.academicYear'])
+            ->get();
+
+        if (!$activeSchedule) {
+            return response()->json([
+                'message' => 'No active enrollment schedule found.'
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => $activeSchedule,
+            'all_enrollees' => $allEnrollees,
+            'student_id' => $studentInfoId,
+        ]); 
     }
+
+    return response()->json(['message' => 'Unauthorized'], 403);
+}
 
 
     public function AdminView(Request $request)
@@ -119,7 +130,6 @@ class EnrollmentController extends Controller
     }
     public function getStudentsWithoutEnrollment(Request $request)
     {
-
         try {
             $user = JWTAuth::authenticate();
 
@@ -127,60 +137,63 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'Unauthorized. Only registrars can access this data.'], 403);
             }
 
+            $request->validate([
+                'academic_year_id' => 'required|exists:academic_years,id',
+                'semester' => 'required|in:first_semester,second_semester',
+            ]);
 
-            //     $studentsWithoutEnrollment = StudentInformation::whereHas('user', function ($query) {
-            //         $query->role('student');
-            //     })
-            //         ->whereDoesntHave('enrolleeRecord')
-            //         ->with('user')
-            //         ->get();
+            $academicYearId = $request->input('academic_year_id');
+            $semester = $request->input('semester');
 
-            //     return response()->json([
-            //         'message' => 'Students without enrollment records retrieved successfully.',
-            //         'data' => $studentsWithoutEnrollment
-            //     ]);
-            {
-                // Get selected academic year (or active one)
-                $academicYear = AcademicYear::with('enrollmentSchedule')->when(
-                    $request->has('academic_year_id'),
-                    fn($q) => $q->where('id', $request->academic_year_id),
-                    fn($q) => $q->where('is_active', true)
-                )->first();
+            // Get schedule IDs for the requested year & semester
+            $filteredSchedules = EnrollmentSchedule::where('academic_year_id', $academicYearId)
+                ->where('semester', $semester)
+                ->pluck('id');
 
-                if (!$academicYear) {
-                    return response()->json(['message' => 'No academic year found.'], 404);
-                }
+            if ($filteredSchedules->isEmpty()) {
+                return response()->json(['message' => 'No schedules found for the given academic year and semester.'], 404);
+            }
 
-                // Get all enrollment schedule IDs under the academic year
-                $scheduleIds = $academicYear->enrollmentSchedule->pluck('id');
+            // Get students who are enrolled or pending for this academic year & semester
+            $studentsEnrolledInThisSchedule = EnrolleeRecord::whereIn('enrollment_schedule_id', $filteredSchedules)
+                ->whereIn('enrollment_status', ['enrolled', 'pending'])
+                ->pluck('student_information_id')
+                ->unique();
 
-                // Get enrollee records for those schedules
-                $enrolleeRecords = EnrolleeRecord::with('studentInfo')
-                    ->whereIn('enrollment_schedule_id', $scheduleIds)
-                    ->get()
-                    ->groupBy('student_information_id');
+            // Get students who are enrolled or pending in other academic years/semesters
+            $studentsEnrolledInOtherSchedules = EnrolleeRecord::whereNotIn('enrollment_schedule_id', $filteredSchedules)
+                ->whereIn('enrollment_status', ['enrolled', 'pending'])
+                ->pluck('student_information_id')
+                ->unique();
 
-                // Get all students (adjust this to your logic if needed)
-                $students = StudentInformation::all();
+            // Students NOT enrolled/pending in this academic year & semester
+            $studentsNotEnrolled = StudentInformation::whereNotIn('id', $studentsEnrolledInThisSchedule)
+                ->get()
+                ->map(function ($student) use ($studentsEnrolledInOtherSchedules) {
 
-                // Build the status for each student
-                $results = $students->map(function ($student) use ($enrolleeRecords) {
-                    $record = $enrolleeRecords->get($student->id)?->first();
+                    if ($studentsEnrolledInOtherSchedules->contains($student->id)) {
+                        return null;
+                    }
 
                     return [
                         'id' => $student->id,
                         'student_id' => $student->student_id_number,
                         'name' => $student->full_name,
-                        'status' => $record?->enrollment_status ?? 'not_enrolled',
+                        'enrollment_status' => 'not_enrolled',
                     ];
-                });
+                })->filter(); // Remove nulls
 
-                return response()->json([
-                    'academic_year' => $academicYear->school_year,
-                    'students' => $results,
-                ]);
-            }
+            return response()->json([
+                'academic_year' => $academicYearId,
+                'semester' => $semester,
+                'students' => $studentsNotEnrolled->values(),
+            ]);
 
+        } catch (ValidationException $ve) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $ve->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An error occurred while fetching students.',
@@ -188,6 +201,9 @@ class EnrollmentController extends Controller
             ], 500);
         }
     }
+
+
+
 
     /**
      * Enrollment for student.
@@ -254,7 +270,11 @@ class EnrollmentController extends Controller
 
             $alreadyEnrolled = EnrolleeRecord::where('student_information_id', $studentInfo->id)
                 ->where('program_id', $validated['program_id'])
+                ->whereHas('enrollmentSchedule', function ($query) {
+                    $query->where('is_active', true);
+                })
                 ->exists();
+
 
             if ($alreadyEnrolled) {
                 return response()->json(['message' => 'You have already submitted an enrollment for this program.'], 409);
@@ -688,9 +708,9 @@ class EnrollmentController extends Controller
     public function show(string $id)
     {
         $user = JWTAuth::authenticate();
-        $studentRecord = StudentInformation::with(['studentFamilyInfo', 'user:id,email,avatar'])->findOrFail($id);
+        $studentRecord = StudentInformation::with(['studentFamilyInfo', 'user:id,email,avatar', 'enrolleeRecord.program'])->findOrFail($id);
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasRole(['student', 'registrar'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

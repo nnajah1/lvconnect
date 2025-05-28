@@ -49,11 +49,17 @@ const handleChange = (e) => {
           name="last_name"
         />
         <FormField
+          type="tel"
           label="Contact Number"
           value={guardianData?.[`${prefix}_mobile_number`] || ""}
           isEditing={canEditField(`${prefix}_mobile_number`)}
           onChange={handleChange}
           name="mobile_number"
+          inputMode="numeric"
+          pattern="^09\d{9}$"
+          maxLength={11}
+          placeholder="e.g. 09123456789"
+          
         />
       </div>
 

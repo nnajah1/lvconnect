@@ -39,7 +39,7 @@ const ViewSurveyResponseModal = ({ isOpen, closeModal, submittedItem }) => {
                     description="Fill out the survey."
                     showTitle={false}
                     showDescription={false}
-                    className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                    className="min-w-[40rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
                     <SurveyAdminView isOpen={isOpen} closeModal={closeModal} responseData={responseData} />
 

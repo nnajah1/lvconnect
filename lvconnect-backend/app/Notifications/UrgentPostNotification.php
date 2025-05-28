@@ -28,10 +28,22 @@ class UrgentPostNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        $channels = ['database']; // Always send in-system notification
+        $preferences = $notifiable->notificationPreference;
 
-        if ($notifiable->notify_via_email) { 
-            $channels[] = 'mail'; // Send email if the user prefers
+        // Fallback to email if no preferences are set
+        if (!$preferences) {
+            return ['mail'];
+        }
+
+        $channels = [];
+
+        if ($preferences->in_app) {
+            $channels[] = 'database';
+            $channels[] = 'broadcast';
+        }
+
+        if ($preferences->email) {
+            $channels[] = 'mail';
         }
 
         return $channels;

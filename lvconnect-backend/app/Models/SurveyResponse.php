@@ -22,8 +22,8 @@ class SurveyResponse extends Model
 
     public function student()
     {
-        // return $this->belongsTo(StudentInformation::class, 'student_information_id');
-        return $this->belongsTo(User::class, 'student_information_id');
+        return $this->belongsTo(StudentInformation::class, 'student_information_id');
+        // return $this->belongsTo(User::class, 'student_information_id');
     }
 
     public function survey()

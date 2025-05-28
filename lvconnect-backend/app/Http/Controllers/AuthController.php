@@ -19,56 +19,6 @@ use App\Models\TrustedDevice;
 
 class AuthController extends Controller
 {
-    public function createUser(Request $request)
-    {
-        $user = JWTAuth::authenticate();
-
-        // Checks user if authorized
-        if (!$user) {
-            return response()->json(['error' => 'not authorized'], 404);
-        }
-
-        // Define allowed roles
-        $allowedRoles = $user->hasRole('superadmin')
-            ? ['student', 'admin', 'superadmin']
-            : ['student'];
-
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'role' => ['required', Rule::in($allowedRoles)],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Generate a random password
-        $randomPassword = Str::random(10);
-
-        // Create new user (store first and last name only)
-        $newUser = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => Hash::make($randomPassword),
-        ]);
-
-        // Assign role
-        $newUser->assignRole($request->role);
-
-        // Create full name for display purposes (not stored)
-        $name = $request->first_name . ' ' . $request->last_name;
-
-        // Send email with credentials
-        Mail::to($newUser->email)->send(new UserCredentialsMail($newUser, $randomPassword));
-
-        return response()->json([
-            'message' => "User created successfully",
-            'name' => $name,
-        ], 201);
-    }
 
     public function login(Request $request)
     {
@@ -92,11 +42,16 @@ class AuthController extends Controller
 
         // Get the authenticated user
         $user = User::where('email', $request->email)->first();
+
         if (!$user || !Hash::check($request->password, $user->password)) {
             // Return an error if email or password does not match
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+        // Check if user is active
+        if (!$user->is_active) {
+            return response()->json(['message' => 'Account is deactivated. Please contact administrator.'], 403);
+        }
 
         // Hash device ID for security
         $hashedDeviceId = hash('sha256', $request->device_id);
@@ -106,10 +61,9 @@ class AuthController extends Controller
             ->where('device_id', $hashedDeviceId)
             ->first();
 
-
         if (!$trustedDevice) {
             $OTPController = App::make(OTPController::class);
-            //If device is NOT trusted, send OTP
+            // If device is NOT trusted, send OTP
             $OTPController->sendOTP(new Request([
                 'user_id' => $user->id,
                 'purpose' => 'unrecognized_device'
@@ -127,15 +81,13 @@ class AuthController extends Controller
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
 
         return response()->json([
-            'message' => 'Login successful', 
+            'message' => 'Login successful',
             'must_change_password' => $user->must_change_password,
             'user_id' => encrypt($user->id),
-            ])
-            ->cookie('auth_token', $token, 60, '/', null, false, true)
-            ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
-
+        ])
+        ->cookie('auth_token', $token, 60, '/', null, false, true)
+        ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
     }
-
 
     // Get Authenticated User
     public function me(Request $request)

@@ -8,7 +8,7 @@ export const registrarSchema = {
     filterable: true, 
   },
   student_id_number: { header: "ID", display: true, },
-  program_name: { header: "Course", display: true },
+  program: { header: "Course", display: true },
   year: {
     header: "Year", display: true, sortable: true,
     customCell: (value, original) => {
@@ -114,8 +114,8 @@ export const registrarNotEnrolledSchema = {
     filterable: true, 
   },
   student_id: { header: "ID", display: true, },
-  // program_name: { header: "Course", display: true },
-  // year: {
+  // program: { header: "Course", display: true },
+  // year_level: {
   //   header: "Year", display: true, sortable: true,
   //   customCell: (value, original) => {
   //     const year = original?.enrollee_record?.[0]?.year_level;
@@ -127,9 +127,8 @@ export const registrarNotEnrolledSchema = {
   //     };
   //     return year ? yearMap[year] || `${year}th Year` : "-";
   //   }
-
   // },
-  status: {
+  enrollment_status: {
     header: "Status",
     sortable: false,
     display: true,

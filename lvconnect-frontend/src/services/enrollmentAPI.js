@@ -12,9 +12,11 @@ export const getEnrollees = async ({ academic_year_id, semester }) => {
   return response.data;
 };
 
-export const getNotEnrolled = async () => {
-  const response = await api.get("/not-enrolled");
-  return response.data;
+export const getNotEnrolled = async ({academic_year_id, semester}) => {
+  const response = await api.get("/not-enrolled", {
+    params: { academic_year_id, semester }
+  });
+  return response.data;a
 };
 
 export const getEnrolled = async () => {

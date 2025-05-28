@@ -5,21 +5,17 @@ import ConfirmationModal from "@/components/dynamic/alertModal";
 import SurveyAnswerView from "@/components/survey/userSubmitSurvey";
 import { useState } from "react";
 
-const UserCreateSurveyModal = ({ isOpen, closeModal, formItem }) => {
+const UserCreateSurveyModal = ({ isOpen, closeModal, formItem, load, }) => {
 
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSuccess = () => {
-        setIsLoading(true);
-
-        setTimeout(() => {
-            // closeModal();
-            // if (formId) {
-            setIsSuccessModalOpen(true);
-            // }
-            setIsLoading(false);
-        }, 2000);
+        // setIsLoading(true);
+        // setTimeout(() => {
+        //     closeModal();
+        //     // onConfirmModal();
+        //     setIsLoading(false);
+        // }, 1000);
     };
 
     return (
@@ -34,22 +30,12 @@ const UserCreateSurveyModal = ({ isOpen, closeModal, formItem }) => {
                     description="Fill out the survey."
                     showTitle={false}
                     showDescription={false}
-                    className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                    className="">
 
-                    <SurveyAnswerView isOpen={isOpen} closeModal={closeModal} onSuccess={handleSuccess} surveyId={formItem.id} />
+                    <SurveyAnswerView isOpen={isOpen} closeModal={closeModal} onSuccess={handleSuccess} surveyId={formItem.id} load={load}/>
 
                 </DynamicModal>
             )}
-
-            <ConfirmationModal
-
-                isOpen={isSuccessModalOpen}
-                closeModal={() => setIsSuccessModalOpen(false)}
-                title="The School Form is updated"
-                description="The School Form has been successfully updated."
-            >
-                Manage School Forms
-            </ConfirmationModal>
 
 
 

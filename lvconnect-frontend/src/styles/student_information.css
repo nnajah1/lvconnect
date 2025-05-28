@@ -66,7 +66,7 @@
 
 .address-container {
   width: 100%;
-  margin-bottom: 2.5rem; /* mb-10 */
+  /* margin-bottom: 2.5rem;  */
 }
 
 .address-grid {
@@ -134,13 +134,12 @@
 
 .family-container {
   width: 100%;
-  margin-bottom: 2.5rem; /* mb-10 */
 }
 
 .family-content {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: start;
   gap: 2rem; /* gap-8 */
   padding: 0.625rem; /* p-2.5 */
 }
@@ -426,7 +425,7 @@
 
 .school_section_container {
   width: 100%;
-  margin-bottom: 2.5rem;
+  /* margin-bottom: 2.5rem; */
 }
 
 .school_form_grid {
@@ -446,7 +445,7 @@
 
 .student_section_container {
   width: 100%;
-  margin-bottom: 2.5rem;
+  /* margin-bottom: 2.5rem; */
 }
 
 .student_grid {
