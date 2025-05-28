@@ -7,13 +7,13 @@ import { createPost, updatePost, publishPost, syncToFacebook } from "@/services/
 import TextEditor from "@/components/school_updates/textEditor"; // Quill Editor
 
 
-const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
+const CreatePostForm = ({ closeModal, existingPost, onSuccess, load }) => {
   const [selectedType, setSelectedType] = useState("announcement");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState(""); // Holds ReactQuill editor content
   const [images, setImages] = useState([]);
   const [isNotified, setIsNotified] = useState(false);
-  // const [isUrgent, setIsUrgent] = useState(false);
+  const [isUrgent, setIsUrgent] = useState(false);
   const [syncWithFacebook, setSyncWithFacebook] = useState(false);
   const [postId, setPostId] = useState(existingPost?.id || null);
 
@@ -21,6 +21,24 @@ const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
+
+  useEffect(() => {
+  if (isUrgent) {
+    setIsNotified(true); // Force notified if urgent
+  }
+}, [isUrgent]);
+
+  const handleUrgentToggle = () => {
+  setIsUrgent(prev => !prev);
+  // isNotified will auto-update via useEffect if becoming urgent
+};
+
+const handleNotifiedToggle = () => {
+  if (!isUrgent) {
+    setIsNotified(prev => !prev);
+  }
+  // No toggle allowed if urgent
+};
 
 
   const handleSubmit = async (e, status) => {
@@ -75,15 +93,8 @@ const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
 
       if (!postId) setPostId(response.id);
 
-      // Sync to Facebook ONLY if approved
-      // if (status === "approved" && postId) {
-      //   await syncToFacebook({
-      //     title: formData.get("title"),
-      //     content: formData.get("content"),
-      //     images: uploadedImageUrls,
-      //   });
-      // }
-
+      
+      await load();
       if (onSuccess) onSuccess(status);
     } catch (err) {
       setError(err.response?.data || "Something went wrong!");
@@ -91,6 +102,15 @@ const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
       setIsLoading(false);
     }
   };
+
+  // Sync to Facebook ONLY if approved
+      // if (status === "approved" && postId) {
+      //   await syncToFacebook({
+      //     title: formData.get("title"),
+      //     content: formData.get("content"),
+      //     images: uploadedImageUrls,
+      //   });
+      // }
 
   const handlePublish = async () => {
     if (!postId) {
@@ -145,11 +165,19 @@ const CreatePostForm = ({ closeModal, existingPost, onSuccess }) => {
         <div className="flex items-center gap-2">
           {/* Urgent Toggle */}
           <SwitchComponent
+            label="Urgent"
+            checked={isUrgent}
+            onCheckedChange={handleUrgentToggle}
+          />
+          <TooltipComponent text="Notification"><BsFillInfoCircleFill className="tooltip-icon" size={14} /></TooltipComponent>
+        </div>  <div className="flex items-center gap-2">
+          {/* Urgent Toggle */}
+          <SwitchComponent
             label="Notification"
             checked={isNotified}
-            onCheckedChange={setIsNotified}
+            onCheckedChange={handleNotifiedToggle}
           />
-          <TooltipComponent text="notipikasyon"><BsFillInfoCircleFill className="tooltip-icon" size={14} /></TooltipComponent>
+          <TooltipComponent text="Urgent"><BsFillInfoCircleFill className="tooltip-icon" size={14} /></TooltipComponent>
         </div>
       </div>
 

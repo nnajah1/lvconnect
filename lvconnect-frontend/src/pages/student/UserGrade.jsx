@@ -76,7 +76,7 @@ const Grades = () => {
               {/* Student Information Section */}
               <div className="bg-gray-100 p-5 rounded-lg border border-gray-100">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
+                  {/* <div className="flex items-center gap-3">
                     <span className="font-medium text-gray-700">Name:</span>
                     <span className="text-gray-900">{data.student.name}</span>
                   </div>
@@ -85,7 +85,7 @@ const Grades = () => {
                     <Badge variant="outline" className="font-mono text-sm">
                       {data.student.number}
                     </Badge>
-                  </div>
+                  </div> */}
                   <div className="flex items-center gap-3">
                     <span className="font-medium text-gray-700">Scholarship Status:</span>
                     <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-200">

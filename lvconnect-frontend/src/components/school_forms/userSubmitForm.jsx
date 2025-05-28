@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroupItem } from '../ui/radio-group';
 import { RadioGroup } from '@radix-ui/react-radio-group';
+import { toast } from 'react-toastify';
 
 const generateFormFromContent = (content, fields, control) => {
   const fieldMap = {};
@@ -239,12 +240,13 @@ const generateFormFromContent = (content, fields, control) => {
 const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, }) => {
   const { control, handleSubmit, getValues, setValue } = useForm();
   const [form, setForm] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { fetchSubmitted } = useForms();
 
   useEffect(() => {
     const loadForm = async () => {
+      setLoading(true);
       try {
         const response = await getFormById(formId);
         setForm({
@@ -276,51 +278,131 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
   const { content = '', fields = [], title, description } = form;
 
   const handleImageUpload = async (file) => {
-    const formData = new FormData();
-    formData.append('photo', file);
+  if (!file) return null; // Ensure function returns something
 
-    const res = await api.post('/upload-2x2-image', formData);
-    return res.data.image_url;
-  };
-  const onSubmit = async (data, status = 'pending') => {
-    setLoading(true);
-    try {
-      const updatedFields = {};
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+  const maxSize = 2 * 1024 * 1024; // 2MB
 
-      for (const field of fields) {
-        const fieldId = field.id;
-        const fieldName = field.field_data.name;
-        const type = field.field_data.type;
+  // Check file type
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Only JPEG or PNG files are allowed.");
+    return null;
+  }
 
-        if (type === '2x2_image') {
-          const file = data[fieldName];
-          if (file instanceof File) {
-            const imagePath = await handleImageUpload(file);
-            updatedFields[fieldId] = imagePath;
-          } else if (typeof file === 'string') {
-            updatedFields[fieldId] = file;
+  // Check file size
+  if (file.size > maxSize) {
+    toast.error("File size must not exceed 2MB.");
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.src = URL.createObjectURL(file);
+
+    image.onload = async () => {
+      if (image.width !== 600 || image.height !== 600) {
+        toast.error("Image must be exactly 600x600 pixels.");
+        reject(null);
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append("photo", file);
+
+        const res = await api.post("/upload-2x2-image", formData);
+        resolve(res.data.image_url);
+      } catch (error) {
+        toast.error("Image upload failed.");
+        reject(null);
+      }
+    };
+
+    image.onerror = () => {
+      toast.error("Invalid image file.");
+      reject(null);
+    };
+  });
+};
+
+
+ const onSubmit = async (data, status = "pending") => {
+  if (loading) return; // Prevent multiple submissions
+
+  // Check if data exists and contains at least one non-empty field
+  if (
+  !data ||
+  Object.keys(data).length === 0 ||
+  Object.values(data).every(value => !value || (value instanceof File && !value.name))
+) {
+  toast.error("No data found. Please fill out the form before submitting.");
+  return;
+}
+
+  setLoading(true);
+  try {
+    let hasError = false;
+    const updatedFields = {};
+
+    for (const field of fields) {
+      const fieldId = field.id;
+      const fieldName = field.field_data.name;
+      const type = field.field_data.type;
+      const value = data[fieldName];
+
+      if (type === "2x2_image") {
+        if (value instanceof File) {
+          try {
+            const imagePath = await handleImageUpload(value);
+            if (!imagePath) {
+              hasError = true;
+              toast.error(`Invalid image: "${fieldName}". Please fix before submitting.`);
+            } else {
+              updatedFields[fieldId] = imagePath;
+            }
+          } catch {
+            hasError = true;
+            console.error(`Image upload failed for "${fieldName}".`);
           }
-        } else {
-          updatedFields[fieldId] = data[fieldName];
+        } else if (typeof value === "string") {
+          updatedFields[fieldId] = value;
+        }
+      } else {
+        if (field.is_required && !value) {
+          toast.error(`Field "${fieldName}" is required.`);
+          hasError = true;
+        } else if (value) {
+          updatedFields[fieldId] = value;
         }
       }
-
-      const payload = { fields: updatedFields, status };
-      if (draftId) {
-        await updateDraftForm(draftId, payload);
-      } else {
-        await submitForm(formId, payload);
-      }
-
-      await fetchSubmitted();
-      if (onSuccess) onSuccess(formId);
-    } catch (err) {
-      console.error(err);
-      alert('Form submission failed.');
-    } finally {
-      setLoading(false);
     }
-  };
+
+    if (hasError) {
+      console.error("Cannot save.");
+      setLoading(false);
+      return;
+    }
+
+    const payload = { fields: updatedFields, status };
+    if (draftId) {
+      await updateDraftForm(draftId, payload);
+    } else {
+      await submitForm(formId, payload);
+    }
+
+    await fetchSubmitted();
+    if (onSuccess) onSuccess(formId);
+  } catch (err) {
+    console.error(err);
+    toast.error("Form submission failed. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
 
 
 
@@ -333,16 +415,34 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         <div className='ql-editor border-1 mt-2'>
           {generateFormFromContent(content, fields, control)}
         </div>
-
         <div className="flex mt-4 gap-4 justify-end">
-          <Button className=' bg-amber-500' type="button" onClick={() => onSubmit(getValues(), 'draft')}>
+          <Button
+            className="bg-amber-500"
+            type="button"
+            disabled={loading}
+            onClick={(e) => {
+              e.preventDefault();
+                handleSubmit((data) => onSubmit(data, "draft"))();
+              
+            }}
+          >
             Save as Draft
           </Button>
-          <Button type="submit">
+
+          <Button
+            type="submit"
+            disabled={loading}
+            onClick={(e) => {
+              e.preventDefault(); // Prevent unintended form re-submission
+              handleSubmit((data) => onSubmit(data, "pending"))();
+            }}
+          >
             Submit for Review
           </Button>
+
         </div>
       </form>
+
     </div>
 
   );

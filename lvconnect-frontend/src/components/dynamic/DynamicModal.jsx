@@ -16,7 +16,7 @@ const DynamicModal = ({
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && closeModal()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-10" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30" />
         <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-4 sm:p-6">
           {/* Content container with proper positioning */}
           <div className="relative h-full w-full flex items-center justify-center">

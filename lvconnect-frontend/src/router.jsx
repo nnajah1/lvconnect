@@ -34,6 +34,7 @@ import ComingSoon from "./layouts/ComingSoon";
 import ResetPassword from "./pages/authentication/ResetPassword";
 import PrivacyPolicy  from "./layouts/PrivacyPolicy";
 import { Authenticate } from "./components/dynamic/loader";
+import RegistrarDashboard from "./pages/registrar/AdminDashboard";
 
 
 
@@ -126,7 +127,7 @@ const router = createBrowserRouter([
                         path: "registrar",
                         handle: { roles: ['registrar'] },
                         children: [
-                            { index: true, element: <AdminDashboard /> },
+                            { index: true, element: <RegistrarDashboard/> },
                             { path: "enrollment", element: <Enrollment /> },
                             { path: "enrollment/student-information/:studentId", element: <Enrollees mode="view"/> },
                             { path: "enrollment/student-information/:studentId/edit", element: <Enrollees mode="edit" editType="partial"/>},

@@ -99,7 +99,7 @@ class SchoolFormsController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'PDF upload failed', 'error' => $e->getMessage()], 500);
         }
-        
+
         // Create FormType record
         $formType = FormType::create([
             'title' => $request->title,
@@ -160,21 +160,32 @@ class SchoolFormsController extends Controller
         }
 
         $formType = FormType::with('formFields')->findOrFail($formTypeId);
-
         $status = $request->input('status', 'pending');
-        // Validate dynamic fields
+
         $rules = [];
-        if ($status !== 'draft') {
-            foreach ($formType->formFields as $field) {
-                $rules["fields.{$field->id}"] = $field->is_required ? 'required|string' : 'nullable|string';
-            }
+        foreach ($formType->formFields as $field) {
+            $fieldKey = "fields.{$field->id}";
+            $type = $field->field_data['type'] ?? 'text';
 
-            $validator = Validator::make($request->all(), $rules);
+            // Apply validation for both drafts and pending submissions
+            if ($type === '2x2_image') {
+                $rules[$fieldKey] = $field->is_required
+                    ? 'required|url'
+                    : ($status === 'draft' ? 'nullable|url' : 'required|url');
+            } else {
+                $rules[$fieldKey] = $field->is_required
+                    ? 'required|string'
+                    : ($status === 'draft' ? 'nullable|string' : 'nullable|string'); // Ensure truly optional when not required
 
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
             }
         }
+
+        // Apply validation rules for both draft and pending submissions
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
 
         // Create form submission
         $submission = FormSubmission::create([
@@ -183,9 +194,16 @@ class SchoolFormsController extends Controller
             'status' => $status,
         ]);
 
-        // Store submitted field data
+        // Ensure `fields` exist before processing submission data
+        if (!isset($request->fields) || !is_array($request->fields)) {
+            return response()->json(['message' => 'No fields were submitted.'], 400);
+        }
+
         foreach ($request->fields as $fieldId => $value) {
             $field = $formType->formFields->find($fieldId);
+            if (!$field)
+                continue;
+
             $fieldData = $field->field_data;
             $fieldName = $fieldData['name'] ?? null;
 
@@ -243,38 +261,30 @@ class SchoolFormsController extends Controller
     /**
      * Fetch approved data to frontend.
      */
-    public function getApprovedFormData($submissionId)
-    {
-        $user = JWTAuth::authenticate();
+ public function getApprovedFormData($submissionId)
+{
+    $submission = FormSubmission::with(['formType', 'SubmissionData.formField'])->findOrFail($submissionId);
 
-        $submission = FormSubmission::with(['formType', 'submissionData'])->findOrFail($submissionId);
+    $content = $submission->formType->content ?? '';
 
-        // Allow only student who owns it or PSAS role
-        if (
-            !$user->hasRole('psas') &&
-            $submission->submitted_by !== $user->id
-        ) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        if ($submission->status !== 'approved') {
-            return response()->json(['message' => 'Form not approved'], 403);
-        }
-
-        $response = [
-            'form_title' => $submission->formType->title,
-            'submission_id' => $submission->id,
-            'fields' => $submission->submissionData->map(function ($item) {
-                $decoded = json_decode($item->answer_data, true);
-                return [
-                    'field_name' => $item->field_name,
-                    'value' => is_array($decoded) || is_string($decoded) ? $decoded : $item->answer_data,
-                ];
-            })->values(),
+    $submissionData = $submission->SubmissionData->map(function($field) {
+        return [
+            'field_name' => $field->formField->field_name,
+            'form_field_data' => [
+                'type' => $field->formField->type
+            ],
+            'answer_data' => $field->answer_data,
         ];
+    });
 
-        return response()->json($response);
-    }
+    return response()->json([
+        'content' => $content,
+        'submission_data' => $submissionData,
+    ]);
+}
+
+
+
 
     // For student
     public function upload2x2Image(Request $request)
@@ -462,9 +472,20 @@ class SchoolFormsController extends Controller
         $formType = $submission->formType;
         $rules = [];
         foreach ($formType->formFields as $field) {
-            $rules["fields.{$field->id}"] = $field->is_required && $request->status !== 'draft'
-                ? 'required|string'
-                : 'nullable|string';
+            $fieldKey = "fields.{$field->id}";
+            $type = $field->field_data['type'] ?? 'text';
+
+            // Apply validation to drafts as well
+            if ($type === '2x2_image') {
+                $rules[$fieldKey] = $field->is_required
+                    ? 'required|url'
+                    : ($request->status === 'draft' ? 'nullable|url' : 'required|url');
+            } else {
+                $rules[$fieldKey] = $field->is_required
+                    ? 'required|string'
+                    : ($status === 'draft' ? 'nullable|string' : 'nullable|string'); // Ensure truly optional when not required
+
+            }
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -472,12 +493,20 @@ class SchoolFormsController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+
         $submission->status = $request->status;
         $submission->save();
 
-        // Update or create submission data
+        // Ensure `fields` exist before updating
+        if (!isset($request->fields) || !is_array($request->fields)) {
+            return response()->json(['message' => 'No fields were submitted.'], 400);
+        }
+
         foreach ($request->fields as $fieldId => $value) {
             $field = $formType->formFields->find($fieldId);
+            if (!$field)
+                continue;
+
             $fieldName = $field->field_data['name'] ?? null;
 
             FormSubmissionData::updateOrCreate(
@@ -495,6 +524,7 @@ class SchoolFormsController extends Controller
 
         return response()->json(['message' => 'Draft updated successfully']);
     }
+
 
     /**
      * Remove the specified resource from storage.

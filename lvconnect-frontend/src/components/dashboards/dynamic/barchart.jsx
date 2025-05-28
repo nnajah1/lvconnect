@@ -10,13 +10,10 @@ import {
 } from 'recharts';
 
 function BarChartByProgram({ programs }) {
-  // Prepare chart data
+  // Prepare chart data (simplified: assume program has student_count directly)
   const chartData = programs.map((program) => ({
     program_name: program.program_name,
-    student_count: program.addresses.reduce(
-      (sum, addr) => sum + addr.student_count,
-      0
-    ),
+    student_count: program.student_count  
   }));
 
   return (
@@ -32,7 +29,7 @@ function BarChartByProgram({ programs }) {
             tick={{ fontSize: 12 }}
             height={60}
           />
-          <YAxis />
+          <YAxis label={{ value: 'Population', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
           <Bar dataKey="student_count" fill="#3b82f6" radius={[4, 4, 0, 0]}>
             <LabelList dataKey="student_count" position="top" fontSize={12} />

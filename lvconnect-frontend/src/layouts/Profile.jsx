@@ -69,7 +69,7 @@ export function ProfileDropdown({ user, logout }) {
         <div className="absolute right-0 mt-2 w-48 rounded-md bg-white text-gray-800 shadow-lg">
           <div className="border-b border-gray-200 px-4 py-3">
             <p className="font-medium">{user.first_name}</p>
-            <p className="text-xs text-gray-500">{user.email || "user@example.com"}</p>
+            <p className="text-xs text-gray-500 overflow-hidden">{user.email || "user@example.com"}</p>
           </div>
           <div className="py-1">
             {/* <button
