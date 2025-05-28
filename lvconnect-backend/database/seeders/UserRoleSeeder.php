@@ -16,6 +16,7 @@ class UserRoleSeeder extends Seeder
             'scadmin' => ['first_name' => 'Scadmin', 'last_name' => 'User', 'email' => 'scadmin@email.com'],
             'comms' => ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
             'admin' => ['first_name' => 'Admin', 'last_name' => 'User', 'email' => 'admin@email.com'],
+            'student' => ['first_name' => 'Student', 'last_name' => 'User', 'email' => 'alonapegarit@gmail.com'],
         ];
 
         foreach ($namedRoles as $roleName => $data) {
