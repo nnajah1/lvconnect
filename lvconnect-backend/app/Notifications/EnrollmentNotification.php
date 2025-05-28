@@ -44,8 +44,8 @@ class EnrollmentNotification extends Notification implements ShouldQueue
             $channels[] = 'broadcast';
         }
 
-        // Fallback to email if no preferences are set
-        if (empty($channels)) {
+        // Force Fallback to email if no preferences are set
+        if (!$prefs || empty($channels)) {
             $channels = ['mail'];
         }
 

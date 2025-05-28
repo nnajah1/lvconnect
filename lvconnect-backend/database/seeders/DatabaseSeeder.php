@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
             //FormSubmissionDataSeeder::class,
             SurveySeeder::class,
             SOASeeder::class,
+            NotificationPreferenceSeeder::class,
         ]);
     }
 }

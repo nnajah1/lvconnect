@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
         // Ensure the 'student' role exists
         $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'api']);
 
-        // Define 10 fixed student accounts
+        // student accounts
         $students = [
             ['first_name' => 'Daniel',    'last_name' => 'Casimiro',    'email' => 'daniel.casimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Leander Dylan',    'last_name' => 'Broñola',  'email' => 'leanderdylan.bronola@student.laverdad.edu.ph'],
