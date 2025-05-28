@@ -65,7 +65,7 @@ class SchoolUpdateSeeder extends Seeder
                 'title' => $data['title'],
                 'content' => $data['content'],
                 'image_url' => $faker->optional()->imageUrl(),
-                'status' => $faker->randomElement(['approved', 'pending', 'published']),
+                'status' => $faker->randomElement(['approved', 'published']),
                 'is_notified' => $faker->boolean(30),
                 'is_urgent' => $data['is_urgent'],
                 'revision_fields' => null,

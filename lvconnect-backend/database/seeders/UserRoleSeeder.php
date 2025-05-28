@@ -11,31 +11,21 @@ class UserRoleSeeder extends Seeder
 {
     public function run(): void
     {
-        $roles = [
-            'registrar',
-            'admin',
-            'comms',
-            'scadmin',
-            'psas',
-            'student',
+        $namedRoles = [
+            'registrar' => ['first_name' => 'Alona Joy', 'last_name' => 'Pegarit', 'email' => 'alonajoypegarit@student.laverdad.edu.ph'],
+            'scadmin' => ['first_name' => 'Scadmin', 'last_name' => 'User', 'email' => 'scadmin@email.com'],
+            'comms' => ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
+            'admin' => ['first_name' => 'Admin', 'last_name' => 'User', 'email' => 'admin@email.com'],
         ];
 
-        // Seed non-superadmin roles
-        foreach ($roles as $roleName) {
-            $role = Role::firstOrCreate([
-                'name' => $roleName,
-                'guard_name' => 'api',
-            ]);
-
-            $firstName = ucfirst($roleName);
-            $lastName = 'lv';
-            $email = strtolower($roleName) . '_' . $lastName . '@email.com';
+        foreach ($namedRoles as $roleName => $data) {
+            $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'api']);
 
             $user = User::updateOrCreate(
-                ['email' => $email],
+                ['email' => $data['email']],
                 [
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
                     'password' => Hash::make('password123'),
                     'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
                     'must_change_password' => false,
@@ -49,18 +39,51 @@ class UserRoleSeeder extends Seeder
             $this->command->info("User created and assigned role: {$roleName}");
         }
 
-        // Superadmins
-        $superadminRole = Role::firstOrCreate([
-            'name' => 'superadmin',
-            'guard_name' => 'api',
-        ]);
+        //IT Expert users 
+        $itExpertRoles = ['superadmin', 'scadmin', 'registrar', 'student', 'psas', 'comms'];
 
-        $superadmins = [
+        $itExperts = [
             ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'azhellecasimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Jannah', 'last_name' => 'Dela Rosa', 'email' => 'jannahdelarosa@student.laverdad.edu.ph'],
+            ['first_name' => 'Kayla', 'last_name' => 'Acosta', 'email' => 'kaylaacosta@student.laverdad.edu.ph'],
+            
+            ['first_name' => 'Jerreck', 'last_name' => 'Navalta', 'email' => 'jerreckreynaldnavalta@laverdad.edu.ph'],
+            ['first_name' => 'Carlo', 'last_name' => 'Soleta', 'email' => 'carlosoleta@laverdad.edu.ph'],
+            ['first_name' => 'Jehu', 'last_name' => 'Casimiro', 'email' => 'jehucasimiro@laverdad.edu.ph'],
+            ['first_name' => 'Daniel John', 'last_name' => 'Saballa', 'email' => 'danieljohn.saballa@laverdad.edu.ph'],
         ];
 
-        foreach ($superadmins as $data) {
+        foreach ($itExperts as $data) {
+            $user = User::updateOrCreate(
+                ['email' => $data['email']],
+                [
+                    'first_name' => $data['first_name'],
+                    'last_name'  => $data['last_name'],
+                    'password'   => Hash::make('password123'),
+                    'avatar'     => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'must_change_password' => false,
+                ]
+            );
+
+            foreach ($itExpertRoles as $roleName) {
+                $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'api']);
+                if (!$user->hasRole($roleName)) {
+                    $user->assignRole($role);
+                }
+            }
+
+            $this->command->info("IT Expert user created and assigned all roles: {$data['email']}");
+        }
+
+        // Handle PSAS accounts
+        $psasRole = Role::firstOrCreate(['name' => 'psas', 'guard_name' => 'api']);
+
+        $psasUsers = [
+            ['first_name' => 'Luckie', 'last_name' => 'Villanueva', 'email' => 'luckievillanueva@laverdad.edu.ph'],
+            ['first_name' => 'Willen Anne', 'last_name' => 'Alba', 'email' => 'willenannealba@laverdad.edu.ph'],
+        ];
+
+        foreach ($psasUsers as $data) {
             $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 [
@@ -72,11 +95,11 @@ class UserRoleSeeder extends Seeder
                 ]
             );
 
-            if (!$user->hasRole('superadmin')) {
-                $user->assignRole($superadminRole);
+            if (!$user->hasRole('psas')) {
+                $user->assignRole($psasRole);
             }
 
-            $this->command->info("Superadmin created: {$data['first_name']} {$data['last_name']}");
+            $this->command->info("PSAS user created: {$data['first_name']}");
         }
     }
 

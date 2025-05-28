@@ -72,7 +72,7 @@ class SurveySeeder extends Seeder
                 'title' => $title,
                 'description' => 'This survey collects feedback related to the event or incident: ' . $title,
                 'created_by' => $faker->randomElement($psasUserIds),
-                'visibility_mode' => 'mandatory',
+                'visibility_mode' => $faker->boolean(20) ? 'mandatory' : 'optional',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

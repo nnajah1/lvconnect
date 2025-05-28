@@ -25,14 +25,14 @@ class FormTypeSeeder extends Seeder
                 'title' => 'Admission Request Form (ARL)',
                 'description' => 'Form for new student admissions including personal info, previous school records, and guardian details.',
                 'content' => '<p>Please fill out all sections carefully to apply for admission.</p>',
-                'has_pdf' => true,
+                'has_pdf' => false,
                 'is_visible' => true,
             ],
             [
                 'title' => 'Leave of Absence Form',
                 'description' => 'Request form for students to apply for temporary leave from school due to valid reasons.',
                 'content' => '<p>Specify the duration and reason for your leave request.</p>',
-                'has_pdf' => true,
+                'has_pdf' => false,
                 'is_visible' => true,
             ],
             [
@@ -46,8 +46,8 @@ class FormTypeSeeder extends Seeder
                 'title' => 'Student Clearance Form',
                 'description' => 'Clearance form to be completed before graduation or transfer, confirming all obligations are settled.',
                 'content' => '<p>Must be signed by all concerned offices before submission.</p>',
-                'has_pdf' => true,
-                'is_visible' => false,
+                'has_pdf' => false,
+                'is_visible' => true,
             ],
             [
                 'title' => 'Scholarship Application Form',
