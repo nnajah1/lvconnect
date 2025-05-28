@@ -197,8 +197,6 @@ class DashboardController extends Controller
         return response()->json($summary);
     }
 
-
-
     /**
      * Dashboard for School Admin.
      */
@@ -287,6 +285,58 @@ class DashboardController extends Controller
             'higher_ed_population' => $higherEdPopulation,
         ]);
     }
+
+    /**
+     * Dashboard for Registrar.
+     */
+    public function registrarDashboard()
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('registrar')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Get current academic year using latest created_at
+        $currentAcademicYearId = DB::table('enrollment_schedules')
+            ->latest('created_at')
+            ->value('id');
+
+        // Count enrolled students for that academic year
+        $currentEnrolledCount = DB::table('enrollee_records')
+            ->where('enrollment_status', 'enrolled')
+            ->where('enrollment_schedule_id', $currentAcademicYearId)
+            ->count();
+
+        // Count pending students for that academic year
+        $pendingCount = DB::table('enrollee_records')
+            ->where('enrollment_status', 'pending')
+            ->where('enrollment_schedule_id', $currentAcademicYearId)
+            ->count();
+
+        // Count temporary enrolled students for that academic year
+        $temporaryEnrolledCount = DB::table('enrollee_records')
+            ->where('enrollment_status', 'rejected')
+            ->where('enrollment_schedule_id', $currentAcademicYearId)
+            ->count();
+
+        // Get population of enrolled students grouped by program for the present academic year
+        $higherEdPopulation = DB::table('enrollee_records')
+            ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
+            ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId)
+            ->select('programs.program_name', DB::raw('COUNT(*) as student_count'))
+            ->groupBy('programs.program_name')
+            ->get();
+
+        return response()->json([
+            'current_enrolled_student' => $currentEnrolledCount,
+            'pending_student_count' => $pendingCount,
+            'temporary_enrolled_student_count' => $temporaryEnrolledCount,
+            'higher_ed_population' => $higherEdPopulation,
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
