@@ -91,4 +91,8 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(NotificationPreference::class);
     }
+    public function createdActivities()
+    {
+        return $this->hasMany(CalendarOfActivity::class, 'created_by');
+    }
 }

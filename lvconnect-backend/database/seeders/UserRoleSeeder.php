@@ -14,7 +14,7 @@ class UserRoleSeeder extends Seeder
         $namedRoles = [
             'registrar' => ['first_name' => 'Registrar', 'last_name' => 'User', 'email' => 'scadmin@email.com'],
             'scadmin' => ['first_name' => 'Scadmin', 'last_name' => 'User', 'email' => 'scadmin@email.com'],
-            'comms' => ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
+            'comms' => ['first_name' => 'Comms', 'last_name' => 'User', 'email' => 'comms@email.com'],
             'admin' => ['first_name' => 'Admin', 'last_name' => 'User', 'email' => 'admin@email.com'],
             'student' => ['first_name' => 'Student', 'last_name' => 'User', 'email' => 'alonapegarit@gmail.com'],
         ];
@@ -48,6 +48,7 @@ class UserRoleSeeder extends Seeder
             ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'azhellecasimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Jannah', 'last_name' => 'Dela Rosa', 'email' => 'jannahdelarosa@student.laverdad.edu.ph'],
             ['first_name' => 'Kayla', 'last_name' => 'Acosta', 'email' => 'kaylaacosta@student.laverdad.edu.ph'],
+            ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
             
             ['first_name' => 'Jerreck', 'last_name' => 'Navalta', 'email' => 'jerreckreynaldnavalta@laverdad.edu.ph'],
             ['first_name' => 'Carlo', 'last_name' => 'Soleta', 'email' => 'carlosoleta@laverdad.edu.ph'],
