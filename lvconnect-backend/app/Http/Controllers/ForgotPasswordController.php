@@ -9,21 +9,19 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Notifications\PasswordResetNotification;
+use Log;
 
 class ForgotPasswordController extends Controller
 {
-    public function sendResetLink(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-        ]);
+public function sendResetLink(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+    ]);
 
-        $user = User::where('email', $request->email)->first();
+    $user = User::where('email', $request->email)->first();
 
-        if (!$user->notify_via_email) {
-            return response()->json(['message' => 'User has disabled email notifications.'], 403);
-        }
-
+    if ($user) {
         $token = Str::random(64);
 
         DB::table('password_reset_tokens')->updateOrInsert(
@@ -35,12 +33,16 @@ class ForgotPasswordController extends Controller
         );
 
         $resetLink = url('/reset-password?token=' . $token . '&email=' . urlencode($request->email));
-
-        // Send the reset link using a Laravel notification
         $user->notify(new PasswordResetNotification($resetLink));
-
-        return response()->json(['message' => 'Reset password link sent to your email.']);
     }
+Log::info('Received hash:', ['request_hash' => hash('sha256', $request->token)]);
+
+    // Always return the same message
+    return response()->json([
+        'message' => 'If the email is registered, a password reset link has been sent.'
+    ]);
+}
+
 
     public function resetPassword(Request $request)
     {
@@ -70,6 +72,7 @@ class ForgotPasswordController extends Controller
             return response()->json(['error' => 'Invalid or expired token.'], 400);
         }
 
+    Log::info('Stored hash:', ['db_token' => $tokenData->token]);
         $user = User::where('email', $request->email)->first();
         $user->password = Hash::make($request->password);
         $user->must_change_password = false;

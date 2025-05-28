@@ -34,7 +34,7 @@ const SchoolServices = () => {
         </a>
 
         <a
-          href="https://fpe.lvcc.edu.ph"
+          href="/coming-soon"
           target="_blank"
           rel="noopener noreferrer"
           className="school-service-card"

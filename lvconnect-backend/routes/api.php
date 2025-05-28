@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\SchoolFormsController;
 use App\Http\Controllers\SOAController;
 use App\Http\Controllers\StudentManagementController;
@@ -22,6 +23,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/refresh', [AuthController::class, 'refreshToken']);
 
 Route::post('/send-otp', [OTPController::class, 'sendOTP']);
+Route::post('/resend-otp', [OTPController::class, 'resendOTP']);
 Route::post('/verify-otp', [OTPController::class, 'verifyOTP']);
 
 Route::post('/must-change-password', [ChangePasswordController::class, 'mustChangePassword']);
@@ -33,10 +35,13 @@ Route::get('/login/google/redirect', [OAuthController::class, 'redirectToGoogle'
 Route::get('/login/google/callback', [OAuthController::class, 'handleGoogleCallback']);
 Route::post('/auth/google/token', [OAuthController::class, 'exchangeGoogleToken']);
 
+Route::post('/send-reset-link', [ForgotPasswordController::class, 'sendResetLink']);
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
+
 Route::middleware('auth.jwt')->group(function () {
   Route::get('/me', [AuthController::class, 'me']);
   Route::get('/logout', [AuthController::class, 'logout']);
-  Route::post('/create-student', [CreateAccountController::class, 'createStudentAccount']);
+  Route::post('/create-admin', [CreateAccountController::class, 'createAdminAccount']);
   Route::get('/trusted-devices', [TrustedDeviceController::class, 'index']); // List all trusted devices
   Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
   Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
@@ -70,6 +75,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::get('/submissions', [SchoolFormsController::class, 'submissions']);
   Route::get('/forms/submissions/{id}', [SchoolFormsController::class, 'showSubmission']);
   Route::get('/submissions/{submissionId}/download', [SchoolFormsController::class, 'downloadApprovedForm']);
+  Route::get('/approved-form-data/{submissionId}', [SchoolFormsController::class, 'getApprovedFormData']);
 
 
   Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
@@ -126,6 +132,9 @@ Route::middleware('auth.jwt')->group(function () {
   Route::put('/soa/{schoolYear}', [SOAController::class, 'update']);
 
   Route::get('/analytics-summary/{surveyId}', [DashboardController::class, 'analyticsSummary']);
+  Route::get('/psas-dashboard', [DashboardController::class, 'analyticsDashboard']);
+  Route::get('/schooladmin-dashboard', [DashboardController::class, 'schoolDashboard']);
+  
 
 });
 

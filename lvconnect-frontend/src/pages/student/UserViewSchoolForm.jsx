@@ -37,8 +37,7 @@ const UserViewFormModal = ({ isOpen, closeModal, submittedItem, setIsSuccessModa
                     title="Create New School Form"
                     description="Fill out the form below to update a school form."
                     showTitle={false}
-                    showDescription={false}
-                    className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                    showDescription={false}>
 
                     <ShowSubmission closeModal={closeModal} onSuccess={handleSuccess} formId={submittedItem.id} userRole={userRole}/>
 

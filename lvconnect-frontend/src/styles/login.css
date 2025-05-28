@@ -2,11 +2,15 @@
 @import "tailwindcss";
 
 .login-container {
-  @apply relative w-full h-screen;
+  @apply flex flex-col lg:flex-row w-full h-full;
 }
 
 .login-card {
-  @apply absolute left-0 top-0 h-full w-[540px] flex flex-col justify-center px-12 bg-white/75 backdrop-blur-md shadow-lg;
+  @apply absolute left-0 top-0 h-full w-[540px] flex flex-col justify-center p-12 bg-white/75 backdrop-blur-xl shadow-lg;
+}
+
+.image-background {
+  @apply absolute inset-0 w-full h-full object-cover;
 }
 
 .login-header {

@@ -45,7 +45,7 @@ class FormSubmission extends Model
 
     public function getSubmittedByNameAttribute()
     {
-        return $this->student?->name;
+        return trim("{$this->student?->first_name} {$this->student?->last_name}");
     }
 
     /**

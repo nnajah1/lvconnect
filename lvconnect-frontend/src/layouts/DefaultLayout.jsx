@@ -4,39 +4,59 @@ import { Outlet, Navigate } from "react-router-dom";
 import preventBackNavigation from "@/utils/preventBackNavigation";
 import OTPVerification from "@/pages/authentication/OTPVerification";
 import MustChangePassword from "@/pages/authentication/MustChangePassword";
-import Sidebar from "./sidebar";
 import { Loader2 } from "@/components/dynamic/loader";
 import { useState } from "react";
-import Navbar from "./Navbar";
+import { Navbar } from "./Navbar";
+import Sidebar from "./sidebar";
 
 export default function DefaultLayout() {
-    preventBackNavigation(OTPVerification || MustChangePassword);
+  preventBackNavigation(OTPVerification || MustChangePassword)
 
-    const { user, loading, logout } = useAuthContext();
-    const [isSidebarExpanded, setSidebarExpanded] = useState(true);
+  const { user, loading, logout } = useAuthContext()
+  const [isSidebarExpanded, setSidebarExpanded] = useState(true)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-    if (loading) {
-        return <Loader2 />; 
-    }
+  if (loading) {
+    return <Loader2 />
+  }
 
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
-    return (
-        <div id="" className="flex h-screen overflow-hidden bg-muted">
-            <Sidebar isExpanded={isSidebarExpanded} setIsExpanded={setSidebarExpanded} />
-            
-            <div
-                className={`flex flex-1 flex-col transition-all duration-300 ${isSidebarExpanded ? "md:ml-64" : "md:ml-20 "}`}
-            >
-                <Navbar
-                    user={user}
-                    logout={logout}
-                />
-                <main className="flex-1 overflow-auto px-4 pb-4 md:px-6 md:pb-6">
-                    <Outlet />
-                </main>
-            </div>
-        </div>
-    )
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-muted">
+      {/* Mobile backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        isExpanded={isSidebarExpanded}
+        setIsExpanded={setSidebarExpanded}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
+
+      <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-0">
+        <Navbar
+          user={user}
+          logout={logout}
+          isSidebarExpanded={isSidebarExpanded}
+          onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        />
+
+        <main
+          className={`flex-1 overflow-auto px-4 pb-4 transition-all duration-300 md:px-6 md:pb-6 ${
+            isSidebarExpanded ? "lg:ml-64" : "lg:ml-20"
+          }`}
+        >
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  )
 }

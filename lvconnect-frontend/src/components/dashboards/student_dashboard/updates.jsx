@@ -52,13 +52,13 @@ const SchoolUpdates = ({ onSelect, selected }) => {
   const updates = [
     {
       id: 1,
-      title: "Child Protection Policy Sy...",
+      title: "Child Protection Policy",
       date: "17 January 2025, Friday",
       content: "<p>Important updates regarding child protection policies...</p>",
     },
     {
       id: 2,
-      title: "Earthquake Drill Announc...",
+      title: "Earthquake Drill Announcement",
       date: "13 January 2025, Monday",
       content: "<p>Scheduled earthquake drill announcement...</p>",
     },
@@ -89,24 +89,24 @@ const SchoolUpdates = ({ onSelect, selected }) => {
   ]
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 h-full flex flex-col">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">School Updates</h3>
-      <div className="flex-1 overflow-y-auto scrollbar-hide space-y-3">
+    <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 h-full flex flex-col">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">School Updates</h3>
+      <div className="flex-1 overflow-y-auto scrollbar-hide space-y-2 sm:space-y-3">
         {updates.map((update) => (
           <div
             key={update.id}
-            className={`p-3 rounded-lg cursor-pointer transition-colors ${
+            className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-colors ${
               selected?.id === update.id ? "bg-blue-50 border border-blue-200" : "bg-gray-50 hover:bg-gray-100"
             }`}
             onClick={() => onSelect(update)}
           >
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 text-sm">📧</span>
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-blue-600 text-xs sm:text-sm">📧</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-gray-900 text-sm truncate">{update.title}</h4>
-                <p className="text-xs text-gray-500 mt-1">{update.date}</p>
+                <h4 className="font-medium text-gray-900 text-xs sm:text-sm truncate">{update.title}</h4>
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-1">{update.date}</p>
               </div>
             </div>
           </div>

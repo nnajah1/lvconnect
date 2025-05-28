@@ -16,7 +16,6 @@ import AdminDashboard from "./pages/admins/AdminDashboard";
 import ArchivePosts from "./pages/admins/comms/ArchivePosts";
 import PsasDashboard from "./pages/admins/psas/AdminDashboard";
 import Forms from "./pages/admins/psas/Forms";
-import FormView from "./components/school_forms/userSubmitForm";
 import VisibleForms from "./pages/student/UserSchoolForm";
 import StudentView from "./components/school_forms/userSubmitForm";
 import Surveys from "./pages/admins/psas/Surveys";
@@ -27,11 +26,13 @@ import Enrollees from "./pages/registrar/Enrollees";
 import StudentSoa from "./pages/student/UserSOA";
 import UserEnrollment from "./pages/student/UserEnrollment";
 import AdminSoa from "./pages/registrar/Soa";
-import EditStudentInformation from "./pages/registrar/DirectEnrollment";
 import StudentInformation from "./pages/registrar/StudentInformation";
-import DirectEnrollment from "./pages/registrar/DirectEnrollment";
 import Grades from "./pages/student/UserGrade";
-import SummaryTab from "./psas_screens/psas_header_bar/summarytab";
+import NotificationsPanel from "./users_dashboards/dasboards_components/notification";
+import Unauthorized from "./layouts/Unauthorized";
+import ComingSoon from "./layouts/ComingSoon";
+import ResetPassword from "./pages/authentication/ResetPassword";
+import PrivacyPolicy  from "./layouts/PrivacyPolicy";
 
 
 
@@ -64,6 +65,8 @@ const router = createBrowserRouter([
 
 
     { path: '/change-password', element: <MustChangePassword /> },
+    
+    {path:"/reset-password", element: <ResetPassword />},
 
     {
         path: '/', element: <DefaultLayout />,
@@ -146,9 +149,11 @@ const router = createBrowserRouter([
 
         ],
     },
-    { path: "/unauthorized", element: <h1>Unauthorized Access</h1> },
+    { path: "/privacy-policy", element: <PrivacyPolicy/> },,
+    { path: "/coming-soon", element: <ComingSoon/> },
+    { path: "/unauthorized", element: <Unauthorized /> },
     { path: "/trial", element: <StudentView /> },
-    { path: "/app", element: <SummaryTab/> }
+    { path: "/app", element: <ComingSoon/> }
 
 
 

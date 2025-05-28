@@ -20,18 +20,58 @@ class FormTypeSeeder extends Seeder
             return;
         }
 
-        foreach (range(1, 5) as $i) {
+        $formTypes = [
+            [
+                'title' => 'Admission Request Form (ARL)',
+                'description' => 'Form for new student admissions including personal info, previous school records, and guardian details.',
+                'content' => '<p>Please fill out all sections carefully to apply for admission.</p>',
+                'has_pdf' => true,
+                'is_visible' => true,
+            ],
+            [
+                'title' => 'Leave of Absence Form',
+                'description' => 'Request form for students to apply for temporary leave from school due to valid reasons.',
+                'content' => '<p>Specify the duration and reason for your leave request.</p>',
+                'has_pdf' => true,
+                'is_visible' => true,
+            ],
+            [
+                'title' => 'Course Change Request Form',
+                'description' => 'Form for students requesting to change their enrolled course or program.',
+                'content' => '<p>Provide justification for the course change and attach supporting documents.</p>',
+                'has_pdf' => false,
+                'is_visible' => true,
+            ],
+            [
+                'title' => 'Student Clearance Form',
+                'description' => 'Clearance form to be completed before graduation or transfer, confirming all obligations are settled.',
+                'content' => '<p>Must be signed by all concerned offices before submission.</p>',
+                'has_pdf' => true,
+                'is_visible' => false,
+            ],
+            [
+                'title' => 'Scholarship Application Form',
+                'description' => 'Application form for students seeking scholarship opportunities based on academic or financial needs.',
+                'content' => '<p>Complete all sections and attach necessary documents.</p>',
+                'has_pdf' => false,
+                'is_visible' => true,
+            ],
+        ];
+
+        foreach ($formTypes as $form) {
             FormType::create([
-                'title' => $faker->sentence(3),
-                'description' => $faker->sentence(),
-                'pdf_path' => null,
+                'title' => $form['title'],
+                'description' => $form['description'],
+                'pdf_path' => null, 
                 'created_by' => $faker->randomElement($psasUsers),
-                'has_pdf' => $faker->boolean(),
-                'is_visible' => $faker->boolean(),
-                'content' => '<p>' . $faker->paragraph() . '</p>',
+                'has_pdf' => $form['has_pdf'],
+                'is_visible' => $form['is_visible'],
+                'content' => $form['content'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
+
+        $this->command->info('5 ARL-related form types created.');
     }
 }

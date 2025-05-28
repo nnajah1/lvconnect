@@ -13,7 +13,6 @@ class FormFieldSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Get all form type IDs
         $formTypeIds = FormType::pluck('id');
 
         if ($formTypeIds->isEmpty()) {
@@ -21,20 +20,41 @@ class FormFieldSeeder extends Seeder
             return;
         }
 
+        $fieldTypes = [
+            'text',
+            'textarea',
+            'date',
+            'checkbox',
+            'single_checkbox',
+            'radio',
+            'select',
+            '2x2_image',
+        ];
+
         $fields = [];
 
-        foreach (range(1, 5) as $i) {
-            $fields[] = [
-                'form_type_id' => $faker->randomElement($formTypeIds),
-                'field_data' => json_encode([
+        foreach ($formTypeIds as $formTypeId) {
+            foreach (range(1, 5) as $i) {
+                $type = $faker->randomElement($fieldTypes);
+
+                $fieldData = [
                     'label' => $faker->words(2, true),
-                    'type' => $faker->randomElement(['text', 'number', 'email', 'date', 'textarea']),
-                ]),
-                'required' => $faker->boolean(70), // 70% chance required
-                'page' => $faker->numberBetween(1, 2),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+                    'type' => $type,
+                ];
+
+                if (in_array($type, ['checkbox', 'radio', 'select'])) {
+                    $fieldData['options'] = ['Option A', 'Option B', 'Option C'];
+                }
+
+                $fields[] = [
+                    'form_type_id' => $formTypeId,
+                    'field_data' => json_encode($fieldData),
+                    'required' => $faker->boolean(70),
+                    'page' => $faker->numberBetween(1, 2),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
 
         FormField::insert($fields);
