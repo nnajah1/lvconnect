@@ -151,8 +151,9 @@ const router = createBrowserRouter([
 
         ],
     },
-    { path: "/privacy-policy", element: <PrivacyPolicy/> },,
+    { path: "/privacy-policy", element: <PrivacyPolicy/> },
     { path: "/coming-soon", element: <ComingSoon/> },
+    { path: "/unauthorized", element: <Unauthorized /> },
 
 
 

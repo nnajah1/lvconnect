@@ -2,7 +2,6 @@ import { Loader2 } from "@/components/dynamic/loader";
 import { useAuthContext } from "../context/AuthContext";
 import { Navigate, Outlet } from "react-router-dom";
 import { roleRedirectMap } from "@/utils/roleRedirectMap";
-import Unauthorized from "./Unauthorized";
 
 export default function GuestLayout() {
     const { user, loading } = useAuthContext();
@@ -18,7 +17,7 @@ export default function GuestLayout() {
             return <Navigate to={redirectPath} replace />;
         }
 
-        return <Unauthorized />;
+        return <Navigate to="/unauthorized" replace />;
     }
 
     return (
