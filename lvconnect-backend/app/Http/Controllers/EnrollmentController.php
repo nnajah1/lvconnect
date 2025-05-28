@@ -145,6 +145,13 @@ class EnrollmentController extends Controller
             $academicYearId = $request->input('academic_year_id');
             $semester = $request->input('semester');
 
+            // Get student user IDs via Spatie
+            $studentUserIds = User::role('student')->pluck('id');
+
+            // Get StudentInformation IDs linked to student users
+            $studentInformationIds = StudentInformation::whereIn('user_id', $studentUserIds)
+                ->pluck('id');
+
             // Get schedule IDs for the requested year & semester
             $filteredSchedules = EnrollmentSchedule::where('academic_year_id', $academicYearId)
                 ->where('semester', $semester)
@@ -154,41 +161,42 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'No schedules found for the given academic year and semester.'], 404);
             }
 
-            // Get students who are enrolled or pending for this academic year & semester
+            // Students enrolled or pending in this schedule
             $studentsEnrolledInThisSchedule = EnrolleeRecord::whereIn('enrollment_schedule_id', $filteredSchedules)
                 ->whereIn('enrollment_status', ['enrolled', 'pending'])
+                ->whereIn('student_information_id', $studentInformationIds)
                 ->pluck('student_information_id')
                 ->unique();
 
-            // Get students who are enrolled or pending in other academic years/semesters
+            // Students enrolled or pending in other schedules
             $studentsEnrolledInOtherSchedules = EnrolleeRecord::whereNotIn('enrollment_schedule_id', $filteredSchedules)
                 ->whereIn('enrollment_status', ['enrolled', 'pending'])
+                ->whereIn('student_information_id', $studentInformationIds)
                 ->pluck('student_information_id')
                 ->unique();
 
-            // Students NOT enrolled/pending in this academic year & semester
-            $studentsNotEnrolled = StudentInformation::whereNotIn('id', $studentsEnrolledInThisSchedule)
+            // Students with no enrollment in this or other schedules
+            $studentsNotEnrolled = StudentInformation::whereIn('id', $studentInformationIds)
+                ->whereNotIn('id', $studentsEnrolledInThisSchedule)
                 ->get()
-                ->map(function ($student) use ($studentsEnrolledInOtherSchedules) {
-
-                    if ($studentsEnrolledInOtherSchedules->contains($student->id)) {
-                        return null;
-                    }
-
+                ->filter(function ($student) use ($studentsEnrolledInOtherSchedules) {
+                    return !$studentsEnrolledInOtherSchedules->contains($student->id);
+                })
+                ->map(function ($student) {
                     return [
                         'id' => $student->id,
                         'student_id' => $student->student_id_number,
                         'name' => $student->full_name,
                         'enrollment_status' => 'not_enrolled',
                     ];
-                })->filter(); // Remove nulls
+                })
+                ->values();
 
             return response()->json([
                 'academic_year' => $academicYearId,
                 'semester' => $semester,
-                'students' => $studentsNotEnrolled->values(),
+                'students' => $studentsNotEnrolled,
             ]);
-
         } catch (ValidationException $ve) {
             return response()->json([
                 'message' => 'Validation failed.',
@@ -201,9 +209,6 @@ class EnrollmentController extends Controller
             ], 500);
         }
     }
-
-
-
 
     /**
      * Enrollment for student.

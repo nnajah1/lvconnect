@@ -12,7 +12,7 @@ class UserRoleSeeder extends Seeder
     public function run(): void
     {
         $namedRoles = [
-            'registrar' => ['first_name' => 'Alona Joy', 'last_name' => 'Pegarit', 'email' => 'alonajoypegarit@student.laverdad.edu.ph'],
+            'registrar' => ['first_name' => 'Registrar', 'last_name' => 'User', 'email' => 'scadmin@email.com'],
             'scadmin' => ['first_name' => 'Scadmin', 'last_name' => 'User', 'email' => 'scadmin@email.com'],
             'comms' => ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
             'admin' => ['first_name' => 'Admin', 'last_name' => 'User', 'email' => 'admin@email.com'],
@@ -41,9 +41,10 @@ class UserRoleSeeder extends Seeder
         }
 
         //IT Expert users 
-        $itExpertRoles = ['superadmin', 'scadmin', 'registrar', 'student', 'psas', 'comms'];
+        $itExpertRoles = ['registrar', 'student', 'psas'];
 
         $itExperts = [
+            ['first_name' => 'Alona Joy', 'last_name' => 'Pegarit', 'email' => 'alonajoypegarit@student.laverdad.edu.ph'],
             ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'azhellecasimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Jannah', 'last_name' => 'Dela Rosa', 'email' => 'jannahdelarosa@student.laverdad.edu.ph'],
             ['first_name' => 'Kayla', 'last_name' => 'Acosta', 'email' => 'kaylaacosta@student.laverdad.edu.ph'],
