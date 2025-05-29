@@ -23,12 +23,13 @@ class SchoolUpdate extends Model
     const TYPE_ANNOUNCEMENT = 'announcement';
     const TYPE_EVENT = 'event';
     const STATUS_DRAFT = 'draft';
-    const STATUS_PENDING = 'pending';
+    const STATUS_PENDING = 'pending'; 
+    const STATUS_PUBLISHED = 'published';
+    const STATUS_ARCHIVED = 'archived';
+
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
     const STATUS_REVISION = 'revision';
-    const STATUS_PUBLISHED = 'published';
-    const STATUS_ARCHIVED = 'archived';
 
     public function author()
     {

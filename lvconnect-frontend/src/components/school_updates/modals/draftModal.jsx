@@ -1,9 +1,10 @@
 
+import { ConfirmationModal } from "@/components/dynamic/alertModal";
 import DynamicModal from "@/components/dynamic/DynamicModal";
 
 const DraftModal = ({ isOpen, closeModal }) => {
     return (
-        <DynamicModal
+        <ConfirmationModal
             isOpen={isOpen}
             closeModal={closeModal}
             showCloseButton={false}
@@ -16,11 +17,11 @@ You can review, edit, or publish it anytime from your drafts list."
         >
             <button
                 onClick={closeModal}
-                className="mt-4 px-4 py-2 bg-[#2CA4DD] text-white rounded"
+                className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
             >
                 Manage Your Posts 
             </button>
-        </DynamicModal>
+        </ConfirmationModal>
     );
 };
 

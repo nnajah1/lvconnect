@@ -1,56 +1,57 @@
 
 import DynamicModal from "@/components/dynamic/DynamicModal";
-import {Loader} from "@/components/dynamic/loader";
+import { Loader } from "@/components/dynamic/loader";
 import CreatePostForm from "@/components/school_updates/createPostForm";
 import DraftModal from "@/components/school_updates/modals/draftModal";
 import PendingModal from "@/components/school_updates/modals/pendingModal";
+import PublishedModal from "@/components/school_updates/modals/publishedModal";
 import { useState } from "react";
 
-const CreatePostModal = ({ isOpen, closeModal }) => {
+const CreatePostModal = ({ isOpen, closeModal, load }) => {
 
     const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
-    const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
+    const [isPendingModalOpen, setIsPendingModalOpen] = useState(false)
+    const [isPublishedModalOpen, setIsPublishedModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSuccess = (status) => {
-        setIsLoading(true); // Show loader before transitioning
+        setIsLoading(true); 
 
         setTimeout(() => {
-            // Close the CreatePostModal after successful form submission
-            closeModal(); // Close CreatePostModal
+            closeModal();
             if (status === "draft") {
-                setIsDraftModalOpen(true); // Open DraftModal
+                setIsDraftModalOpen(true); 
+            } else if (status === "pending") {
+                setIsPendingModalOpen(true); 
             } else {
-                setIsPendingModalOpen(true); // Open PendingModal
+                setIsPublishedModalOpen(true); 
             }
-            setIsLoading(false); // Stop loader after success
-        }, 2000); // Show loader for 2 seconds before showing the modal (adjust timing as needed)
+            setIsLoading(false); 
+        }, 2000);
     };
 
 
     return (
         <>
-            <DynamicModal isOpen={isOpen}
-                closeModal={closeModal}
-                showCloseButton={false}
-                title="Create New Post"
-                description="Fill out the form below to create a new post."
-                showTitle={false}
-                showDescription={false}
-                className="max-w-[50rem]! bg-[#EAF2FD]!">
+            {isLoading ? (
+                // Show loader while waiting for success
+                <div className="flex justify-center items-center mt-4 w-[10rem] text-center">
+                    <Loader />
+                </div>
+            ) : (
+                <DynamicModal isOpen={isOpen}
+                    closeModal={closeModal}
+                    showCloseButton={false}
+                    title="Create New Post"
+                    description="Fill out the form below to create a new post."
+                    showTitle={false}
+                    showDescription={false}
+                    className="max-w-[50rem]! bg-[#EAF2FD]!">
 
+                    <CreatePostForm closeModal={closeModal} onSuccess={handleSuccess} load={load} />
 
-                {isLoading ? (
-                    // Show loader while waiting for success
-                    <div className="flex justify-center items-center mt-4">
-                        <Loader />
-                    </div>
-                ) : (
-                    // Show the CreatePostForm only when not loading
-                    <CreatePostForm closeModal={closeModal} onSuccess={handleSuccess} />
-                )}
-            </DynamicModal>
-
+                </DynamicModal>
+            )}
 
             {/* Draft Modal */}
             <DraftModal
@@ -62,6 +63,10 @@ const CreatePostModal = ({ isOpen, closeModal }) => {
             <PendingModal
                 isOpen={isPendingModalOpen}
                 closeModal={() => setIsPendingModalOpen(false)}
+            />
+            <PublishedModal
+                isOpen={isPublishedModalOpen}
+                closeModal={() => setIsPublishedModalOpen(false)}
             />
         </>
     );

@@ -2,14 +2,14 @@
 import { ConfirmationModal } from "@/components/dynamic/alertModal";
 import DynamicModal from "@/components/dynamic/DynamicModal";
 
-const PendingModal = ({ isOpen, closeModal }) => {
+const PublishedModal = ({ isOpen, closeModal }) => {
     return (
         <ConfirmationModal
             isOpen={isOpen}
             closeModal={closeModal}
             showCloseButton={false}
-            title="Post submitted for approval!"
-            description="Your post has been successfully submitted and is now awaiting review by the School Admin."
+            title="Post is Published!"
+            description="Your post has been successfully published and is now visible to students"
             showTitle={true}
             showDescription={true}
             className="max-w-[400px] bg-[#EAF2FD]"
@@ -24,4 +24,4 @@ const PendingModal = ({ isOpen, closeModal }) => {
     );
 };
 
-export default PendingModal;
+export default PublishedModal;

@@ -7,18 +7,17 @@ import { useEffect, useState } from "react";
 
 const RegistrarDashboard = () => {
   const programs = [
-  { name: "BA Broadcasting", student_count: 42},
-  { name: "BS Accountancy", student_count: 25 },
-  { name: "BS Accounting IS", student_count: 18  },
-  { name: "BS Social Work", student_count: 33 },
-  { name: "BS Information Systems", student_count: 42  },
-  { name: "Associate in Computer Technology", student_count: 12  },
+  { program_name: "BA Broadcasting", student_count: 42},
+  { program_name: "BS Accountancy", student_count: 25 },
+  { program_name: "BS Accounting IS", student_count: 18  },
+  { program_name: "BS Social Work", student_count: 33 },
+  { program_name: "BS Information Systems", student_count: 42  },
+  { program_name: "Associate in Computer Technology", student_count: 12  },
 ];
 const stats = [
-  { label: 'students', value: 500 },
-  { label: 'teachers', value: 50 },
-  { label: 'courses', value: 20 },
-  { label: 'enrollments', value: 1200 },
+  { label: 'Total Enrolled', value: 500 },
+  { label: 'Pending Enrollment', value: 50 },
+  { label: 'Rejected Enrollment', value: 20 },
 ];
 
 

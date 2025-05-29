@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolUpdate;
+use App\Models\StudentInformation;
 use App\Notifications\UrgentPostNotification;
 use App\Notifications\PostApprovedNotification;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -71,96 +72,91 @@ class SchoolUpdateController extends Controller
      * Create a new school update post (Communications Officer only)
      */
     public function store(Request $request)
-    {
-        $user = JWTAuth::authenticate();
+{
+    $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole(['comms'])) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        // Validate request data
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:announcement,event',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_notified' => 'sometimes|boolean',
-            'is_urgent' => 'sometimes|boolean',
-            'status' => 'required|in:draft,pending',
-            'post_to_facebook' => 'sometimes|boolean',
-
-        ]);
-
-
-        try {
-            $imageUrls = [];
-
-            // Upload image files
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $image) {
-                    $path = $image->store('SchoolUpdates', 'public');
-                    $imageUrls[] = asset('storage/' . $path); // Use full URL
-                }
-            }
-
-            // Extract and replace Base64 images with actual URLs
-            $content = Purifier::clean($request->content);
-            preg_match_all('/<img[^>]+src="data:image\/[^;]+;base64,([^"]+)"[^>]*>/', $content, $matches);
-
-            if (!empty($matches[0])) {
-                foreach ($matches[0] as $index => $base64ImageTag) {
-                    $imageUrl = $imageUrls[$index] ?? null;
-                    if ($imageUrl) {
-                        $content = str_replace($base64ImageTag, '<img src="' . $imageUrl . '" />', $content);
-                    }
-                }
-            }
-
-            $status = $request->status === 'pending' && $request->boolean('is_urgent')
-                ? SchoolUpdate::STATUS_PUBLISHED
-                : ($request->status === 'draft'
-                    ? SchoolUpdate::STATUS_DRAFT
-                    : SchoolUpdate::STATUS_PENDING);
-
-            // Create the post
-            $schoolUpdate = SchoolUpdate::create([
-                'title' => $request->title,
-                'content' => $content,
-                'type' => $request->type,
-                'image_url' => $imageUrls ? json_encode($imageUrls) : null,
-                'created_by' => $user->id,
-                'status' => $status,
-                'is_notified' => $request->boolean('is_notified'),
-                'is_urgent' => $request->boolean('is_urgent'),
-                'post_to_facebook' => $request->boolean('post_to_facebook'),
-            ]);
-
-            // if ($schoolUpdate->status === SchoolUpdate::STATUS_PUBLISHED && $schoolUpdate->is_notified) {
-            //     $students = User::where('role', 'student')->get();
-
-            //     foreach ($students as $student) {
-            //         $student->notify(new PostNotification($schoolUpdate));
-            //     }
-            // }
-
-            return response()->json([
-                'message' => 'Post created successfully',
-                'post' => $schoolUpdate
-            ], 201);
-
-        } catch (ValidationException $e) {
-            return response()->json(['error' => $e->errors()], 422);
-        } catch (\Exception $e) {
-            \Log::error('Failed to create Post', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json(['error' => 'Failed to create Post', 'trace' => $e->getTraceAsString(), 'message' => $e->getMessage(),], 500);
-        }
+    if (!$user->hasRole('comms')) {
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
+
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+        'type' => 'required|in:announcement,event',
+        'images' => 'nullable|array',
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        'is_notified' => 'sometimes|boolean',
+        'is_urgent' => 'sometimes|boolean',
+        'status' => 'required|in:draft,pending,published',
+    ]);
+
+    try {
+        $imageUrls = [];
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('SchoolUpdates', 'public');
+                $imageUrls[] = asset('storage/' . $path);
+            }
+        }
+
+        // Sanitize content and replace base64 images with URLs
+        $content = Purifier::clean($request->content);
+        preg_match_all('/<img[^>]+src="data:image\/[^;]+;base64,([^"]+)"[^>]*>/', $content, $matches);
+
+        if (!empty($matches[0])) {
+            foreach ($matches[0] as $index => $base64ImageTag) {
+                $imageUrl = $imageUrls[$index] ?? null;
+                if ($imageUrl) {
+                    $content = str_replace($base64ImageTag, '<img src="' . $imageUrl . '" />', $content);
+                }
+            }
+        }
+
+        $status = $request->status;
+
+        $schoolUpdateData = [
+            'title' => $request->title,
+            'content' => $content,
+            'type' => $request->type,
+            'image_url' => $imageUrls ? json_encode($imageUrls) : null,
+            'created_by' => $user->id,
+            'status' => $status,
+            'is_notified' => $request->boolean('is_notified'),
+            'is_urgent' => $request->boolean('is_urgent'),
+        ];
+
+        if ($status === SchoolUpdate::STATUS_PUBLISHED) {
+            $schoolUpdateData['published_at'] = now();
+        }
+
+        $schoolUpdate = SchoolUpdate::create($schoolUpdateData);
+
+        // Notify students if post is urgent and published
+        // if ($schoolUpdate->is_urgent && $schoolUpdate->status === SchoolUpdate::STATUS_PUBLISHED && $schoolUpdate->is_notified) {
+        //     $students = User::role('student')->get();
+
+        //     foreach ($students as $student) {
+        //         $student->notify(new PostNotification($schoolUpdate));
+        //     }
+        // }
+
+        return response()->json([
+            'message' => 'Post created successfully',
+            'post' => $schoolUpdate,
+        ], 201);
+
+    } catch (ValidationException $e) {
+        return response()->json(['error' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Failed to create Post',
+            'trace' => $e->getTraceAsString(),
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+}
+
     public function uploadImages(Request $request)
     {
         // Validate the uploaded images
@@ -200,7 +196,7 @@ class SchoolUpdateController extends Controller
         if (!$user->hasRole(['comms'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
+        
         // Only allow update if current status is draft or revision
         if (!in_array($schoolupdate->status, [SchoolUpdate::STATUS_DRAFT, SchoolUpdate::STATUS_REVISION])) {
             return response()->json(['error' => 'Only draft or revision posts can be edited'], 403);
@@ -215,7 +211,7 @@ class SchoolUpdateController extends Controller
             'is_notified' => 'sometimes|boolean',
             'is_urgent' => 'sometimes|boolean',
             'status' => 'required|in:draft,pending,published',
-            'post_to_facebook' => 'sometimes|boolean',
+            // 'post_to_facebook' => 'sometimes|boolean',
         ]);
 
         try {
@@ -253,7 +249,7 @@ class SchoolUpdateController extends Controller
                 'is_notified' => $request->boolean('is_notified'),
                 'is_urgent' => $isUrgent,
                 'status' => $finalStatus,
-                'post_to_facebook' => $request->boolean('post_to_facebook'),
+                // 'post_to_facebook' => $request->boolean('post_to_facebook'),
             ]);
 
             // //Notify students if published and notified
@@ -438,83 +434,113 @@ class SchoolUpdateController extends Controller
         }
     }
 
+   public function publish($id)
+{
+    $user = JWTAuth::authenticate();
+    
+    $post = SchoolUpdate::findOrFail($id);
+
+    if (!$user->hasRole('comms')) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    // Only allow publish from draft or pending
+    if (!in_array($post->status, [SchoolUpdate::STATUS_DRAFT, SchoolUpdate::STATUS_PENDING])) {
+        return response()->json(['message' => 'Cannot publish this post'], 400);
+    }
+
+    $post->status = SchoolUpdate::STATUS_PUBLISHED;
+    $post->published_at = now();
+    $post->save();
+
+    // Notify users
+    // if ($post->is_notified && $post->is_urgent) {
+    //     $students = StudentInformation::where('role', 'student')->get();
+    //     foreach ($students as $student) {
+    //         $student->notify(new PostNotification($post));
+    //     }
+    // }
+
+    return response()->json(['message' => 'Post published successfully']);
+}
+
     /**
      * Publish a post to Facebook Page
      */
-    public function publish(SchoolUpdate $schoolupdate, Request $request)
-    {
-        if (!auth()->user()->hasRole('comms')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+    // public function publish(SchoolUpdate $schoolupdate, Request $request)
+    // {
+    //     if (!auth()->user()->hasRole('comms')) {
+    //         return response()->json(['error' => 'Unauthorized'], 403);
+    //     }
 
-        $request->validate([
-            'post_to_facebook' => 'boolean',
-        ]);
+    //     $request->validate([
+    //         'post_to_facebook' => 'boolean',
+    //     ]);
 
-        try {
-            $postToFacebook = $request->post_to_facebook;
+    //     try {
+    //         $postToFacebook = $request->post_to_facebook;
 
-            // Update post status to published
-            $schoolupdate->update([
-                'status' => SchoolUpdate::STATUS_PUBLISHED,
-                'post_to_facebook' => $postToFacebook,
-            ]);
+    //         // Update post status to published
+    //         $schoolupdate->update([
+    //             'status' => SchoolUpdate::STATUS_PUBLISHED,
+    //             'post_to_facebook' => $postToFacebook,
+    //         ]);
 
-            // Check if we should post to Facebook
-            if ($postToFacebook) {
-                $pageId = env('FACEBOOK_PAGE_ID');
-                $accessToken = env('FACEBOOK_ACCESS_TOKEN');
-                $fbVersion = config('services.facebook.version', 'v18.0');
+    //         // Check if we should post to Facebook
+    //         if ($postToFacebook) {
+    //             $pageId = env('FACEBOOK_PAGE_ID');
+    //             $accessToken = env('FACEBOOK_ACCESS_TOKEN');
+    //             $fbVersion = config('services.facebook.version', 'v18.0');
 
-                // Prepare content (strip HTML)
-                $postMessage = strip_tags($schoolupdate->title . "\n\n" . $schoolupdate->content);
+    //             // Prepare content (strip HTML)
+    //             $postMessage = strip_tags($schoolupdate->title . "\n\n" . $schoolupdate->content);
 
-                // Prepare request payload
-                $fbPostData = [
-                    'message' => $postMessage,
-                    'access_token' => $accessToken,
-                ];
+    //             // Prepare request payload
+    //             $fbPostData = [
+    //                 'message' => $postMessage,
+    //                 'access_token' => $accessToken,
+    //             ];
 
-                // If the post has an image, attach it as a photo post
-                if (!empty($schoolupdate->image_url)) {
-                    $fbPostData['url'] = asset($schoolupdate->image_url); // Ensure correct URL format
-                    $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/photos", $fbPostData);
-                } else {
-                    // Standard text post
-                    $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $fbPostData);
-                }
+    //             // If the post has an image, attach it as a photo post
+    //             if (!empty($schoolupdate->image_url)) {
+    //                 $fbPostData['url'] = asset($schoolupdate->image_url); // Ensure correct URL format
+    //                 $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/photos", $fbPostData);
+    //             } else {
+    //                 // Standard text post
+    //                 $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $fbPostData);
+    //             }
 
-                // $response = Http::post("https://graph.facebook.com/v18.0/{$pageId}/feed", [
-                //     'message' => $schoolupdate->title . "\n\n" . $schoolupdate->content,
-                //     'access_token' => $accessToken,
-                // ]);
+    //             // $response = Http::post("https://graph.facebook.com/v18.0/{$pageId}/feed", [
+    //             //     'message' => $schoolupdate->title . "\n\n" . $schoolupdate->content,
+    //             //     'access_token' => $accessToken,
+    //             // ]);
 
-                if ($response->successful()) {
-                    $facebookPostId = $response->json()['id'];
-                    $schoolupdate->update(['facebook_post_id' => $facebookPostId]);
+    //             if ($response->successful()) {
+    //                 $facebookPostId = $response->json()['id'];
+    //                 $schoolupdate->update(['facebook_post_id' => $facebookPostId]);
 
-                    return response()->json([
-                        'message' => 'Post published and shared on Facebook!',
-                        'facebook_post_id' => $facebookPostId,
-                    ], 200);
-                } else {
-                    Log::error('Facebook Post Failed', ['error' => $response->json()]);
-                    return response()->json([
-                        'message' => 'Post published, but failed to share on Facebook',
-                        'error' => $response->json(),
-                    ], 400);
-                }
-            }
+    //                 return response()->json([
+    //                     'message' => 'Post published and shared on Facebook!',
+    //                     'facebook_post_id' => $facebookPostId,
+    //                 ], 200);
+    //             } else {
+    //                 Log::error('Facebook Post Failed', ['error' => $response->json()]);
+    //                 return response()->json([
+    //                     'message' => 'Post published, but failed to share on Facebook',
+    //                     'error' => $response->json(),
+    //                 ], 400);
+    //             }
+    //         }
 
-            return response()->json(['message' => 'Post published successfully!'], 200);
+    //         return response()->json(['message' => 'Post published successfully!'], 200);
 
-        } catch (AuthorizationException $e) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        } catch (\Exception $e) {
-            Log::error('Failed to publish post', ['exception' => $e->getMessage()]);
-            return response()->json(['error' => 'Failed to publish post'], 500);
-        }
-    }
+    //     } catch (AuthorizationException $e) {
+    //         return response()->json(['error' => 'Unauthorized'], 403);
+    //     } catch (\Exception $e) {
+    //         Log::error('Failed to publish post', ['exception' => $e->getMessage()]);
+    //         return response()->json(['error' => 'Failed to publish post'], 500);
+    //     }
+    // }
 
     public function sync(Request $request)
     {

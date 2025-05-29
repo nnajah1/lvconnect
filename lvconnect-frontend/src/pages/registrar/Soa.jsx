@@ -157,7 +157,7 @@ const AdminSoa = () => {
 
       <div className="form-container">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label>Status</label>
               <select name="status" value={formData.status} onChange={handleInputChange} className="input-field">
@@ -172,7 +172,7 @@ const AdminSoa = () => {
                 <option value={false}>No</option>
               </select>
             </div>
-          </div>
+          </div> */}
 
           <div className="mb-6">
             <h2 className="section-title">General Information</h2>

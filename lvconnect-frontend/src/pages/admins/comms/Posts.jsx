@@ -9,42 +9,68 @@ import CreatePostModal from "@/pages/admins/comms/CreatePost";
 import ViewPostModal from "./ViewPost";
 import SearchBar from "@/components/dynamic/searchBar";
 import { useUserRole } from "@/utils/userRole";
+import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
+import EditPostForm from "@/components/school_updates/editPostForm";
+import EditPostModal from "./EditPost";
 
 const Posts = () => {
   const userRole = useUserRole();
   const [schoolUpdates, setSchoolUpdates] = useState([]);
-  // const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false)
   const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedPostId, setSelectedPostId] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [viewItem, setViewItem] = useState(null);
+  const [editItem, setEditItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(false);
 
-
-  const handleViewPost = (id, item) => {
-    setSelectedPostId(id);
-    setViewModalOpen(true);
+  const handleViewPost = (item) => {
+    setViewItem(item);
   };
+  const handleEdit = (item) => {
+    setEditItem(item);
+  };
+
+  const handleDelete = (item) => {
+    setDeleteItem(item);
+  };
+
+   const handleDeletePost = () => {
+    // setDeleteItem(item);
+  };
+
+
+  const action = actions(handleViewPost, handleEdit, handleDelete);
 
   const columns = getColumns({
     userRole,
     schema: schoolUpdateSchema,
-    actions: actions(handleViewPost),
+    actions: action,
     actionConditions: actionConditions
 
   });
 
-  useEffect(() => {
-    const loadUpdates = async () => {
-      const data = await getPosts();
-      setSchoolUpdates(data);
+  const loadUpdates = async () => {
+      setLoading(true)
+      try {
+        const data = await getPosts();
+        setSchoolUpdates(data);
+      } catch (err) {
+        console.error("Failed to load posts", err);
+        toast.error("Failed to load posts.");
+      } finally {
+        setLoading(false);
+      }
     };
+  useEffect(() => {
     loadUpdates();
   }, []);
 
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>;
-  }
+  // if (error) {
+  //   return <p className="text-red-500">Error: {error}</p>;
+  // }
 
 
   return (
@@ -68,15 +94,76 @@ const Posts = () => {
         </div>
 
         {/* Search Input */}
-        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>      </div>
+        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
+      </div>
 
-      <DataTable columns={columns} data={schoolUpdates} context="Posts" globalFilter={globalFilter} />
+      <DataTable columns={columns} data={schoolUpdates} context="Posts" globalFilter={globalFilter} isLoading={loading} />
 
       {/* Modals */}
-      <CreatePostModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
+      <CreatePostModal isOpen={isOpen} closeModal={() => setIsOpen(false)} load={loadUpdates} />
 
-      <ViewPostModal isOpen={viewModalOpen} closeModal={() => setViewModalOpen(false)} postId={selectedPostId}
-      />
+      {viewItem && (
+        <ViewPostModal
+          isOpen={!!viewItem}
+          closeModal={() => setViewItem(null)}
+          postId={viewItem.id}
+        />
+
+      )}
+      {editItem && (
+        <EditPostModal
+          isOpen={!!editItem}
+          closeModal={() => setEditItem(null)}
+          onDeleteModal={() => setIsSuccessModalOpen(true)}
+          onSuccessModal={() => setIsSuccessModalOpen(false)}
+          postId={editItem}
+        />
+      )}
+      {deleteItem && (
+        <WarningModal
+          isOpen={() => setDeleteItem(true)}
+          closeModal={() => setDeleteItem(false)}
+          title="Delete Post"
+          description="Are you sure you want to delete this post?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            onClick={() => setDeleteItem(false)}
+          >
+           cancel
+          </button>
+            <button
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            onClick={() => handleDeletePost}
+          >
+           Delete
+          </button>
+
+        </WarningModal>
+      )}
+
+      {/* <ConfirmationModal
+          isOpen={() => setDeleteItem(true)}
+          closeModal={() => setDeleteItem(false)}
+          title="Create Post"
+          description="Are you sure you want to delete this post?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            onClick={() => setDeleteItem(false)}
+          >
+           cancel
+          </button>
+            <button
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            onClick={() => handleDeletePost}
+          >
+           Delete
+          </button>
+
+        </ConfirmationModal> */}
+
+
     </div>
   );
 }

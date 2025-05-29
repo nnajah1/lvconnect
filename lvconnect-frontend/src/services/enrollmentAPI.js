@@ -27,7 +27,10 @@ export const getEnrollee = async (id) => {
   const response = await api.get(`/enrollee/${id}`);
   return response.data;
 };
-
+export const getNotEnrollee = async (id) => {
+  const response = await api.get(`/not-enrolled/${id}`);
+  return response.data;
+};
 export const createEnrollee = async (studentId, data) => {
   const response = await api.put(`/manual-enrollment/${studentId}`, data);
   return response.data;

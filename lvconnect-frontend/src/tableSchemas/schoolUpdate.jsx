@@ -1,32 +1,45 @@
+import { Eye, Pencil, Trash } from "lucide-react";
 
 export const schoolUpdateSchema = {
     id: { header: "#", display: true },
-    content: { header: "Updates", display: true },
+    title: {
+        header: "Updates", display: true,
+        customCell: (value) => {
+            // const plainText = value.replace(/<\/?[^>]+(>|$)/g, "");
+            return value.split(" ").slice(0, 3).join(" ");
+        }
+    },
     status: { header: "Status", display: true },
     type: { header: "Type", display: true },
     updated_at: { header: "Last Modified", display: true, format: "date" },
 };
 
-export const actions =  (handleViewPost) => ( {
+export const actions = (handleViewPost, handleEdit, handleDete) => ({
     view: {
-        fn: handleViewPost,
-        variant:() => "default"
+        icon: () => <Eye size={18} />,
+        fn: (id, item) => handleViewPost(item),
+        variant: () => "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
     },
     edit: {
-        fn: (id, item) => console.log(`Editing item ${id}:`, item),
-        variant:() => "outline"
+        icon: () => <Pencil size={18} />,
+        fn: (id, item) => handleEdit(item),
+        variant: () => "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
     },
     delete: {
-        fn: (id, item) => console.log(`Deleting item ${id}:`, item),
-        variant:() => "destructive"
-    }
+        icon: () => <Trash size={18} />,
+        fn: (id, item) => handleDete(item),
+        variant: () => "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
+    },
 });
 
 // Sample action conditions
 export const actionConditions = {
     view: () => true,
     edit: (item, userRole) => userRole === "comms" && item.status === "draft",
-    delete: (item, userRole ) =>  userRole === "comms" && item.status === "archived"
+    delete: (item, userRole) => userRole === "comms" && item.status === "archived"
 };
 
 export const archiveSchema = {
@@ -52,29 +65,29 @@ export const archiveSchema = {
     content: {
         header: "Updates",
         display: true,
-        enableSorting: true 
+        enableSorting: true
     },
     status: {
         header: "Status",
         display: true,
-        enableSorting: true 
+        enableSorting: true
     },
     type: {
         header: "Type",
         display: true,
-        enableSorting: true 
+        enableSorting: true
     },
-    published_at: { 
-        header: "Date Posted", 
-        display: true, 
-        format: "date", 
-        enableSorting: true 
+    published_at: {
+        header: "Date Posted",
+        display: true,
+        format: "date",
+        enableSorting: true
     },
-    archieved_at: { 
-        header: "Date Archieved", 
-        display: true, 
-        format: "date", 
-        enableSorting: true 
+    archieved_at: {
+        header: "Date Archieved",
+        display: true,
+        format: "date",
+        enableSorting: true
     },
 
 }

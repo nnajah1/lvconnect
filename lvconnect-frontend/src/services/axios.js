@@ -61,7 +61,6 @@ export const uploadImages = async (imageFiles) => {
 
 export const createPost = async (formData) => {
   try {
-
     const response = await api.post("/posts", formData);
     return response.data;
   } catch (error) {
@@ -70,30 +69,40 @@ export const createPost = async (formData) => {
 };
 
 export const updatePost = async (id, formData) => {
+  formData.append('_method', 'PUT');  // Laravel expects this for FormData updates
   try {
-    const response = await api.put(`/posts/${id}`, formData);
-
+    const response = await api.post(`/posts/${id}`, formData);  // Use POST with _method=PUT
     return response.data;
   } catch (error) {
     throw error.response?.data || "Something went wrong!";
   }
 };
 
-export const publishPost = (id, syncWithFacebook) =>
-  api.post(`/posts/${id}/publish`, { post_to_facebook: syncWithFacebook });
-
-// Sync post to Facebook (Only if status === "approved")
-export const syncToFacebook = async (post) => {
-  if (post.status !== "approved") return;
-
-  const response = await api.post("/facebook-sync", {
-    title: post.title,
-    content: post.content,
-    image_url: post.image_url ? JSON.parse(post.image_url) : [],
-  });
-
-  return response.data;
+export const publishPost = async (id, formData) => {
+  try {
+    const response = await api.post(`/posts/${id}/publish`, formData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || "Something went wrong!";
+  }
 };
+
+
+// export const publishPost = (id, syncWithFacebook) =>
+//   api.post(`/posts/${id}/publish`, { post_to_facebook: syncWithFacebook });
+
+// // Sync post to Facebook (Only if status === "approved")
+// export const syncToFacebook = async (post) => {
+//   if (post.status !== "approved") return;
+
+//   const response = await api.post("/facebook-sync", {
+//     title: post.title,
+//     content: post.content,
+//     image_url: post.image_url ? JSON.parse(post.image_url) : [],
+//   });
+
+//   return response.data;
+// };
 
 export const submitPost = (id) => api.post(`/posts/${id}/submit`);
 

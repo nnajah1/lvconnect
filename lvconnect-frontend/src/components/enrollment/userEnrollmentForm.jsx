@@ -24,7 +24,7 @@ export default function EnrollmentForm({ mode, editType, setStudentData, student
   const [isAgreed, setIsAgreed] = useState(false)
 
 
-  const dataPrivacyPolicy = ["lorem"]
+  const dataPrivacyPolicy = [""]
 
 
   const handleFieldChange = (nameOrEvent, maybeValue) => {
