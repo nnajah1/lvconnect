@@ -5,66 +5,88 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\FormField;
 use App\Models\FormType;
-use Faker\Factory as Faker;
 
 class FormFieldSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create();
+        FormField::truncate();
 
-        $formTypeIds = FormType::pluck('id');
-
-        if ($formTypeIds->isEmpty()) {
-            $this->command->warn('No Form Types found. Skipping FormFieldSeeder.');
-            return;
-        }
-
-        $fieldTypes = [
-            'text',
-            'textarea',
-            'date',
-            'checkbox',
-            'single_checkbox',
-            'radio',
-            'select',
-            '2x2_image',
-        ];
-
-        $fields = [];
-
-        foreach ($formTypeIds as $formTypeId) {
-            foreach (range(1, 5) as $i) {
-                $type = $faker->randomElement($fieldTypes);
-                $label = match ($type) {
-                    'text' => 'Full Name',
-                    'textarea' => 'Additional Information',
-                    'date' => 'Birthdate',
-                    'checkbox' => 'Select applicable options',
-                    'single_checkbox' => 'Agree to terms?',
-                    'radio' => 'Choose one',
-                    'select' => 'Pick an option',
-                    '2x2_image' => 'Upload 2x2 ID Photo',
-                };
-
-                $fieldData = [
-                    'type' => $type,
-                    'name' => $label,
-                    'options' => in_array($type, ['checkbox', 'radio', 'select']) ? ['Option A', 'Option B', 'Option C'] : [],
-                ];
-
-                $fields[] = [
-                    'form_type_id' => $formTypeId,
-                    'field_data' => json_encode($fieldData),
-                    'required' => $faker->boolean(70),
-                    'page' => $faker->numberBetween(1, 2),
+        $addFields = function ($formType, $fields) {
+            foreach ($fields as $field) {
+                FormField::create([
+                    'form_type_id' => $formType->id,
+                    'field_data' => json_encode([
+                        'type' => $field['type'],
+                        'name' => $field['name'],
+                        'options' => $field['options'] ?? [],
+                    ]),
+                    'required' => $field['required'] ?? false,
+                    'page' => $field['page'] ?? 1,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ];
+                ]);
             }
+        };
+
+        // Fetch each form type by title and add fields accordingly
+
+        $admissionForm = FormType::where('title', 'Admission Request Form (ARL)')->first();
+        if ($admissionForm) {
+            $fields = [
+                ['type' => 'text', 'name' => 'Full Name', 'required' => true, 'page' => 1],
+                ['type' => 'date', 'name' => 'Date of Birth', 'required' => true, 'page' => 1],
+                ['type' => 'text', 'name' => 'Previous School Attended', 'required' => false, 'page' => 2],
+                ['type' => 'radio', 'name' => 'Gender', 'options' => ['Male', 'Female', 'Other'], 'required' => true, 'page' => 1],
+                ['type' => 'textarea', 'name' => 'Guardian Details', 'required' => true, 'page' => 2],
+            ];
+            $addFields($admissionForm, $fields);
         }
 
-        FormField::insert($fields);
+        $leaveForm = FormType::where('title', 'Leave of Absence Form')->first();
+        if ($leaveForm) {
+            $fields = [
+                ['type' => 'date', 'name' => 'Leave Start Date', 'required' => true, 'page' => 1],
+                ['type' => 'date', 'name' => 'Leave End Date', 'required' => true, 'page' => 1],
+                ['type' => 'textarea', 'name' => 'Reason for Leave', 'required' => true, 'page' => 1],
+                ['type' => 'single_checkbox', 'name' => 'I agree to the terms and conditions', 'required' => true, 'page' => 1],
+            ];
+            $addFields($leaveForm, $fields);
+        }
+
+        $courseChangeForm = FormType::where('title', 'Course Change Request Form')->first();
+        if ($courseChangeForm) {
+            $fields = [
+                ['type' => 'text', 'name' => 'Current Course/Program', 'required' => true, 'page' => 1],
+                ['type' => 'text', 'name' => 'Desired Course/Program', 'required' => true, 'page' => 1],
+                ['type' => 'textarea', 'name' => 'Reason for Change', 'required' => true, 'page' => 1],
+                ['type' => 'file', 'name' => 'Supporting Documents', 'required' => false, 'page' => 2],
+            ];
+            $addFields($courseChangeForm, $fields);
+        }
+
+        $clearanceForm = FormType::where('title', 'Student Clearance Form')->first();
+        if ($clearanceForm) {
+            $fields = [
+                ['type' => 'textarea', 'name' => 'List of obligations settled', 'required' => true, 'page' => 1],
+                ['type' => 'text', 'name' => 'Clearance Officer Name', 'required' => true, 'page' => 1],
+                ['type' => 'date', 'name' => 'Clearance Date', 'required' => true, 'page' => 1],
+                ['type' => 'single_checkbox', 'name' => 'I certify that all obligations are settled', 'required' => true, 'page' => 1],
+            ];
+            $addFields($clearanceForm, $fields);
+        }
+
+        $scholarshipForm = FormType::where('title', 'Scholarship Application Form')->first();
+        if ($scholarshipForm) {
+            $fields = [
+                ['type' => 'text', 'name' => 'Full Name', 'required' => true, 'page' => 1],
+                ['type' => 'textarea', 'name' => 'Academic Achievements', 'required' => false, 'page' => 1],
+                ['type' => 'textarea', 'name' => 'Financial Need Explanation', 'required' => true, 'page' => 2],
+                ['type' => 'file', 'name' => 'Supporting Documents', 'required' => false, 'page' => 2],
+            ];
+            $addFields($scholarshipForm, $fields);
+        }
+
         $this->command->info('Form fields seeded for all form types.');
     }
 }

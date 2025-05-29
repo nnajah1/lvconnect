@@ -59,19 +59,20 @@ class FormTypeSeeder extends Seeder
         ];
 
         foreach ($formTypes as $form) {
-            FormType::create([
-                'title' => $form['title'],
-                'description' => $form['description'],
-                'pdf_path' => null,
-                'created_by' => $faker->randomElement($psasUsers),
-                'has_pdf' => $form['has_pdf'],
-                'is_visible' => $form['is_visible'],
-                'content' => $form['content'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            FormType::updateOrCreate(
+                ['title' => $form['title']],
+                [
+                    'description' => $form['description'],
+                    'pdf_path' => null,
+                    'created_by' => $faker->randomElement($psasUsers),
+                    'has_pdf' => $form['has_pdf'],
+                    'is_visible' => $form['is_visible'],
+                    'content' => $form['content'],
+                    'updated_at' => now(),
+                ]
+            );
         }
 
-        $this->command->info('5 ARL-related form types created.');
+        $this->command->info(count($formTypes) . ' form types created or updated.');
     }
 }
