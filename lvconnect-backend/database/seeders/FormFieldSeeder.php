@@ -10,16 +10,15 @@ class FormFieldSeeder extends Seeder
 {
     public function run(): void
     {
-
         $addFields = function ($formType, $fields) {
             foreach ($fields as $field) {
                 FormField::create([
                     'form_type_id' => $formType->id,
-                    'field_data' => json_encode([
+                    'field_data' => [ 
                         'type' => $field['type'],
                         'name' => $field['name'],
                         'options' => $field['options'] ?? [],
-                    ]),
+                    ],
                     'required' => $field['required'] ?? false,
                     'page' => $field['page'] ?? 1,
                     'created_at' => now(),

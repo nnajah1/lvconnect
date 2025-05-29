@@ -102,7 +102,7 @@ class SurveySeeder extends Seeder
                     'survey_id' => $survey->id,
                     'survey_question_type' => $type,
                     'question' => $questionText,
-                    'survey_question_data' => $data, // native JSON here
+                    'survey_question_data' => $data, 
                     'order' => $qIndex + 1,
                     'is_required' => true,
                     'created_at' => now(),
