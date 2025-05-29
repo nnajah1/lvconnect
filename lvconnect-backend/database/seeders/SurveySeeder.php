@@ -89,18 +89,14 @@ class SurveySeeder extends Seeder
 
             foreach ($questions as $qIndex => $questionText) {
                 $type = $qIndex === count($questions) - 1
-                    ? 'Short answer' 
+                    ? 'Short answer'
                     : Arr::random($questionTypes);
 
-                if (in_array($type, ['Multiple choice', 'Checkboxes', 'Dropdown'])) {
-                    $data = [
-                        'options' => $faker->randomElements([
-                            'Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'
-                        ], rand(3, 5))
-                    ];
-                } else {
-                    $data = []; // Always set data, even if empty
-                }
+                $data = in_array($type, ['Multiple choice', 'Checkboxes', 'Dropdown'])
+                    ? ['choices' => $faker->randomElements([
+                        'Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'
+                    ], rand(3, 5))]
+                    : []; // Short answer has no 'choices' field
 
                 SurveyQuestion::create([
                     'survey_id' => $survey->id,
@@ -115,6 +111,6 @@ class SurveySeeder extends Seeder
             }
         }
 
-        $this->command->info('5 surveys created with varied question types (Short answer, Multiple choice, etc.).');
+        $this->command->info('5 surveys seeded using correct frontend JSON format (choices only for options).');
     }
 }
