@@ -88,15 +88,12 @@ class SurveySeeder extends Seeder
             $questions = $questionsPerSurvey[$index];
 
             foreach ($questions as $qIndex => $questionText) {
-
                 $type = $qIndex === count($questions) - 1
                     ? 'Short answer'
                     : Arr::random($questionTypes);
 
                 $choices = in_array($type, ['Multiple choice', 'Checkboxes', 'Dropdown'])
-                    ? $faker->randomElements([
-                        'Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'
-                    ], rand(3, 5))
+                    ? $faker->randomElements(['Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'], rand(3, 5))
                     : [];
 
                 $data = ['choices' => $choices];
@@ -105,7 +102,7 @@ class SurveySeeder extends Seeder
                     'survey_id' => $survey->id,
                     'survey_question_type' => $type,
                     'question' => $questionText,
-                    'survey_question_data' => json_encode($data),
+                    'survey_question_data' => $data, // native JSON here
                     'order' => $qIndex + 1,
                     'is_required' => true,
                     'created_at' => now(),
@@ -114,6 +111,6 @@ class SurveySeeder extends Seeder
             }
         }
 
-        $this->command->info('5 surveys seeded with frontend-compatible question data (choices inside JSON).');
+        $this->command->info('5 surveys seeded with JSON-formatted question data.');
     }
 }
