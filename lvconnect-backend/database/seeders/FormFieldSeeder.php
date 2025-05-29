@@ -10,7 +10,6 @@ class FormFieldSeeder extends Seeder
 {
     public function run(): void
     {
-        FormField::truncate();
 
         $addFields = function ($formType, $fields) {
             foreach ($fields as $field) {
