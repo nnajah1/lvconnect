@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
             SurveySeeder::class,
             SOASeeder::class,
             NotificationPreferenceSeeder::class,
+            CalendarOfActivitySeeder::class,
         ]);
     }
 }
