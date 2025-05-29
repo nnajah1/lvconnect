@@ -62,7 +62,7 @@ class FormTypeSeeder extends Seeder
             FormType::create([
                 'title' => $form['title'],
                 'description' => $form['description'],
-                'pdf_path' => null, 
+                'pdf_path' => null,
                 'created_by' => $faker->randomElement($psasUsers),
                 'has_pdf' => $form['has_pdf'],
                 'is_visible' => $form['is_visible'],

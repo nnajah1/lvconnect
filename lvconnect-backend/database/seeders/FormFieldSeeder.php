@@ -36,8 +36,7 @@ class FormFieldSeeder extends Seeder
         foreach ($formTypeIds as $formTypeId) {
             foreach (range(1, 5) as $i) {
                 $type = $faker->randomElement($fieldTypes);
-
-                $name = match ($type) {
+                $label = match ($type) {
                     'text' => 'Full Name',
                     'textarea' => 'Additional Information',
                     'date' => 'Birthdate',
@@ -46,15 +45,12 @@ class FormFieldSeeder extends Seeder
                     'radio' => 'Choose one',
                     'select' => 'Pick an option',
                     '2x2_image' => 'Upload 2x2 ID Photo',
-                    default => 'Field Name',
                 };
 
                 $fieldData = [
                     'type' => $type,
-                    'name' => $name,
-                    'options' => in_array($type, ['checkbox', 'radio', 'select'])
-                        ? ['Option A', 'Option B', 'Option C']
-                        : [],
+                    'name' => $label,
+                    'options' => in_array($type, ['checkbox', 'radio', 'select']) ? ['Option A', 'Option B', 'Option C'] : [],
                 ];
 
                 $fields[] = [

@@ -105,6 +105,7 @@ class UserRoleSeeder extends Seeder
         $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'api']);
 
         $studentUsers = [
+            ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'casimiro.azhelle09@gmail.com'],
             ['first_name' => 'Alona Joy', 'last_name' => 'Pegarit', 'email' => 'alonapegarit@gmail.com'],
             ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
         ];

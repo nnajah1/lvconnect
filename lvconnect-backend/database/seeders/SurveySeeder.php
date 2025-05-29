@@ -96,7 +96,7 @@ class SurveySeeder extends Seeder
                     ? ['choices' => $faker->randomElements([
                         'Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'
                     ], rand(3, 5))]
-                    : []; // Short answer has no 'choices' field
+                    : []; 
 
                 SurveyQuestion::create([
                     'survey_id' => $survey->id,
