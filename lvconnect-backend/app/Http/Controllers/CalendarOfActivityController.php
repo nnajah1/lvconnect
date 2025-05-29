@@ -16,7 +16,7 @@ class CalendarOfActivityController extends Controller
         $user = JWTAuth::authenticate();
 
         if ($user->hasRole('student')) {
-            return CalendarOfActivity::select('event_title', 'start_date', 'end_date')->get();
+            return CalendarOfActivity::select('event_title', 'description', 'start_date', 'end_date')->get();
         }
 
         if ($user->hasRole('comms')) {
@@ -39,12 +39,14 @@ class CalendarOfActivityController extends Controller
 
         $request->validate([
             'event_title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         $activity = CalendarOfActivity::create([
             'event_title' => $request->event_title,
+            'description' => $request->description,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'created_by' => $user->id,
@@ -68,7 +70,7 @@ class CalendarOfActivityController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $activity = CalendarOfActivity::select('event_title', 'start_date', 'end_date')->find($id);
+        $activity = CalendarOfActivity::select('event_title', 'description', 'start_date', 'end_date')->find($id);
 
         if (!$activity) {
             return response()->json(['message' => 'Activity not found'], 404);
@@ -76,7 +78,6 @@ class CalendarOfActivityController extends Controller
 
         return response()->json($activity);
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -97,17 +98,23 @@ class CalendarOfActivityController extends Controller
 
         $request->validate([
             'event_title' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string|max:1000',
             'start_date' => 'sometimes|required|date',
             'end_date' => 'sometimes|required|date|after_or_equal:start_date',
         ]);
 
-        // Update fields only if present in request
         if ($request->has('event_title')) {
             $activity->event_title = $request->event_title;
         }
+
+        if ($request->has('description')) {
+            $activity->description = $request->description;
+        }
+
         if ($request->has('start_date')) {
             $activity->start_date = $request->start_date;
         }
+
         if ($request->has('end_date')) {
             $activity->end_date = $request->end_date;
         }
@@ -120,7 +127,6 @@ class CalendarOfActivityController extends Controller
             'data' => $activity,
         ]);
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -143,5 +149,4 @@ class CalendarOfActivityController extends Controller
 
         return response()->json(['message' => 'Activity deleted successfully']);
     }
-
 }

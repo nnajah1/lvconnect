@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Survey;
 use App\Models\SurveyQuestion;
 use App\Models\User;
+use Illuminate\Support\Arr;
 use Faker\Factory as Faker;
 
 class SurveySeeder extends Seeder
@@ -31,40 +32,47 @@ class SurveySeeder extends Seeder
 
         $questionsPerSurvey = [
             [
-                'I received timely and accurate updates about the flood situation from the school.',
-                'The school had a clear and effective evacuation or safety protocol.',
-                'I felt supported by school staff during and after the flood.',
-                'Communication channels (e.g., SMS, email, portal) were used effectively during the incident.',
-                'The school provided adequate post-flood support (e.g., counseling, academic adjustments).',
+                'How did the flood impact your ability to attend classes?',
+                'What source did you use most to get updates?',
+                'What kind of support would you want after such events?',
+                'Rate the school’s SMS updates effectiveness.',
+                'Briefly describe how you felt during the flood.',
             ],
             [
-                'The school provided sufficient information about typhoon preparedness.',
-                'Emergency supplies and shelters were adequately available during the typhoon.',
-                'The school’s communication during the typhoon was clear and timely.',
-                'I felt safe and well-informed during the typhoon.',
-                'Post-typhoon support was helpful and accessible.',
+                'What preparations did you make before the typhoon?',
+                'Select all support services you used.',
+                'How would you improve communication before storms?',
+                'Choose the most helpful school response:',
+                'Share a personal tip for typhoon preparedness.',
             ],
             [
-                'The fire drill was conducted regularly and effectively.',
-                'Evacuation routes were clearly marked and easy to follow.',
-                'Staff provided adequate assistance during the fire drill.',
-                'The fire drill helped me understand emergency procedures better.',
-                'Overall, the fire drill improved campus safety awareness.',
+                'Describe your experience during the last fire drill.',
+                'Pick the most useful fire drill instruction.',
+                'What did you find unclear during the drill?',
+                'Which areas need more fire safety tools?',
+                'What would make fire drills more effective?',
             ],
             [
-                'I am confident in the school’s response to security incidents.',
-                'Security personnel acted quickly and effectively during incidents.',
-                'The school communicates well about security-related concerns.',
-                'I feel safe on campus due to the security measures in place.',
-                'The school offers sufficient support following security incidents.',
+                'Have you ever reported a security concern?',
+                'Which communication method do you prefer?',
+                'What safety measure would you add?',
+                'Pick all security improvements you’ve noticed.',
+                'Describe a situation where you felt unsafe on campus.',
             ],
             [
-                'The health and safety protocols for COVID-19 were clear and easy to follow.',
-                'The school provided adequate sanitation and hygiene facilities.',
-                'Communication about COVID-19 updates was timely and accurate.',
-                'I felt supported by the school regarding my health and safety concerns.',
-                'The school’s COVID-19 measures helped maintain a safe learning environment.',
+                'How well did you follow COVID-19 protocols?',
+                'Which safety feature helped you most?',
+                'What would you change about campus guidelines?',
+                'Select all hygiene practices you followed.',
+                'What was your biggest challenge during the pandemic?',
             ],
+        ];
+
+        $questionTypes = [
+            'Short answer',
+            'Multiple choice',
+            'Checkboxes',
+            'Dropdown',
         ];
 
         foreach ($surveyTitles as $index => $title) {
@@ -80,11 +88,25 @@ class SurveySeeder extends Seeder
             $questions = $questionsPerSurvey[$index];
 
             foreach ($questions as $qIndex => $questionText) {
+                $type = $qIndex === count($questions) - 1
+                    ? 'Short answer' // Ensure at least one short answer per survey
+                    : Arr::random($questionTypes);
+
+                $data = null;
+
+                if (in_array($type, ['Multiple choice', 'Checkboxes', 'Dropdown'])) {
+                    $data = [
+                        'options' => $faker->randomElements([
+                            'Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'
+                        ], rand(3, 5))
+                    ];
+                }
+
                 SurveyQuestion::create([
                     'survey_id' => $survey->id,
-                    'survey_question_type' => 'likert',
+                    'survey_question_type' => $type,
                     'question' => $questionText,
-                    'survey_question_data' => json_encode(['scale' => [1, 2, 3, 4, 5]]),
+                    'survey_question_data' => $data ? json_encode($data) : null,
                     'order' => $qIndex + 1,
                     'is_required' => true,
                     'created_at' => now(),
@@ -93,6 +115,6 @@ class SurveySeeder extends Seeder
             }
         }
 
-        $this->command->info('5 surveys created without student responses.');
+        $this->command->info('5 surveys created with varied question types (excluding Upload Photo).');
     }
 }

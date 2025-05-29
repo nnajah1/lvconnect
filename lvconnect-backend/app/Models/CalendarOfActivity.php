@@ -8,6 +8,7 @@ class CalendarOfActivity extends Model
 {
     protected $fillable = [
         'event_title',
+        'description',
         'start_date',
         'end_date',
         'created_by',

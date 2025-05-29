@@ -37,8 +37,19 @@ class FormFieldSeeder extends Seeder
             foreach (range(1, 5) as $i) {
                 $type = $faker->randomElement($fieldTypes);
 
+                $label = match ($type) {
+                    'text' => 'Full Name',
+                    'textarea' => 'Additional Information',
+                    'date' => 'Birthdate',
+                    'checkbox' => 'Select applicable options',
+                    'single_checkbox' => 'Agree to terms?',
+                    'radio' => 'Choose one',
+                    'select' => 'Pick an option',
+                    '2x2_image' => 'Upload 2x2 ID Photo',
+                };
+
                 $fieldData = [
-                    'label' => $faker->words(2, true),
+                    'label' => $label,
                     'type' => $type,
                 ];
 
@@ -58,5 +69,6 @@ class FormFieldSeeder extends Seeder
         }
 
         FormField::insert($fields);
+        $this->command->info('Form fields seeded for all form types.');
     }
 }
