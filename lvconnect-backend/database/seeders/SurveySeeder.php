@@ -89,10 +89,8 @@ class SurveySeeder extends Seeder
 
             foreach ($questions as $qIndex => $questionText) {
                 $type = $qIndex === count($questions) - 1
-                    ? 'Short answer' // Ensure at least one short answer per survey
+                    ? 'Short answer' 
                     : Arr::random($questionTypes);
-
-                $data = null;
 
                 if (in_array($type, ['Multiple choice', 'Checkboxes', 'Dropdown'])) {
                     $data = [
@@ -100,13 +98,15 @@ class SurveySeeder extends Seeder
                             'Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'
                         ], rand(3, 5))
                     ];
+                } else {
+                    $data = []; // Always set data, even if empty
                 }
 
                 SurveyQuestion::create([
                     'survey_id' => $survey->id,
                     'survey_question_type' => $type,
                     'question' => $questionText,
-                    'survey_question_data' => $data ? json_encode($data) : null,
+                    'survey_question_data' => json_encode($data),
                     'order' => $qIndex + 1,
                     'is_required' => true,
                     'created_at' => now(),
@@ -115,6 +115,6 @@ class SurveySeeder extends Seeder
             }
         }
 
-        $this->command->info('5 surveys created with varied question types (excluding Upload Photo).');
+        $this->command->info('5 surveys created with varied question types (Short answer, Multiple choice, etc.).');
     }
 }
