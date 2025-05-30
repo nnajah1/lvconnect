@@ -467,67 +467,91 @@ class SchoolFormsController extends Controller
 
     public function updateDraftForm(Request $request, $id)
     {
-        $user = JWTAuth::authenticate();
-        $submission = FormSubmission::with('formType.formFields')->findOrFail($id);
+        try {
+            $user = JWTAuth::authenticate();
+            $submission = FormSubmission::with('formType.formFields')->findOrFail($id);
 
-        if ($submission->submitted_by !== $user->id || $submission->status !== 'draft') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $formType = $submission->formType;
-        $rules = [];
-        foreach ($formType->formFields as $field) {
-            $fieldKey = "fields.{$field->id}";
-            $type = $field->field_data['type'] ?? 'text';
-
-            // Apply validation to drafts as well
-            if ($type === '2x2_image') {
-                $rules[$fieldKey] = $field->is_required
-                    ? 'required|url'
-                    : ($request->status === 'draft' ? 'nullable|url' : 'required|url');
-            } else {
-                $rules[$fieldKey] = $field->is_required
-                    ? 'required|string'
-                    : ($status === 'draft' ? 'nullable|string' : 'nullable|string'); // Ensure truly optional when not required
-
+            if ($submission->submitted_by !== $user->id || $submission->status !== 'draft') {
+                return response()->json(['message' => 'Unauthorized'], 403);
             }
+
+            $formType = $submission->formType;
+
+            // Base validation rules
+            $rules = [
+                'status' => 'required|in:draft,pending,submitted',
+                'fields' => 'required|array',
+            ];
+
+            // Dynamic field validation
+            foreach ($formType->formFields as $field) {
+                $fieldKey = "fields.{$field->id}";
+                $type = $field->field_data['type'] ?? 'text';
+                $isDraft = $request->input('status') === 'draft';
+
+                if ($type === '2x2_image') {
+                    if ($field->is_required && !$isDraft) {
+                        $rules[$fieldKey] = 'required|url';
+                    } else {
+                        $rules[$fieldKey] = 'nullable|url';
+                    }
+                } else {
+                    if ($field->is_required && !$isDraft) {
+                        $rules[$fieldKey] = 'required|string';
+                    } else {
+                        $rules[$fieldKey] = 'nullable|string';
+                    }
+                }
+            }
+
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            // Update submission status
+            $submission->status = $request->input('status');
+            $submission->save();
+
+            // Update fields
+            $fields = $request->input('fields', []);
+            foreach ($fields as $fieldId => $value) {
+                $field = $formType->formFields->find($fieldId);
+                if (!$field)
+                    continue;
+
+                $fieldName = $field->field_data['name'] ?? null;
+
+                FormSubmissionData::updateOrCreate(
+                    [
+                        'form_submission_id' => $submission->id,
+                        'form_field_id' => $fieldId,
+                    ],
+                    [
+                        'field_name' => $fieldName,
+                        'answer_data' => $value,
+                        'is_verified' => true,
+                    ]
+                );
+            }
+
+            return response()->json([
+                'message' => 'Draft updated successfully',
+                'submission' => $submission->fresh()
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('updateDraftForm error', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to update draft',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-
-        $submission->status = $request->status;
-        $submission->save();
-
-        // Ensure `fields` exist before updating
-        if (!isset($request->fields) || !is_array($request->fields)) {
-            return response()->json(['message' => 'No fields were submitted.'], 400);
-        }
-
-        foreach ($request->fields as $fieldId => $value) {
-            $field = $formType->formFields->find($fieldId);
-            if (!$field)
-                continue;
-
-            $fieldName = $field->field_data['name'] ?? null;
-
-            FormSubmissionData::updateOrCreate(
-                [
-                    'form_submission_id' => $submission->id,
-                    'form_field_id' => $fieldId,
-                ],
-                [
-                    'field_name' => $fieldName,
-                    'answer_data' => $value,
-                    'is_verified' => true,
-                ]
-            );
-        }
-
-        return response()->json(['message' => 'Draft updated successfully']);
     }
 
 

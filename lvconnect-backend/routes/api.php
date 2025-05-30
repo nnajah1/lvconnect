@@ -65,7 +65,7 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::post('/forms', [SchoolFormsController::class, 'store']);
   Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
-  Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
+  Route::post('forms/submissions/{formTypeId}', [SchoolFormsController::class, 'submitForm']);
   Route::post('/forms/submissions/{id}/review', [SchoolFormsController::class, 'reviewSubmission']);
   Route::post('/upload-2x2-image', [SchoolFormsController::class, 'upload2x2Image']);
 
