@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('status', ['draft', 'pending', 'approved', 'rejected']);
             $table->timestamp('submitted_at');
             $table->string('admin_remarks')->nullable();
+            $table->unsignedBigInteger('reviewed_by')->nullable();
             $table->timestamp('rejected_at')->nullable();
             $table->timestamps();
         });

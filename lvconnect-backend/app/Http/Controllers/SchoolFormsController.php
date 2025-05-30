@@ -250,38 +250,43 @@ class SchoolFormsController extends Controller
 
         $submission->status = $request->status;
         $submission->admin_remarks = $request->admin_remarks ?? null;
+        $submission->reviewed_by = $user->id;
         $submission->save();
 
         return response()->json([
             'message' => 'Form submission reviewed successfully.',
             'submission' => $submission,
+            'reviewed_by' => [
+                'id' => $user->id,
+                'name' => $user->full_name,
+            ]
         ]);
     }
 
     /**
      * Fetch approved data to frontend.
      */
- public function getApprovedFormData($submissionId)
-{
-    $submission = FormSubmission::with(['formType', 'SubmissionData.formField'])->findOrFail($submissionId);
+    public function getApprovedFormData($submissionId)
+    {
+        $submission = FormSubmission::with(['formType', 'SubmissionData.formField'])->findOrFail($submissionId);
 
-    $content = $submission->formType->content ?? '';
+        $content = $submission->formType->content ?? '';
 
-    $submissionData = $submission->SubmissionData->map(function($field) {
-        return [
-            'field_name' => $field->formField->field_name,
-            'form_field_data' => [
-                'type' => $field->formField->type
-            ],
-            'answer_data' => $field->answer_data,
-        ];
-    });
+        $submissionData = $submission->SubmissionData->map(function ($field) {
+            return [
+                'field_name' => $field->formField->field_name,
+                'form_field_data' => [
+                    'type' => $field->formField->type
+                ],
+                'answer_data' => $field->answer_data,
+            ];
+        });
 
-    return response()->json([
-        'content' => $content,
-        'submission_data' => $submissionData,
-    ]);
-}
+        return response()->json([
+            'content' => $content,
+            'submission_data' => $submissionData,
+        ]);
+    }
 
 
 

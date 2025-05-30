@@ -24,6 +24,9 @@ const OTPVerification = () => {
     const { isLoading, resendOTP, verifyOTP, setTimer, timer, user, isResendDisabled, setIsResendDisabled } = useAuthContext();
     const [otp, setOtp] = useState("");
     const [error, setError] = useState(null);
+    const [isResendLoading, setIsResendLoading] = useState(false);
+    const [isVerifyLoading, setIsVerifyLoading] = useState(false);
+
 
     // Retrieve userId, deviceId, and deviceName from the location state
     const { userId, } = location.state || {};
@@ -82,6 +85,7 @@ const OTPVerification = () => {
             toast.error("invalid OTP. Please Try again.");
             return;
         }
+        setIsVerifyLoading(true);
         try {
 
             const response = await verifyOTP(location.state.userId, otp, location.state.rememberDevice, isOAuth);
@@ -91,17 +95,20 @@ const OTPVerification = () => {
                 // if (response.mustChangePassword) {
                 //     navigate("/change-password", { state: { userId: response.userId }, replace: true });
                 // } else {
-                    navigate("/", { replace: true });
+                navigate("/", { replace: true });
                 // }
             } else {
                 toast.error(response.message);
             }
         } catch (error) {
             toast.error("OTP verification failed");
+        } finally {
+            setIsVerifyLoading(false);
         }
     }
 
     const handleResendOTP = async () => {
+        setIsResendLoading(true);
         try {
             const response = await resendOTP(userId, "unrecognized_device"); // Call API to resend OTP
 
@@ -117,7 +124,9 @@ const OTPVerification = () => {
         } catch (error) {
             console.error("Resend OTP failed:", error);
             toast.error(error.message);
-        }
+        }finally {
+        setIsResendLoading(false);
+    }
     };
 
     // Format timer (MM:SS)
@@ -144,12 +153,21 @@ const OTPVerification = () => {
 
                     {/* {error && <p style={{ color: "red" }}>{error}</p>} */}
 
-                    <div className="flex justify-center space-x-2 mb-2 ">
-                        <InputOTP maxLength={6} value={otp}
-                            onChange={handleOtpChange} className="mb-4">
+                    <div className="flex justify-center space-x-2 mb-2">
+                        <InputOTP
+                            maxLength={6}
+                            value={otp}
+                            onChange={handleOtpChange}
+                            className="mb-4"
+                        >
                             <InputOTPGroup>
                                 {[...Array(6)].map((_, index) => (
-                                    <InputOTPSlot key={index} index={index} />
+                                    <InputOTPSlot
+                                        key={index}
+                                        index={index}
+                                        className="text-center bg-white "
+
+                                    />
                                 ))}
                             </InputOTPGroup>
                         </InputOTP>
@@ -160,12 +178,12 @@ const OTPVerification = () => {
                             <span>
                                 Resend OTP in <span className="text-red-500 font-semibold">{formatTime(timer)}</span>
                             </span>
-                        ) : isLoading ? (
+                        ) : isResendLoading ? (
                             <span className="text-blue-500 font-semibold">Sending...</span>
                         ) : (
                             <button
                                 onClick={handleResendOTP}
-                                disabled={isResendDisabled || isLoading}
+                                disabled={isResendDisabled || isResendLoading}
                                 className="text-blue-500 font-semibold hover:underline"
                             >
                                 Resend OTP
@@ -174,7 +192,7 @@ const OTPVerification = () => {
                     </div>
 
 
-                    <Button onClick={handleVerifyOTP} className=" w-[90%] mt-2" disabled={isLoading}>{isLoading ? "verifying" : "Verify"}</Button>
+                    <Button onClick={handleVerifyOTP} className=" w-[90%] mt-2" disabled={isVerifyLoading}>{isVerifyLoading ? "verifying" : "Verify"}</Button>
                 </div>
             </div>
         </div>

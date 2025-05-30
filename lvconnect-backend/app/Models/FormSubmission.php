@@ -15,12 +15,13 @@ class FormSubmission extends Model
         'status',
         'submitted_at',
         'admin_remarks',
+        'reviewed_by',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
     ];
-    protected $appends = ['submitted_by_name', 'form_type_title'];
+    protected $appends = ['submitted_by_name', 'form_type_title', 'reviewed_by_name'];
 
     /**
      * Belongs to a form type.
@@ -47,6 +48,18 @@ class FormSubmission extends Model
     {
         return trim("{$this->student?->first_name} {$this->student?->last_name}");
     }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+    public function getReviewedByNameAttribute()
+    {
+        return $this->reviewer
+            ? trim("{$this->reviewer->first_name} {$this->reviewer->last_name}")
+            : null;
+    }
+
 
     /**
      * Has many answers/data entries.

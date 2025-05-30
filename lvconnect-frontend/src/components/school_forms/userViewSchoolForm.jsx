@@ -7,8 +7,9 @@ import StudentEditForm from './userSubmitForm';
 import FormPdfGenerator from './downloadForms';
 
 import html2pdf from 'html2pdf.js';
+import { Content } from '@radix-ui/react-dialog';
 
-const ShowSubmission = ({ formId, userRole }) => {
+const ShowSubmission = ({ formId, userRole, closeModal }) => {
   const { fetchForms, fetchSubmitted } = useForms();
   const [form, setForm] = useState(null);
   const [error, setError] = useState(null);
@@ -18,6 +19,7 @@ const ShowSubmission = ({ formId, userRole }) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const loadForm = async () => {
+    setLoading(true)
     try {
       const response = await getSubmittedFormById(formId);
       const submission = response.data.submission;
@@ -52,6 +54,7 @@ const ShowSubmission = ({ formId, userRole }) => {
       await reviewSubmission(form.id, { status, admin_remarks: adminRemarks });
       toast.success(`Submission ${status} successfully!`);
       loadForm(); // reload updated status
+      closeModal();
     } catch (err) {
       console.error(err);
       toast.error('Failed to submit review.');
@@ -64,7 +67,8 @@ const ShowSubmission = ({ formId, userRole }) => {
   if (!form) return <div className="p-4 text-red-600">Form not found.</div>;
 
   const { title, description, created_at, status, data } = form;
-
+  
+  // console.log(form.reviewed_by_name)
   return (
     <div className="w-[50vw] p-4 space-y-4">
       {isEditing ? (
@@ -95,14 +99,16 @@ const ShowSubmission = ({ formId, userRole }) => {
                 </button>
               )}
 
-              {status === 'approved' && <FormPdfGenerator submissionId={formId} />}
+              {status === 'approved' && <FormPdfGenerator submissionId={formId} content={form.content} data={form.data} title={form.title} description={form.description} reviewedBy={form.reviewed_by} loading={loading}/>}
             </div>
           </div>
           <div id="form-content" className="mt-8 max-w-4xl mx-auto">
             {/* Header */}
-            <div className="bg-white border-b-2 border-blue-500 rounded-t-lg p-2 mb-6">
+            <div className="bg-white border-b-2 border-blue-500 rounded-t-lg p-2">
               <h2 className="text-2xl font-semibold text-gray-900 text-center">{title}</h2>
             </div>
+            <div className='bg-gray-50 rounded-t-lg p-2 mb-6'>
+              <p className="text-md font-semibold text-gray-900 text-center">{description}</p></div>
 
             {/* Form Fields */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -162,10 +168,10 @@ const ShowSubmission = ({ formId, userRole }) => {
       )}
 
       {userRole === 'psas' && status === 'pending' && (
-        <div className="mt-6 p-4 border rounded-md bg-gray-50 space-y-4">
+        <div className="mt-6 p-4 shadow-md rounded-md bg-white space-y-4">
           <h3 className="text-lg font-semibold">Admin Review</h3>
           <textarea
-            className="w-full p-2 border"
+            className="w-full p-2 border rounded-md m-2"
             rows="4"
             placeholder="Add your remarks here..."
             value={adminRemarks}

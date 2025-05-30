@@ -1,7 +1,7 @@
 import { FileQuestion } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function NotFound() {
+export default function ErrorPage() {
   return (
     <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <Card className="w-full max-w-md">

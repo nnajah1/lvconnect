@@ -10,12 +10,12 @@ const UserCreateSurveyModal = ({ isOpen, closeModal, formItem, load, }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSuccess = () => {
-        // setIsLoading(true);
-        // setTimeout(() => {
-        //     closeModal();
-        //     // onConfirmModal();
-        //     setIsLoading(false);
-        // }, 1000);
+        setIsLoading(true);
+        setTimeout(() => {
+            closeModal();
+            // onConfirmModal();
+            setIsLoading(false);
+        }, 1000);
     };
 
     return (

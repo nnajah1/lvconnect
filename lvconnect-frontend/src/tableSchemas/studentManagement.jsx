@@ -19,8 +19,13 @@ export const registrarSchema = {
     header: "Year", display: true,
     customCell: (value, original) => {
       const year = original?.enrollee_record?.[0]?.year_level;
-      const text = `${year}th Year`
-      return text || "Unknown";
+      const yearMap = {
+        1: "1st Year",
+        2: "2nd Year",
+        3: "3rd Year",
+        4: "4th Year",
+      };
+      return year ? yearMap[year] || `${year}th Year` : "-";
     }
   },
   status: {

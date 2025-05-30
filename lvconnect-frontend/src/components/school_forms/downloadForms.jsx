@@ -2,79 +2,79 @@ import React, { useEffect, useState, useRef } from 'react';
 import html2pdf from 'html2pdf.js';
 import api from '@/services/axios';
 
-export default function FormPDFGenerator({ submissionId }) {
-  const [content, setContent] = useState('');
-  const [submissionData, setSubmissionData] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function FormPDFGenerator({ submissionId, content, data, loading, reviewedBy }) {
   const [error, setError] = useState('');
   const contentRef = useRef();
-
-  useEffect(() => {
-    api.get(`/approved-form-data/${submissionId}`)
-      .then(res => {
-        setContent(res.data.content);
-        setSubmissionData(res.data.submission_data);
-      })
-      .catch(err => {
-        console.error(err);
-        setError('Failed to load form data');
-      })
-      .finally(() => setLoading(false));
-  }, [submissionId]);
 
   const htmlEncode = (str) => String(str).replace(/[\u00A0-\u9999<>\&]/gim, i => '&#'+i.charCodeAt(0)+';');
   const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-  const renderContentWithAnswers = (content, submissionData) => {
-    if (!content) return '';
+  const renderContentWithAnswers = (content, data) => {
+    // Ensure content is a string
+    if (!content || typeof content !== 'string') {
+      console.warn('Content is not a valid string:', content);
+      return '';
+    }
+    
+    // Ensure data is an array
+    if (!Array.isArray(data)) {
+      console.warn('Data is not an array:', data);
+      return content;
+    }
+
     const baseURL = import.meta.env.VITE_BASE_URL;
-    let updatedContent = content;
+    let updatedContent = String(content); // Ensure it's a string
 
-    submissionData.forEach(field => {
-      const placeholder = `{{${htmlEncode(field.field_name)}}}`;
-      const rawAnswer = field.answer_data || '';
-      const fieldType = field.form_field_data?.type;
+    data.forEach(field => {
+      try {
+        const fieldName = field.field_name || '';
+        const placeholder = `{{${htmlEncode(fieldName)}}}`;
+        const rawAnswer = field.answer_data || '';
+        const fieldType = field.form_field_data?.type || field.form_field?.field_data?.type;
 
-      let formattedAnswer = `<span style="
-        color: #9ca3af;
-        font-style: italic;
-        text-decoration: underline;
-        text-decoration-style: dashed;
-        text-decoration-color: #cbd5e1;
-        padding: 2px 4px;
-        background: #f8fafc;
-        border-radius: 2px;
-      ">[Not answered]</span>`;
-
-      if (fieldType === '2x2_image' && rawAnswer) {
-        const imageURL = rawAnswer.startsWith('http') ? rawAnswer : `${baseURL}${rawAnswer}`;
-        formattedAnswer = `<img src="${imageURL}" 
-             alt="${field.field_name}" 
-             style="
-               width: 120px; 
-               height: 120px; 
-               object-fit: cover; 
-               border: 1px solid #3b82f6; 
-               border-radius: 6px;
-               margin: 0 4px;
-               vertical-align: middle;
-             " 
-             onerror="this.outerHTML='<span style=&quot;color: #9ca3af; font-style: italic;&quot;>[Image not available]</span>'"/>`;
-      } else if (rawAnswer) {
-        formattedAnswer = `<span style="
-          color: #1f2937;
-          font-weight: 500;
+        let formattedAnswer = `<span style="
+          color: #9ca3af;
+          font-style: italic;
+          text-decoration: underline;
+          text-decoration-style: dashed;
+          text-decoration-color: #cbd5e1;
           padding: 2px 4px;
-          background: #f0f9ff;
-          border-radius: 3px;
-          border-bottom: 2px solid #3b82f6;
-        ">${rawAnswer}</span>`;
-      }
+          background: #f8fafc;
+          border-radius: 2px;
+        ">[Not answered]</span>`;
 
-      const regex = new RegExp(escapeRegExp(placeholder), 'gi');
-      updatedContent = updatedContent.replace(regex, formattedAnswer);
+        if (fieldType === '2x2_image' && rawAnswer) {
+          const imageURL = rawAnswer.startsWith('http') ? rawAnswer : `${baseURL}${rawAnswer}`;
+          formattedAnswer = `<img src="${imageURL}" 
+               alt="${fieldName}" 
+               style="
+                 width: 120px; 
+                 height: 120px; 
+                 object-fit: cover; 
+                 border: 1px solid #3b82f6; 
+                 border-radius: 6px;
+                 margin: 4px;
+                 vertical-align: middle;
+               " 
+               onerror="this.outerHTML='<span style=&quot;color: #9ca3af; font-style: italic;&quot;>[Image not available]</span>'"/>`;
+        } else if (rawAnswer && String(rawAnswer).trim()) {
+          formattedAnswer = `<span style="
+            color: #1f2937;
+            font-weight: 400;
+            padding: 2px 4px;
+            background: #f0f9ff;
+            border-radius: 3px;
+          ">${String(rawAnswer)}</span>`;
+        }
+
+        const regex = new RegExp(escapeRegExp(placeholder), 'gi');
+        updatedContent = updatedContent.replace(regex, formattedAnswer);
+      } catch (err) {
+        console.error('Error processing field:', field, err);
+      }
     });
 
+    // Replace any remaining placeholders
     updatedContent = updatedContent.replace(/{{[^}]+}}/g, `<span style="
       color: #9ca3af;
       font-style: italic;
@@ -90,96 +90,107 @@ export default function FormPDFGenerator({ submissionId }) {
   };
 
   const downloadPDF = () => {
-    const element = contentRef.current;
-    
-    // Add beautiful styling to the PDF content
-    const styledContent = `
-      <div style="
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 40px;
-        background: #ffffff;
-        color: #1f2937;
-        line-height: 1.6;
-      ">
-        <div style="
-          text-align: center;
-          border-bottom: 3px solid #3b82f6;
-          padding-bottom: 24px;
-          margin-bottom: 40px;
-        ">
-          <h1 style="
-            font-size: 28px;
-            font-weight: 700;
-            color: #1e40af;
-            margin: 0 0 12px 0;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-          ">Form Submission</h1>
-          <p style="
-            color: #6b7280;
-            font-size: 16px;
-            margin: 0;
-            font-weight: 500;
-          ">Generated on ${new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          })}</p>
-        </div>
-        
-        <div style="
-          background: #ffffff;
-          border: 2px solid #3b82f6;
-          border-radius: 12px;
-          padding: 40px;
-          box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
-          font-size: 16px;
-          line-height: 1.8;
-        ">
-          ${element.innerHTML}
-        </div>
-        
-        <div style="
-          margin-top: 40px;
-          padding-top: 24px;
-          border-top: 2px solid #f1f5f9;
-          text-align: center;
-          color: #6b7280;
-          font-size: 14px;
-        ">
-          <p style="margin: 0; font-weight: 500;">
-            Submission ID: ${submissionId} • Approved by PSAS Officer
-          </p>
-        </div>
-      </div>
-    `;
-
-    // Create temporary element for PDF generation
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = styledContent;
-    document.body.appendChild(tempDiv);
-
-    html2pdf().from(tempDiv).set({
-      margin: 0.3,
-      filename: `form-submission-${submissionId}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2, 
-        useCORS: true,
-        backgroundColor: '#ffffff'
-      },
-      jsPDF: { 
-        unit: 'in', 
-        format: 'letter', 
-        orientation: 'portrait',
-        compress: true
+    try {
+      const element = contentRef.current;
+      
+      if (!element || !element.innerHTML) {
+        setError('No content available for PDF generation');
+        return;
       }
-    }).save().then(() => {
-      document.body.removeChild(tempDiv);
-    }).catch(() => {
-      document.body.removeChild(tempDiv);
-    });
+      
+      // Add beautiful styling to the PDF content
+      const styledContent = `
+        <div style="
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 40px;
+          background: #ffffff;
+          color: #1f2937;
+          line-height: 1.6;
+        ">
+          <div style="
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+          ">
+            <h1 style="
+              font-size: 28px;
+              font-weight: 700;
+              color: #1e40af;
+              margin: 0 0 12px 0;
+              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            ">Form Submission</h1>
+            <p style="
+              color: #6b7280;
+              font-size: 16px;
+              margin: 0;
+              font-weight: 500;
+            ">Generated on ${new Date().toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</p>
+          </div>
+          
+          <div style="
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+            font-size: 16px;
+            line-height: 1.8;
+          ">
+            ${element.innerHTML}
+          </div>
+          
+          <div style="
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 2px solid #f1f5f9;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+          ">
+            <p style="margin: 0; font-weight: 500;">
+              Submission ID: ${submissionId} • Approved by PSAS Officer ID: ${reviewedBy} 
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Create temporary element for PDF generation
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = styledContent;
+      document.body.appendChild(tempDiv);
+
+      html2pdf().from(tempDiv).set({
+        margin: 0.3,
+        filename: `form-submission-${submissionId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: 'letter', 
+          orientation: 'portrait',
+          compress: true
+        }
+      }).save().then(() => {
+        document.body.removeChild(tempDiv);
+      }).catch((pdfError) => {
+        console.error('PDF generation error:', pdfError);
+        setError('Failed to generate PDF. Please try again.');
+        document.body.removeChild(tempDiv);
+      });
+    } catch (err) {
+      console.error('Download PDF error:', err);
+      setError('Failed to generate PDF. Please try again.');
+    }
   };
 
   if (loading) {
@@ -209,6 +220,15 @@ export default function FormPDFGenerator({ submissionId }) {
     );
   }
 
+  // Don't render if content or data is not available
+  if (!content || !data) {
+    return (
+      <div className="text-gray-500 text-center p-4">
+        No available data for PDF generation
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-center">
@@ -227,7 +247,7 @@ export default function FormPDFGenerator({ submissionId }) {
       <div 
         ref={contentRef} 
         className="hidden"
-        dangerouslySetInnerHTML={{ __html: renderContentWithAnswers(content, submissionData) }}
+        dangerouslySetInnerHTML={{ __html: renderContentWithAnswers(content, data) }}
       />
     </div>
   );
