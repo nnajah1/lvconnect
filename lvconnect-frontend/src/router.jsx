@@ -35,11 +35,13 @@ import ResetPassword from "./pages/authentication/ResetPassword";
 import PrivacyPolicy  from "./layouts/PrivacyPolicy";
 import { Authenticate } from "./components/dynamic/loader";
 import RegistrarDashboard from "./pages/registrar/AdminDashboard";
-import ErrorPage from "./layouts/error";
+// import ErrorPage from "./layouts/error";
 
 
 const router = createBrowserRouter([
-    { path: '/', element: <Navigate to="/login" />, errorElement: <ErrorPage />, },
+    { path: '/', element: <Navigate to="/login" />, 
+        // errorElement: <ErrorPage />,
+    },
 
     { path: '/google-auth-success', element: <OAuthCallback /> },
 
