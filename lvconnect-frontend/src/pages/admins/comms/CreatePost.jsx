@@ -7,7 +7,7 @@ import PendingModal from "@/components/school_updates/modals/pendingModal";
 import PublishedModal from "@/components/school_updates/modals/publishedModal";
 import { useState } from "react";
 
-const CreatePostModal = ({ isOpen, closeModal, load }) => {
+const CreatePostModal = ({ isOpen, closeModal, loadUpdates }) => {
 
     const [isDraftModalOpen, setIsDraftModalOpen] = useState(false);
     const [isPendingModalOpen, setIsPendingModalOpen] = useState(false)
@@ -48,7 +48,7 @@ const CreatePostModal = ({ isOpen, closeModal, load }) => {
                     showDescription={false}
                     className="max-w-[50rem]! bg-[#EAF2FD]!">
 
-                    <CreatePostForm closeModal={closeModal} onSuccess={handleSuccess} load={load} />
+                    <CreatePostForm closeModal={closeModal} onSuccess={handleSuccess} loadUpdates={loadUpdates} />
 
                 </DynamicModal>
             )}

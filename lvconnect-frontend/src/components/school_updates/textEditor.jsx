@@ -2,129 +2,181 @@ import { useEffect, useRef, useState } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 
-const TextEditor = ({ content, setContent, images, setImages }) => {
-  const editorRef = useRef(null); // for DOM mounting
-  const quillRef = useRef(null); // for Quill instance
 
-  const handleImageUpload = () => {
-    const input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("accept", "image/*");
-    input.click();
+const TextEditor = ({
+  content = '',
+  onContentChange,
+  images = [],
+  onImagesChange,
+  disabled = false
+}) => {
+  const editorRef = useRef(null);
+  const quillRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-    input.onchange = async () => {
-      const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64Image = reader.result;
-          const quill = quillRef.current;
-          const range = quill.getSelection();
-
-          if (range) {
-            quill.insertEmbed(range.index, "image", base64Image, "user");
-
-            // Add class to inserted image
-            setTimeout(() => {
-              const insertedImage = quill.root.querySelector(
-                `img[src="${base64Image}"]`
-              );
-              if (insertedImage) {
-                insertedImage.classList.add("custom-image");
-              }
-            }, 0);
-          }
-
-          setImages((prev) => [...prev, file]);
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-  };
-
+  // Initialize Quill editor
   useEffect(() => {
     if (editorRef.current && !quillRef.current) {
       quillRef.current = new Quill(editorRef.current, {
-        theme: "snow",
+        theme: 'snow',
         modules: {
-          toolbar: {
-            container: [
-              [{ font: [] }, { size: [] }],
-              ["bold", "italic", "underline", "strike"],
-              [{ color: [] }, { background: [] }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              [{ align: [] }],
-              ["link", "image"],
-              ["clean"],
-            ],
-            handlers: {
-              image: handleImageUpload,
-            },
-          },
-          clipboard: { matchVisual: false },
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['link'],
+            ['clean']
+          ]
         },
-        formats: [
-          "font",
-          "size",
-          "bold",
-          "italic",
-          "underline",
-          "strike",
-          "color",
-          "background",
-          "list",
-          "align",
-          "link",
-          "image",
-        ],
+        placeholder: "Write your post content here...",
       });
 
-      quillRef.current.root.innerHTML = content;
-
-      quillRef.current.on("text-change", () => {
-        setContent(quillRef.current.root.innerHTML);
+      quillRef.current.on('text-change', () => {
+        const html = editorRef.current.querySelector('.ql-editor').innerHTML;
+        if (onContentChange) onContentChange(html);
       });
+
+      // Set initial content
+      if (content) {
+        quillRef.current.root.innerHTML = content;
+      }
     }
   }, []);
 
+  // Update content when prop changes
+  useEffect(() => {
+    if (quillRef.current && content !== quillRef.current.root.innerHTML) {
+      quillRef.current.root.innerHTML = content;
+    }
+  }, [content]);
+
+  const handleImageUpload = (e) => {
+    if (disabled) return;
+
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const newImages = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+
+    if (onImagesChange) {
+      onImagesChange([...images, ...newImages]);
+    }
+
+    // Reset file input
+    e.target.value = '';
+  };
+
+  const removeImage = (index) => {
+    if (disabled) return;
+
+    const newImages = [...images];
+    URL.revokeObjectURL(newImages[index]?.preview);
+    newImages.splice(index, 1);
+
+    if (onImagesChange) {
+      onImagesChange(newImages);
+    }
+  };
+
   return (
-    <div className="bg-white border rounded-md flex flex-col">
+    <div className="border rounded-md bg-white">
+      {/* Text Editor */}
       <div
         ref={editorRef}
-        className="w-full flex-1 min-h-[300px] max-h-[300px] overflow-y-auto"
+        className="text-editor"
+        style={{ minHeight: '200px' }}
       />
 
-      <style>{`
-        .ql-container {
-          min-height: 300px !important;
-          max-height: 300px !important;
-          overflow-y: auto !important;
+      {/* Image Preview */}
+      {images.length > 0 && (
+        <div className="p-3 border-t bg-gray-50">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {images.map((image, index) => {
+              const imageUrl = image.preview ||
+                (image.url ? `${import.meta.env.VITE_BASE_URL}${image.url}` : '');
+
+              return (
+                <div key={index} className="relative group">
+                  <img
+                    src={imageUrl}
+                    alt={`Preview ${index}`}
+                    className="w-full h-24 object-cover rounded border"
+                    onError={(e) => {
+                      e.target.src = '/image-placeholder.png';
+                      e.target.className = 'w-full h-24 object-contain rounded border bg-gray-100 p-2';
+                    }}
+                  />
+                  {!disabled && (
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
+                  )}
+                  <div className="text-xs text-gray-500 mt-1 truncate">
+                    {image.file ? 'New' : 'Existing'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+
+      {/* Image Upload Button */}
+      {!disabled && (
+        <div className="p-2 border-t flex justify-between items-center">
+          <label className="flex items-center cursor-pointer">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              multiple
+              className="hidden"
+            />
+            <span className="text-blue-500 hover:text-blue-700 flex items-center">
+              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Add Photos
+            </span>
+          </label>
+          <div className="text-xs text-gray-500">
+            {images.length} {images.length === 1 ? 'photo' : 'photos'} selected
+          </div>
+        </div>
+      )}
+
+      <style jsx global>{`
+        .text-editor .ql-container {
+          min-height: 200px;
           border: none !important;
-          word-wrap: break-word !important;
+          font-size: 16px;
         }
-
-        .ql-editor {
-          max-height: 280px !important;
-          overflow-y: auto !important;
-          white-space: normal !important;
-          word-wrap: break-word !important;
+        .text-editor .ql-toolbar {
+          border: none !important;
+          border-bottom: 1px solid #eee !important;
         }
-
-        .ql-toolbar {
-          position: sticky;
-          bottom: 0;
-          background: white;
-          z-index: 10;
+        .text-editor .ql-editor {
+          min-height: 200px;
+          padding: 12px;
         }
-
-        .custom-image {
-          max-width: 300px;
-          height: auto;
-          object-fit: contain;
+        .text-editor .ql-editor.ql-blank::before {
+          color: #999;
+          font-style: normal;
+          left: 12px;
         }
       `}</style>
     </div>
   );
 };
+
 
 export default TextEditor;

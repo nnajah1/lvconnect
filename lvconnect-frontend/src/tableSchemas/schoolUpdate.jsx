@@ -1,4 +1,5 @@
-import { Eye, Pencil, Trash } from "lucide-react";
+import { Archive, ArchiveRestore, Eye, Pencil, Trash, Trash2 } from "lucide-react";
+import { FaFacebook } from "react-icons/fa6";
 
 export const schoolUpdateSchema = {
     id: { header: "#", display: true },
@@ -14,7 +15,7 @@ export const schoolUpdateSchema = {
     updated_at: { header: "Last Modified", display: true, format: "date" },
 };
 
-export const actions = (handleViewPost, handleEdit, handleDete) => ({
+export const actions = (handleViewPost, handleEdit, handleDelete, handleArchive, handlePostFb) => ({
     view: {
         icon: () => <Eye size={18} />,
         fn: (id, item) => handleViewPost(item),
@@ -29,7 +30,19 @@ export const actions = (handleViewPost, handleEdit, handleDete) => ({
     },
     delete: {
         icon: () => <Trash size={18} />,
-        fn: (id, item) => handleDete(item),
+        fn: (id, item) => handleDelete(item),
+        variant: () => "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
+    },
+    archive: {
+        icon: () => <Archive size={18} />,
+        fn: (id, item) => handleArchive(item),
+        variant: () => "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
+    },
+    postFb: {
+        icon: () => <FaFacebook size={18} />,
+        fn: (id, item) => handlePostFb(item),
         variant: () => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
@@ -39,33 +52,20 @@ export const actions = (handleViewPost, handleEdit, handleDete) => ({
 export const actionConditions = {
     view: () => true,
     edit: (item, userRole) => userRole === "comms" && item.status === "draft",
-    delete: (item, userRole) => userRole === "comms" && item.status === "archived"
+    delete: (item, userRole) => userRole === "comms" && item.status === "archived",
+    archive: (item, userRole) => userRole === "comms" && item.status === "published",
+    postFb: (item, userRole) => userRole === "comms" && item.status === "published" && item.status !== "published & synced",
+    
 };
 
 export const archiveSchema = {
-    // select: {
-    //     header: ({ table }) => (
-    //         <input
-    //             type="checkbox"
-    //             onChange={(e) => {
-    //                 const isChecked = e.target.checked;
-    //                 table.toggleAllRowsSelected(isChecked);
-    //             }}
-    //         />
-    //     ),
-    //     cell: ({ row }) => (
-    //         <input
-    //         type="checkbox"
-    //         checked={row.getIsSelected()}
-    //         onChange={() => row.toggleSelected()}
-    //     />
-    // ),
-    // enableSorting: false, 
-    // },
-    content: {
+    title: {
         header: "Updates",
         display: true,
-        enableSorting: true
+        enableSorting: true,    
+        customCell: (value) => {
+            return value.split(" ").slice(0, 3).join(" ");
+        }
     },
     status: {
         header: "Status",
@@ -83,7 +83,7 @@ export const archiveSchema = {
         format: "date",
         enableSorting: true
     },
-    archieved_at: {
+    archived_at: {
         header: "Date Archieved",
         display: true,
         format: "date",
@@ -91,4 +91,28 @@ export const archiveSchema = {
     },
 
 }
+
+export const archiveActions = (handleDelete, handleArchive) => ({
+   
+    delete: {
+        icon: () => <Trash2 size={18} />,
+        fn: (id, item) => handleDelete(item),
+        variant: () => "ghost",
+        className: "text-red-600 hover:bg-red-200 p-1"
+    },
+    restore: {
+        icon: () => <ArchiveRestore size={18} />,
+        fn: (id, item) => handleArchive(item),
+        variant: () => "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
+    },
+
+});
+
+// Sample action conditions
+export const archiveActionConditions = {
+    delete: (item, userRole) => userRole === "comms" && item.status === "archived",
+    restore: (item, userRole) => userRole === "comms" && item.status === "archived",
+    
+};
 

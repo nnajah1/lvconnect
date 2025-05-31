@@ -46,10 +46,13 @@ Route::middleware('auth.jwt')->group(function () {
   Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
   Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
   Route::post('/change-password', [ChangePasswordController::class, 'ChangePassword']);
+  
   Route::get('/posts', [SchoolUpdateController::class, 'index']);
   Route::get('/posts/{id}', [SchoolUpdateController::class, 'show']);
+  Route::get('/archive', [SchoolUpdateController::class, 'archivedPosts']);
+  
   Route::post('/posts', [SchoolUpdateController::class, 'store']);
-  Route::put('/posts/{schoolupdate}', [SchoolUpdateController::class, 'update']);
+  Route::post('/posts/{schoolupdate}', [SchoolUpdateController::class, 'update']);
   Route::post('/posts/{schoolupdate}/submit', [SchoolUpdateController::class, 'submitForApproval']);
   Route::post('/posts/{schoolupdate}/approve', [SchoolUpdateController::class, 'approve']);
   Route::post('/posts/{schoolupdate}/reject', [SchoolUpdateController::class, 'reject']);
@@ -57,10 +60,8 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/posts/{schoolupdate}/publish', [SchoolUpdateController::class, 'publish']);
   Route::post('/posts/{schoolupdate}/archive', [SchoolUpdateController::class, 'archive']);
   Route::post('/posts/{schoolupdate}/restore', [SchoolUpdateController::class, 'restore']);
-  Route::get('/posts/archive', [SchoolUpdateController::class, 'archivedPosts']);
-  Route::post('/upload-images', [SchoolUpdateController::class, 'uploadImages']);
   Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
-  Route::delete('/posts/{schoolupdate}', [SchoolUpdateController::class, 'destroy']);
+  Route::delete('/posts/{id}/delete', [SchoolUpdateController::class, 'destroy']);
 
 
   Route::post('/forms', [SchoolFormsController::class, 'store']);

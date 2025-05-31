@@ -9,17 +9,17 @@ class SchoolUpdate extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'facebook_post_id', 'post_to_facebook', 'is_notified', 'is_urgent'];
+    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'facebook_post_id', 'is_notified', 'is_urgent'];
 
     protected $casts = [
         'revision_fields' => 'array', 
         'rejected_at' => 'datetime', 
         'published_at' => 'datetime',
         'archived_at' => 'datetime',
-        'post_to_facebook' => 'boolean',
+        'synced_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
     
-
     const TYPE_ANNOUNCEMENT = 'announcement';
     const TYPE_EVENT = 'event';
     const STATUS_DRAFT = 'draft';
@@ -30,6 +30,7 @@ class SchoolUpdate extends Model
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
     const STATUS_REVISION = 'revision';
+    const STATUS_SYNCED = 'published & synced';
 
     public function author()
     {

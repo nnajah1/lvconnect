@@ -24,11 +24,12 @@ return new class extends Migration
             $table->boolean('is_urgent')->default(false);
             $table->json('revision_fields')->nullable();
             $table->text('revision_remarks')->nullable();
-            $table->boolean('post_to_facebook')->default(false);
             $table->string('facebook_post_id')->nullable();
             $table->timestamp('rejected_at')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamp('archived_at')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('synced_at')->nullable();
             $table->timestamps();
         });
         

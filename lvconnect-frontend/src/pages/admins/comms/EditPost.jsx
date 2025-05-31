@@ -5,8 +5,7 @@ import DOMPurify from "dompurify"; // For safe HTML rendering
 import { Loader } from "@/components/dynamic/loader";
 import CreatePostForm from "@/components/school_updates/createPostForm";
 
-const EditPostModal = ({ isOpen, closeModal, postId }) => {
-  // const [post, setPost] = useState(null);
+const EditPostModal = ({ isOpen, closeModal, postId, loadUpdates }) => {
   const [isLoading, setIsLoading] = useState(false);
 
  const handleSuccess = (status) => {
@@ -25,17 +24,6 @@ const EditPostModal = ({ isOpen, closeModal, postId }) => {
         }, 2000);
     };
     
-  // useEffect(() => {
-  //   if (isOpen && postId) {
-  //     setIsLoading(true);
-  //     getPostById(postId)
-  //       .then((data) => {
-  //         setPost(data);
-  //       })
-  //       .finally(() => setIsLoading(false));
-  //   }
-  // }, [isOpen, postId]);
-
 
   return (
     <>
@@ -58,6 +46,7 @@ const EditPostModal = ({ isOpen, closeModal, postId }) => {
             closeModal={closeModal}
             existingPost={postId}
             onSuccess={handleSuccess}
+            loadUpdates={loadUpdates}
           />
         </DynamicModal>
       )}
