@@ -33,6 +33,7 @@ export default function ErrorPage() {
           </div>
         </CardContent>
       </Card>
+      
     </div>
   )
 }
