@@ -6,7 +6,8 @@ import { getColumns } from "@/components/dynamic/getColumns";
 import { deletePost, getArchivePosts, restorePost } from "@/services/axios";
 import { archiveActionConditions, archiveActions, archiveSchema } from "@/tableSchemas/schoolUpdate";
 import { useUserRole } from "@/utils/userRole";
-import { InfoModal, WarningModal } from "@/components/dynamic/alertModal";
+import { ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
+import { toast } from "react-toastify";
 
 
 const ArchivePosts = () => {
@@ -15,8 +16,8 @@ const ArchivePosts = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [deleteItem, setDeleteItem] = useState(false);
-  const [restoreItem, setRestoreItem] = useState(false);
+  const [deleteItem, setDeleteItem] = useState(null);
+  const [restoreItem, setRestoreItem] = useState(null);
 
   const loadArchive = async () => {
     setLoading(true)
@@ -42,9 +43,9 @@ const ArchivePosts = () => {
     setLoading(true)
     try {
       await deletePost(deleteItem.id);
-      toast.success('Post deleted successfully!');
-      setDeleteItem(false)
       await loadArchive();
+      setDeleteItem(null);
+      toast.success('Post deleted successfully!');
     } catch (error) {
       console.error(error);
       toast.error('Failed to delete post');
@@ -63,8 +64,8 @@ const ArchivePosts = () => {
     try {
       await restorePost(restoreItem.id);
       await loadArchive();
+      setRestoreItem(null)
       toast.success('Post restored successfully!');
-      setRestoreItem(false)
     } catch (error) {
       console.error(error);
       toast.error('Failed to restore post');
@@ -72,67 +73,68 @@ const ArchivePosts = () => {
       setLoading(false);
     }
   };
-
+  
   const action = archiveActions(handleDelete, handleRestore);
-
   const columns = getColumns({
     userRole,
     schema: archiveSchema,
     actions: action,
+    handleDelete,
+    handleRestore,
     actionConditions: archiveActionConditions
 
   });
 
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>;
-  }
+  // if (error) {
+  //   return <p className="text-red-500">Error: {error}</p>;
+  // }
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Archive</h1>
       <DataTable columns={columns} data={archive} context="archives" isLoading={loading} />
 
-       {deleteItem && (
-        <WarningModal
-          isOpen={() => setDeleteItem(true)}
-          closeModal={() => setDeleteItem(false)}
+      {deleteItem && (
+        <ErrorModal
+          isOpen={!!deleteItem}
+          closeModal={() => setDeleteItem(null)}
           title="Delete Post"
           description="Are you sure you want to delete this post?"
         >
           <button
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-            onClick={() => setDeleteItem(false)}
+            onClick={() => setDeleteItem(null)}
           >
             cancel
           </button>
           <button
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
             onClick={handleDeletePost}
-           disabled={loading}
+            disabled={loading}
           >
             {loading ? 'Deleting...' : 'Delete'}
           </button>
 
-        </WarningModal>
+        </ErrorModal>
       )}
 
       {restoreItem && (
         <InfoModal
-          isOpen={() => setRestoreItem(true)}
-          closeModal={() => setRestoreItem(false)}
-          title="Archive Post"
-          description="Are you sure you want to archive this post?"
+          isOpen={!!restoreItem}
+          closeModal={() => setRestoreItem(null)}
+          title="Restore Post"
+          description="Are you sure you want to restore this post?"
         >
           <button
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-            onClick={() => setRestoreItem(false)}
+            onClick={() => setRestoreItem(null)}
           >
             cancel
           </button>
           <button
-            className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
             onClick={handleRestorePost}
-           disabled={loading}
+            disabled={loading}
           >
             {loading ? 'Restoring...' : 'Restore'}
           </button>

@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamp('archived_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('synced_at')->nullable();
+            $table->timestamp('restored_at')->nullable();
             $table->timestamps();
         });
         

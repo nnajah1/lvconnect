@@ -305,7 +305,7 @@ class SchoolUpdateController extends Controller
         }
 
         try {
-            $schoolupdate->update(['status' => SchoolUpdate::STATUS_DRAFT, 'archived_at' => null]);
+            $schoolupdate->update(['status' => SchoolUpdate::STATUS_PUBLISHED, 'archived_at' => Carbon::now()]);
             return response()->json(['message' => 'Post restored successfully']);
         } catch (AuthorizationException $e) {
             return response()->json(['error' => 'Unauthorized'], 403);

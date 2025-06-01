@@ -63,14 +63,14 @@ const ViewPostModal = ({ isOpen, closeModal, postId }) => {
           className="w-[60rem]! max-h-[80vh]! rounded-lg overflow-hidden"
         >
           {post ? (
-            <div className="space-y-4 p-4 overflow-y-auto max-h-[calc(80vh-3rem)] bg-white rounded-lg mt-4">
+            <div className="space-y-4 p-4 overflow-y-auto h-full bg-white rounded-lg mt-4">
             
               <h1 className="text-sm text-gray-500 capitalize">{post.type}</h1>
-              <h2 className="text-2xl font-bold text-gray-900">{post.title}</h2>
+              <h2 className="text-2xl font-bold text-center text-gray-900">{post.title}</h2>
 
               {/* Post Content */}
               <div
-                className="mt-4 text-gray-800 whitespace-pre-line"
+                className="mt-4 text-gray-800 text-center whitespace-pre-line"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
               />
 
@@ -94,7 +94,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId }) => {
                 };
 
                 return (
-                  <div className={`mt-3 grid gap-2 ${getGridClass()}`}>
+                  <div className={`place-items-center grid gap-2 ${getGridClass()}`}>
                     {images.map((url, idx) => {
                       const imageUrl = `${import.meta.env.VITE_BASE_URL}${url}`;
                       const state = imageLoadStates[idx] || "loading";

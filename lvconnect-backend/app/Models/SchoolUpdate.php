@@ -9,7 +9,7 @@ class SchoolUpdate extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'facebook_post_id', 'is_notified', 'is_urgent'];
+    protected $fillable = ['title', 'content', 'image_url', 'type',  'status', 'revision_fields', 'revision_remarks', 'created_by', 'approved_by', 'rejected_at', 'published_at', 'archived_at', 'facebook_post_id', 'is_notified', 'is_urgent', 'restored_at'];
 
     protected $casts = [
         'revision_fields' => 'array', 
@@ -17,6 +17,7 @@ class SchoolUpdate extends Model
         'published_at' => 'datetime',
         'archived_at' => 'datetime',
         'synced_at' => 'datetime',
+        'restored_at'=> 'datetime',
         'approved_at' => 'datetime',
     ];
     

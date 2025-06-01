@@ -151,7 +151,7 @@ class SchoolFormsController extends Controller
     /**
      * Submit form for student.
      */
-    public function submitForm(Request $request, $formTypeId)
+    public function submitForm(Request $request, $id)
     {
         $user = JWTAuth::authenticate();
 
@@ -159,7 +159,7 @@ class SchoolFormsController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $formType = FormType::with('formFields')->findOrFail($formTypeId);
+        $formType = FormType::with('formFields')->findOrFail($id);
         $status = $request->input('status', 'pending');
 
         $rules = [];
@@ -189,7 +189,7 @@ class SchoolFormsController extends Controller
 
         // Create form submission
         $submission = FormSubmission::create([
-            'form_type_id' => $formTypeId,
+            'form_type_id' => $id,
             'submitted_by' => $user->id,
             'status' => $status,
         ]);
@@ -465,7 +465,7 @@ class SchoolFormsController extends Controller
         return response()->json(['message' => 'Fields updated successfully.']);
     }
 
-    public function updateDraftForm(Request $request, $id)
+    public function supdateDraftForm(Request $request, $id)
     {
         try {
             $user = JWTAuth::authenticate();

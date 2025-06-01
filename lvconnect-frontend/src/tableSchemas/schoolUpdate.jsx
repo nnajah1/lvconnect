@@ -12,7 +12,7 @@ export const schoolUpdateSchema = {
     },
     status: { header: "Status", display: true },
     type: { header: "Type", display: true },
-    updated_at: { header: "Last Modified", display: true, format: "date" },
+    updated_at: { header: "Last Modified", display: true, format: "date", sortable: true},
 };
 
 export const actions = (handleViewPost, handleEdit, handleDelete, handleArchive, handlePostFb) => ({

@@ -251,6 +251,14 @@ export const ContextProvider = ({ children }) => {
     };
 
 
+    const refreshUser = async () => {
+        try {
+            const { data } = await api.get("/me"); 
+            setUser(data.user);
+        } catch (e) {
+            console.error("Failed to refresh user:", e);
+        }
+    };
 
 
 
@@ -276,6 +284,7 @@ export const ContextProvider = ({ children }) => {
             exchangeGoogleToken,
             resendOTP,
             isLoading,
+            refreshUser
         }}>
             {children}
         </AuthContext.Provider>

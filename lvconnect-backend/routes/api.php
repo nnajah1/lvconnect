@@ -41,6 +41,7 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'
 Route::middleware('auth.jwt')->group(function () {
   Route::get('/me', [AuthController::class, 'me']);
   Route::get('/logout', [AuthController::class, 'logout']);
+  Route::post('/switch-role', [AuthController::class, 'switchRole']);
   Route::post('/create-admin', [CreateAccountController::class, 'createAdminAccount']);
   Route::get('/trusted-devices', [TrustedDeviceController::class, 'index']); // List all trusted devices
   Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
@@ -66,7 +67,7 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::post('/forms', [SchoolFormsController::class, 'store']);
   Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
-  Route::post('forms/submissions/{formTypeId}', [SchoolFormsController::class, 'submitForm']);
+  Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
   Route::post('/forms/submissions/{id}/review', [SchoolFormsController::class, 'reviewSubmission']);
   Route::post('/upload-2x2-image', [SchoolFormsController::class, 'upload2x2Image']);
 

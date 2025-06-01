@@ -7,13 +7,17 @@ import { roleMenus } from "@/config/roleMenus";
 
 import { Link, useLocation } from "react-router-dom"
 import { X } from "lucide-react"
+import { toast } from "react-toastify";
+import { switchRole } from "@/services/axios";
+import { roleRedirectMap } from "@/utils/roleRedirectMap";
 
 export function Sidebar({ isExpanded, setIsExpanded, isMobileMenuOpen, setIsMobileMenuOpen }) {
   const { user } = useAuthContext()
   const location = useLocation()
 
   // Get user role and set menu dynamically
-  const userRole = user?.roles?.[0]?.name || "student"
+  // const userRole = user?.roles?.[0]?.name || "student"
+  const userRole = user?.active_role || user?.roles?.[0]?.name || "student"
   const menuItems = roleMenus[userRole] || []
 
   const handleLinkClick = () => {
@@ -60,6 +64,30 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileMenuOpen, setIsMobi
 }
 
 function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLinkClick, showCloseButton, onClose }) {
+  const { user, refreshUser } = useAuthContext(); 
+  const [selectedRole, setSelectedRole] = useState(user?.active_role || user?.roles?.[0]?.name);
+  const [loading, setLoading] = useState(false);
+
+  const handleRoleChange = async (e) => {
+  const role = e.target.value;
+  setLoading(true);
+  try {
+    await switchRole(role);
+    toast.success("Role switched successfully!");
+
+    await refreshUser(); // Ensure this updates user.active_role
+
+    // Redirect based on new role
+    const redirectPath = roleRedirectMap[role] || "/";
+    window.location.href = redirectPath; 
+  } catch (err) {
+    toast.error(err.response?.data?.error || "Failed to switch role.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   return (
     <div className="flex h-full flex-col p-4">
       {/* Header with toggle/close button */}
@@ -112,6 +140,24 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
           })}
         </ul>
       </nav>
+       {/* Role Switcher */}
+      <div className="mt-auto pt-4">
+        <label className="block text-xs font-medium text-white mb-1">
+          Switch Role for Alpha Testers:
+        </label>
+        <select
+          className="w-full rounded-md bg-white/10 p-2 text-white"
+          value={selectedRole}
+          onChange={handleRoleChange}
+          disabled={loading}
+        >
+          {user?.roles?.map((role) => (
+            <option key={role.name} value={role.name} className="bg-secondary">
+              {role.name}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   )
 }

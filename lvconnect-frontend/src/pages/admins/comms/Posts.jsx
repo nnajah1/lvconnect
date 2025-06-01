@@ -25,9 +25,9 @@ const Posts = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [viewItem, setViewItem] = useState(null);
   const [editItem, setEditItem] = useState(null);
-  const [deleteItem, setDeleteItem] = useState(false);
-  const [archiveItem, setArchiveItem] = useState(false);
-  const [postItem, setPostItem] = useState(false);
+  const [deleteItem, setDeleteItem] = useState(null);
+  const [archiveItem, setArchiveItem] = useState(null);
+  const [postItem, setPostItem] = useState(null);
 
 
   const loadUpdates = async () => {
@@ -62,8 +62,8 @@ const Posts = () => {
     try {
       await deletePost(deleteItem.id);
       toast.success('Post deleted successfully!');
+      setDeleteItem(null)
       await loadUpdates();
-      setDeleteItem(false)
     } catch (error) {
       console.error(error);
       toast.error('Failed to delete post');
@@ -82,7 +82,7 @@ const Posts = () => {
       await archivePost(archiveItem.id);
       await loadUpdates();
       toast.success('Post archived successfully!');
-      setArchiveItem(false)
+      setArchiveItem(null)
     } catch (error) {
       console.error(error);
       toast.error('Failed to archive post');
@@ -101,7 +101,7 @@ const Posts = () => {
       const response = await fbPost(postItem.id);
       await loadUpdates();
       toast.success('Post synced to Facebook successfully!');
-      setPostItem(false)
+      setPostItem(null)
       console.log('FB Response:', response.data);
     } catch (error) {
       console.error(error);
@@ -176,14 +176,14 @@ const Posts = () => {
       )}
       {deleteItem && (
         <WarningModal
-          isOpen={() => setDeleteItem(true)}
-          closeModal={() => setDeleteItem(false)}
+          isOpen={!!deleteItem}
+          closeModal={() => setDeleteItem(null)}
           title="Delete Post"
           description="Are you sure you want to delete this post?"
         >
           <button
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-            onClick={() => setDeleteItem(false)}
+            onClick={() => setDeleteItem(null)}
           >
             cancel
           </button>
@@ -200,14 +200,14 @@ const Posts = () => {
 
       {archiveItem && (
         <WarningModal
-          isOpen={() => setArchiveItem(true)}
-          closeModal={() => setArchiveItem(false)}
+          isOpen={!!archiveItem}
+          closeModal={() => setArchiveItem(null)}
           title="Archive Post"
           description="Are you sure you want to archive this post?"
         >
           <button
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-            onClick={() => setArchiveItem(false)}
+            onClick={() => setArchiveItem(null)}
           >
             cancel
           </button>
@@ -225,14 +225,14 @@ const Posts = () => {
 
       {postItem && (
         <InfoModal
-          isOpen={() => setPostItem(true)}
-          closeModal={() => setPostItem(false)}
+          isOpen={!!postItem}
+          closeModal={() => setPostItem(null)}
           title="Post to Facebook"
           description="Are you sure you want to post this post on Facebook? this is irreversible"
         >
           <button
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-            onClick={() => setPostItem(false)}
+            onClick={() => setPostItem(null)}
           >
             cancel
           </button>

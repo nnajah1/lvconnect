@@ -101,6 +101,8 @@ export const requestRevision = async (id, revisionFields, revisionRemarks) => {
 
 export const getPublishedPosts = () => api.get('/posts/published');
 
-
+export function switchRole(role) {
+  return api.post("/switch-role", { role });
+}
 
 export default api;

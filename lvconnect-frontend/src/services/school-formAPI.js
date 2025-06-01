@@ -67,6 +67,6 @@ export const submitForm = async (formId, payload) => {
  return await api.post(`forms/submissions/${formId}`, payload);
 };
 
-export const updateDraftForm = (submissionId, payload) => {
-  return api.put(`/submissions/${submissionId}`, payload);
+export const updateDraftForm = (draftId, payload) => {
+  return api.put(`/submissions/${draftId}`, payload);
 };
