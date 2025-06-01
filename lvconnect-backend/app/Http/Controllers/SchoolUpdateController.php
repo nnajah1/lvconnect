@@ -549,39 +549,54 @@ class SchoolUpdateController extends Controller
     public function sync(Request $request)
     {
         $request->validate([
+            'schoolupdate_id' => 'required|exists:school_updates,id',
             'title' => 'required|string',
             'content' => 'required|string',
             'image_url' => 'nullable|array',
         ]);
 
         try {
+            $schoolupdate = SchoolUpdate::findOrFail($request->schoolupdate_id);
+
             $facebookData = [
-                'message' => strip_tags($request->content), // Remove HTML
-                'link' => 'https://yourwebsite.com/posts/' . $request->title,
+                'message' => strip_tags($request->content),
+                'link' => url('/posts/' . urlencode($request->title)),
             ];
 
-            if (!empty($request->image_url)) {
-                $facebookData['picture'] = $request->image_url[0]; // Use first image
-            }
-
-            // Example: Send to Facebook API (Replace with actual API call)
-            $response = Http::post("https://graph.facebook.com/{page_id}/feed", [
+            $postData = [
                 'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
                 'message' => $facebookData['message'],
                 'link' => $facebookData['link'],
-                'picture' => $facebookData['picture'] ?? null,
-            ]);
+            ];
 
-            $schoolupdate = SchoolUpdate::update([
-                'status' => SchoolUpdate::STATUS_SYNCED,
-                'synced_at' => Carbon::now(),
-            ]);
+            if (!empty($request->image_url)) {
+                $postData['picture'] = $request->image_url[0];
+            }
 
-            return response()->json([
-                'message' => 'Post synced to Facebook successfully!',
-                'fb_response' => $response->json(),
-            ]);
+            $pageId = env('FACEBOOK_PAGE_ID');
+            $fbVersion = 'v18.0'; 
+
+            $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $postData);
+
+            if ($response->successful()) {
+                $schoolupdate->update([
+                    'status' => SchoolUpdate::STATUS_SYNCED,
+                    'synced_at' => now(),
+                    'facebook_post_id' => $response->json()['id'] ?? null,
+                ]);
+
+                return response()->json([
+                    'message' => 'Post synced to Facebook successfully!',
+                    'fb_response' => $response->json(),
+                ]);
+            } else {
+                return response()->json([
+                    'error' => 'Failed to sync with Facebook',
+                    'fb_response' => $response->json(),
+                ], 400);
+            }
         } catch (\Exception $e) {
+            \Log::error('Facebook sync error: ' . $e->getMessage());
             return response()->json(['error' => 'Facebook sync failed'], 500);
         }
     }
