@@ -23,6 +23,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->boolean('must_change_password')->default(false);
+            $table->string('active_role')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

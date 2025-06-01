@@ -43,12 +43,16 @@ class UserRoleSeeder extends Seeder
         $itExpertRoles = ['registrar', 'student', 'psas'];
 
         $itExperts = [
+            ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'azhellecasimiro@student.laverdad.edu.ph'],
+            ['first_name' => 'Kayla', 'last_name' => 'Acosta', 'email' => 'kaylaacosta@student.laverdad.edu.ph'],
             ['first_name' => 'Jannah', 'last_name' => 'Dela Rosa', 'email' => 'jannahdelarosa@student.laverdad.edu.ph'],
-            
+            ['first_name' => 'Alona Joy', 'last_name' => 'Pegarit', 'email' => 'alonajoypegarit@student.laverdad.edu.ph'],
+
             ['first_name' => 'Jerreck', 'last_name' => 'Navalta', 'email' => 'jerreckreynaldnavalta@laverdad.edu.ph'],
             ['first_name' => 'Carlo', 'last_name' => 'Soleta', 'email' => 'carlosoleta@laverdad.edu.ph'],
             ['first_name' => 'Jehu', 'last_name' => 'Casimiro', 'email' => 'jehucasimiro@laverdad.edu.ph'],
             ['first_name' => 'Daniel John', 'last_name' => 'Saballa', 'email' => 'danieljohn.saballa@laverdad.edu.ph'],
+            ['first_name' => 'Alfie Mae', 'last_name' => 'Macababbad', 'email' => 'alfiemae.macababbad@laverdad.edu.ph'],
         ];
 
         foreach ($itExperts as $data) {
@@ -60,6 +64,7 @@ class UserRoleSeeder extends Seeder
                     'password'   => Hash::make('password123'),
                     'avatar'     => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
                     'must_change_password' => false,
+                    'active_role' => 'student',
                 ]
             );
 
@@ -77,7 +82,6 @@ class UserRoleSeeder extends Seeder
         $psasRole = Role::firstOrCreate(['name' => 'psas', 'guard_name' => 'api']);
 
         $psasUsers = [
-            ['first_name' => 'Kayla', 'last_name' => 'Acosta', 'email' => 'kaylaacosta@student.laverdad.edu.ph'],
             ['first_name' => 'Luckie', 'last_name' => 'Villanueva', 'email' => 'luckievillanueva@laverdad.edu.ph'],
             ['first_name' => 'Willen Anne', 'last_name' => 'Alba', 'email' => 'willenannealba@laverdad.edu.ph'],
         ];
@@ -106,7 +110,6 @@ class UserRoleSeeder extends Seeder
 
         $studentUsers = [
             ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'casimiro.azhelle09@gmail.com'],
-            ['first_name' => 'Alona Joy', 'last_name' => 'Pegarit', 'email' => 'alonapegarit@gmail.com'],
             ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
         ];
 
@@ -124,6 +127,33 @@ class UserRoleSeeder extends Seeder
 
             if (!$user->hasRole('psas')) {
                 $user->assignRole($studentRole);
+            }
+
+            $this->command->info("Student user created: {$data['first_name']}");
+        }
+
+        // Handle Super Admin accounts
+        $superAdminRole = Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'api']);
+
+        $superAdminUsers = [
+            ['first_name' => 'Jordan Earl', 'last_name' => 'Pascua', 'email' => 'jordanearlpascua@laverdad.edu.ph'],
+            ['first_name' => 'Dannver', 'last_name' => 'Lagramada', 'email' => 'dannverjay.lagramada@laverdad.edu.ph'],
+        ];
+
+        foreach ($superAdminUsers as $data) {
+            $user = User::updateOrCreate(
+                ['email' => $data['email']],
+                [
+                    'first_name' => $data['first_name'],
+                    'last_name' => $data['last_name'],
+                    'password' => Hash::make('password123'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'must_change_password' => false,
+                ]
+            );
+
+            if (!$user->hasRole('psas')) {
+                $user->assignRole($superAdminRole);
             }
 
             $this->command->info("Student user created: {$data['first_name']}");
