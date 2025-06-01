@@ -47,6 +47,7 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
         'access_token' => env('FACEBOOK_USER_ACCESS_TOKEN'),
         'page_id' => env('FACEBOOK_PAGE_ID'),
+        'page_token' => env('FACEBOOK_ACCESS_TOKEN'),
     ],
 
 ];
