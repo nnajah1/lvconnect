@@ -24,7 +24,7 @@ class UserRoleSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
                     'password' => Hash::make('password123'),
-                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
                     'must_change_password' => false,
                 ]
             );
@@ -60,7 +60,7 @@ class UserRoleSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name'  => $data['last_name'],
                     'password'   => Hash::make('password123'),
-                    'avatar'     => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
                     'must_change_password' => false,
                     'active_role' => 'student',
                 ]
@@ -91,7 +91,7 @@ class UserRoleSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
                     'password' => Hash::make('password123'),
-                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
                     'must_change_password' => false,
                 ]
             );
@@ -118,7 +118,7 @@ class UserRoleSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
                     'password' => Hash::make('password123'),
-                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
                     'must_change_password' => false,
                 ]
             );
@@ -146,7 +146,7 @@ class UserRoleSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
                     'password' => Hash::make('password123'),
-                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
                     'must_change_password' => false,
                 ]
             );
@@ -173,7 +173,7 @@ class UserRoleSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
                     'password' => Hash::make('password123'),
-                    'avatar' => $this->faker()->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
                     'must_change_password' => false,
                 ]
             );

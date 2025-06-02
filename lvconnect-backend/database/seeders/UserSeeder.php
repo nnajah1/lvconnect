@@ -6,13 +6,11 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
-use Faker\Factory as Faker;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create();
 
         // Ensure the 'student' role exists
         $studentRole = Role::firstOrCreate(['name' => 'student', 'guard_name' => 'api']);
@@ -82,7 +80,7 @@ class UserSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
                     'password' => Hash::make('password'),
-                    'avatar' => $faker->imageUrl(200, 200, 'people', true, 'Avatar'),
+                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
                     'must_change_password' => false,
                 ]
             );
@@ -91,5 +89,10 @@ class UserSeeder extends Seeder
         }
 
         $this->command->info('47 student users seeded with "student" role and avatars.');
+    }
+
+    protected function faker()
+    {
+        return \Faker\Factory::create();
     }
 }
