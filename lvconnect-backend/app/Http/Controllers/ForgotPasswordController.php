@@ -32,7 +32,7 @@ class ForgotPasswordController extends Controller
                 ]
             );
 
-            $frontendUrl = 'https://yourfrontend.com/reset-password';
+            $frontendUrl = 'https://lvconnect.up.railway.app/reset-password';
 
             $resetLink = $frontendUrl . '?token=' . $token . '&email=' . urlencode($request->email);
 
