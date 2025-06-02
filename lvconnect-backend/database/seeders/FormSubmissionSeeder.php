@@ -14,24 +14,23 @@ class FormSubmissionSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        $formTypeIds = FormType::pluck('id');
+        $formTypes = FormType::all();
         $studentUserIds = User::role('student')->pluck('id');
 
-        if ($formTypeIds->isEmpty() || $studentUserIds->isEmpty()) {
+        if ($formTypes->isEmpty() || $studentUserIds->isEmpty()) {
             $this->command->warn('Missing Form Types or Student Users. Skipping FormSubmissionSeeder.');
             return;
         }
 
         $statuses = ['draft', 'pending', 'approved', 'rejected'];
-        $submissions = [];
 
-        foreach (range(1, 5) as $i) {
+        foreach ($formTypes as $formType) {
             $status = $faker->randomElement($statuses);
             $rejectedAt = $status === 'rejected' ? $faker->dateTimeBetween('-2 days', 'now') : null;
             $adminRemarks = $status === 'rejected' ? $faker->sentence() : null;
 
-            $submissions[] = [
-                'form_type_id' => $faker->randomElement($formTypeIds),
+            FormSubmission::create([
+                'form_type_id' => $formType->id,
                 'submitted_by' => $faker->randomElement($studentUserIds),
                 'status' => $status,
                 'submitted_at' => $faker->dateTimeBetween('-5 days', 'now'),
@@ -39,9 +38,9 @@ class FormSubmissionSeeder extends Seeder
                 'rejected_at' => $rejectedAt,
                 'created_at' => now(),
                 'updated_at' => now(),
-            ];
+            ]);
         }
 
-        FormSubmission::insert($submissions);
+        $this->command->info('Form submissions seeded for each form type.');
     }
 }
