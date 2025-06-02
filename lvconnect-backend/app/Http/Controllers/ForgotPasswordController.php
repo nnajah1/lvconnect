@@ -13,36 +13,38 @@ use Log;
 
 class ForgotPasswordController extends Controller
 {
-public function sendResetLink(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-    ]);
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
 
-    $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
-    if ($user) {
-        $token = Str::random(64);
+        if ($user) {
+            $token = Str::random(64);
 
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
-            [
-                'token' => hash('sha256', $token),
-                'created_at' => now(),
-            ]
-        );
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $request->email],
+                [
+                    'token' => hash('sha256', $token),
+                    'created_at' => now(),
+                ]
+            );
 
-        $resetLink = url('/reset-password?token=' . $token . '&email=' . urlencode($request->email));
-        $user->notify(new PasswordResetNotification($resetLink));
+            $frontendUrl = 'https://yourfrontend.com/reset-password';
+
+            $resetLink = $frontendUrl . '?token=' . $token . '&email=' . urlencode($request->email);
+
+            $user->notify(new PasswordResetNotification($resetLink));
+
+            Log::info('Password reset link sent.', ['email' => $request->email, 'token' => $token]);
+        }
+
+        return response()->json([
+            'message' => 'If the email is registered, a password reset link has been sent.'
+        ]);
     }
-Log::info('Received hash:', ['request_hash' => hash('sha256', $request->token)]);
-
-    // Always return the same message
-    return response()->json([
-        'message' => 'If the email is registered, a password reset link has been sent.'
-    ]);
-}
-
 
     public function resetPassword(Request $request)
     {
