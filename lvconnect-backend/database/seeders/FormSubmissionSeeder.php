@@ -25,20 +25,22 @@ class FormSubmissionSeeder extends Seeder
         $statuses = ['draft', 'pending', 'approved', 'rejected'];
 
         foreach ($formTypes as $formType) {
-            $status = $faker->randomElement($statuses);
-            $rejectedAt = $status === 'rejected' ? $faker->dateTimeBetween('-2 days', 'now') : null;
-            $adminRemarks = $status === 'rejected' ? $faker->sentence() : null;
+            for ($i = 0; $i < 5; $i++) {
+                $status = $faker->randomElement($statuses);
+                $rejectedAt = $status === 'rejected' ? $faker->dateTimeBetween('-2 days', 'now') : null;
+                $adminRemarks = $status === 'rejected' ? $faker->sentence() : null;
 
-            FormSubmission::create([
-                'form_type_id' => $formType->id,
-                'submitted_by' => $faker->randomElement($studentUserIds),
-                'status' => $status,
-                'submitted_at' => $faker->dateTimeBetween('-5 days', 'now'),
-                'admin_remarks' => $adminRemarks,
-                'rejected_at' => $rejectedAt,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                FormSubmission::create([
+                    'form_type_id' => $formType->id,
+                    'submitted_by' => $faker->randomElement($studentUserIds),
+                    'status' => $status,
+                    'submitted_at' => $faker->dateTimeBetween('-5 days', 'now'),
+                    'admin_remarks' => $adminRemarks,
+                    'rejected_at' => $rejectedAt,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
 
         $this->command->info('Form submissions seeded for each form type.');
