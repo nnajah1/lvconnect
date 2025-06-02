@@ -95,7 +95,7 @@ const EditSurvey = ({ surveyId, closeModal, onDelete, onSuccess }) => {
       const errorMessage = err.response?.data?.message || 
                          err.response?.data?.errors?.title?.[0] || 
                          'Failed to update survey';
-      toast.error(errorMessage);
+      toast.error('Failed to update survey');
       throw err;
     } finally {
       setIsLoading(false);

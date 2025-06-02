@@ -12,7 +12,6 @@ import ForgotPassword from "./pages/authentication/ForgotPassword";
 import Posts from "./pages/admins/comms/Posts";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import UserDashboard from "@/pages/student/UserDashboard";
-import AdminDashboard from "./pages/admins/AdminDashboard";
 import ArchivePosts from "./pages/admins/comms/ArchivePosts";
 import PsasDashboard from "./pages/admins/psas/AdminDashboard";
 import Forms from "./pages/admins/psas/Forms";
@@ -36,6 +35,7 @@ import PrivacyPolicy  from "./layouts/PrivacyPolicy";
 import { Authenticate } from "./components/dynamic/loader";
 import RegistrarDashboard from "./pages/registrar/AdminDashboard";
 import CommsDashboard from "./pages/admins/comms/AdminDashboard";
+import SchoolAdminDashboard from "./pages/admins/scadmin/AdminDashboard";
 // import ErrorPage from "./layouts/error";
 
 
@@ -108,7 +108,7 @@ const router = createBrowserRouter([
                         path: "school-admin",
                         handle: { roles: ['scadmin'] },
                         children: [
-                            { index: true, element: <AdminDashboard /> },
+                            { index: true, element: <SchoolAdminDashboard /> },
                             { path: "posts", element: <Posts /> },
                             { path: "archive", element: <ArchivePosts /> },
 
@@ -143,7 +143,7 @@ const router = createBrowserRouter([
                         path: "system-admin",
                         handle: { roles: ['superadmin'] },
                         children: [
-                            { index: true, path: "super-admin", element: <AdminDashboard /> },
+                            { index: true, path: "super-admin", element: <PsasDashboard /> },
 
                         ],
                     },

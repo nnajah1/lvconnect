@@ -54,7 +54,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::get('/archive', [SchoolUpdateController::class, 'archivedPosts']);
 
   Route::post('/posts', [SchoolUpdateController::class, 'store']);
-  Route::post('/posts/{schoolupdate}', [SchoolUpdateController::class, 'update']);
+  Route::put('/posts/{schoolupdate}', [SchoolUpdateController::class, 'update']);
   Route::post('/posts/{schoolupdate}/submit', [SchoolUpdateController::class, 'submitForApproval']);
   Route::post('/posts/{schoolupdate}/approve', [SchoolUpdateController::class, 'approve']);
   Route::post('/posts/{schoolupdate}/reject', [SchoolUpdateController::class, 'reject']);
@@ -72,7 +72,7 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::post('/forms', [SchoolFormsController::class, 'store']);
   Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
-  Route::post('forms/submissions/{id}', [SchoolFormsController::class, 'submitForm']);
+  Route::post('forms/student-submissions/{id}', [SchoolFormsController::class, 'submitForm']);
   Route::post('/forms/submissions/{id}/review', [SchoolFormsController::class, 'reviewSubmission']);
   Route::post('/upload-2x2-image', [SchoolFormsController::class, 'upload2x2Image']);
 
@@ -140,7 +140,8 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::get('/analytics-summary/{surveyId}', [DashboardController::class, 'analyticsSummary']);
   Route::get('/psas-dashboard', [DashboardController::class, 'analyticsDashboard']);
-  Route::get('/schooladmin-dashboard', [DashboardController::class, 'schoolDashboard']);
+  Route::get('/schoolAdmin-dashboard', [DashboardController::class, 'schoolAdminDashboard']);
+  Route::get('/registrar-dashboard', [DashboardController::class, 'registrarDashboard']);
 
 
 });

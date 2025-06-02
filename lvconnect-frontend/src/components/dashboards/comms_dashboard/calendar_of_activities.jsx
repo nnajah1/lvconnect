@@ -17,6 +17,7 @@ import api from "@/services/axios";
 import AddEventModal from "@/components/school_updates/modals/event";
 import { Loader3 } from "@/components/dynamic/loader";
 import EditEventModal from "@/components/school_updates/modals/editEvent";
+import { ViewEventModal } from "@/components/school_updates/modals/viewEvent";
 
 const activities = [
   {
@@ -88,14 +89,14 @@ const CalendarActivities = ({ onBack, selectedDate, isAdmin }) => {
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
- const getActivitiesForDate = (date) => {
-  const targetDate = new Date(date.toDateString());  // Normalize to midnight
-  return activities.filter((activity) => {
-    const start = new Date(new Date(activity.date).toDateString());
-    const end = new Date(new Date(activity.endDate || activity.date).toDateString());
-    return targetDate >= start && targetDate <= end;
-  });
-};
+  const getActivitiesForDate = (date) => {
+    const targetDate = new Date(date.toDateString());  // Normalize to midnight
+    return activities.filter((activity) => {
+      const start = new Date(new Date(activity.date).toDateString());
+      const end = new Date(new Date(activity.endDate || activity.date).toDateString());
+      return targetDate >= start && targetDate <= end;
+    });
+  };
 
 
 
@@ -168,11 +169,7 @@ const CalendarActivities = ({ onBack, selectedDate, isAdmin }) => {
                   className={`text-[10px] text-black sm:text-xs p-1 rounded truncate`}
                   style={{ backgroundColor: activity.color }}
                   title={activity.title}
-                  onClick={() => setSelectedActivity(activity)} // Open edit modal
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    setDeleteItem(activity); // Open delete modal
-                  }}
+                  onClick={() => setSelectedActivity(activity)}
                 >
                   {activity.title}
                 </div>
@@ -210,10 +207,17 @@ const CalendarActivities = ({ onBack, selectedDate, isAdmin }) => {
         />
       )}
 
-      {selectedActivity && (
+      {isAdmin && selectedActivity && (
         <EditEventModal
           event={selectedActivity}
           onEventUpdated={handleEventUpdated}
+          onClose={() => setSelectedActivity(null)}
+        />
+      )}
+
+      {!isAdmin && selectedActivity && (
+        <ViewEventModal
+          event={selectedActivity}
           onClose={() => setSelectedActivity(null)}
         />
       )}

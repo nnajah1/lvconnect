@@ -121,7 +121,7 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
       console.error("Post error:", err);
       const errorMessage = err.message || err.response?.data?.message || 
         `Failed to ${isEditMode ? 'update' : 'create'} post!`;
-      toast.error(errorMessage);
+      toast.error(`Failed to ${isEditMode ? 'update' : 'create'} post!`);
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -135,14 +135,14 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
       await loadUpdates();
   };
 
-  const canEdit = !isEditMode || !existingPost?.status || ['draft', 'revision'].includes(existingPost.status);
+  const canEdit = !isEditMode || !existingPost?.status || ['draft', 'revision', 'rejected'].includes(existingPost.status);
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto bg-white rounded-lg shadow">
       <div className="flex justify-between items-center">
         <button 
           onClick={closeModal} 
-          className="text-xl text-gray-700 hover:text-gray-900"
+          className="text-xl text-gray-700 hover:text-gray-900 cursor-pointer"
         >
           <IoArrowBack />
         </button>
@@ -157,7 +157,7 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
         </div>
       )}
 
-      {error && <p className="text-red-500 text-center">{error}</p>}
+      {/* {error && <p className="text-red-500 text-center">{error}</p>} */}
 
       <div className="flex items-center justify-between gap-4">
         <select

@@ -42,7 +42,10 @@ class SchoolUpdateController extends Controller
         if ($user->hasRole('scadmin')) {
             return SchoolUpdate::whereIn('status', [
                 SchoolUpdate::STATUS_PENDING,
-                SchoolUpdate::STATUS_REVISION
+                SchoolUpdate::STATUS_REJECTED,
+                SchoolUpdate::STATUS_PUBLISHED,
+                SchoolUpdate::STATUS_SYNCED,
+                SchoolUpdate::STATUS_APPROVED
             ])->get();
         }
 
@@ -54,9 +57,24 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
+        $schoolUpdate = null;
+
         if ($user->hasRole('comms')) {
             $schoolUpdate = SchoolUpdate::where('id', $id)
                 ->where('created_by', $user->id)
+                ->first();
+        }
+
+        if ($user->hasRole('scadmin')) {
+            $schoolUpdate = SchoolUpdate::where('id', $id)
+                ->whereIn('status', [
+                    SchoolUpdate::STATUS_PENDING,
+                    SchoolUpdate::STATUS_REJECTED,
+                    SchoolUpdate::STATUS_PUBLISHED,
+                    SchoolUpdate::STATUS_SYNCED,
+                    SchoolUpdate::STATUS_APPROVED
+                ])
+                ->with('author') 
                 ->first();
         }
 
@@ -66,6 +84,7 @@ class SchoolUpdateController extends Controller
 
         return response()->json($schoolUpdate);
     }
+
 
 
     /**
@@ -390,14 +409,22 @@ class SchoolUpdateController extends Controller
     /**
      * Reject school update post (School Admin)
      */
-    public function reject(SchoolUpdate $schoolupdate)
+    public function reject(Request $request, SchoolUpdate $schoolupdate)
     {
-        Gate::authorize('reject', $schoolupdate);
+         $user = JWTAuth::authenticate();
 
+        if (!$user->hasRole('scadmin')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+         $request->validate([
+            'revision_remarks' => 'required|string|max:1000',
+        ]);
         try {
 
             $schoolupdate->update([
                 'status' => SchoolUpdate::STATUS_REJECTED,
+                'revision_remarks' => $request->input('revision_remarks'),
                 'rejected_at' => Carbon::now(),
             ]);
 
@@ -415,19 +442,23 @@ class SchoolUpdateController extends Controller
     public function requestRevision(Request $request, SchoolUpdate $schoolupdate)
     {
 
-        Gate::authorize('requestRevision', $schoolupdate);
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('scadmin')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
 
         $request->validate([
-            'revision_fields' => 'required|array',
-            'revision_remarks' => 'nullable|string|max:1000',
+            // 'revision_fields' => 'required|array',
+            'revision_remarks' => 'required|string|max:1000',
         ]);
 
         try {
 
             $schoolupdate->update([
                 'status' => SchoolUpdate::STATUS_REVISION,
-                'revision_fields' => json_encode($request->revision_fields),
-                'revision_remarks' => $request->revision_remarks,
+                // 'revision_fields' => json_encode($request->revision_fields),
+                'revision_remarks' => $request->input('revision_remarks'),
             ]);
 
             return response()->json(['message' => 'Post moved to revision']);
@@ -574,7 +605,7 @@ class SchoolUpdateController extends Controller
             }
 
             $pageId = env('FACEBOOK_PAGE_ID');
-            $fbVersion = 'v18.0'; 
+            $fbVersion = 'v18.0';
 
             $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $postData);
 

@@ -240,11 +240,11 @@ class SurveyController extends Controller
         $user = JWTAuth::authenticate();
         $survey = Survey::with('questions')->findOrFail($id);
 
-       if ($user->hasRole('student') && !$user->hasRole('psas')) {
-        if (in_array($survey->visibility_mode, ['hidden'])) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if ($user->hasRole('student') && !$user->hasRole('psas')) {
+            if (in_array($survey->visibility_mode, ['hidden'])) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         }
-    }
 
         return response()->json($survey);
     }
@@ -389,7 +389,7 @@ class SurveyController extends Controller
 
             // Send notification if visibility is mandatory
             if ($survey->visibility_mode === 'mandatory') {
-                $students = User::where('role', 'student')->get();
+                $students = User::role('student')->get(); // use spatie
                 foreach ($students as $student) {
                     $student->notify(new MandatorySurveyNotification($survey));
                 }

@@ -8,6 +8,7 @@ import { archiveActionConditions, archiveActions, archiveSchema } from "@/tableS
 import { useUserRole } from "@/utils/userRole";
 import { ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
 import { toast } from "react-toastify";
+import ViewPostModal from "./ViewPost";
 
 
 const ArchivePosts = () => {
@@ -18,6 +19,7 @@ const ArchivePosts = () => {
 
   const [deleteItem, setDeleteItem] = useState(null);
   const [restoreItem, setRestoreItem] = useState(null);
+    const [viewItem, setViewItem] = useState(null);
 
   const loadArchive = async () => {
     setLoading(true)
@@ -37,6 +39,10 @@ const ArchivePosts = () => {
 
   const handleDelete = (item) => {
     setDeleteItem(item);
+  };
+
+    const handleView = (item) => {
+    setViewItem(item);
   };
 
   const handleDeletePost = async () => {
@@ -74,7 +80,7 @@ const ArchivePosts = () => {
     }
   };
   
-  const action = archiveActions(handleDelete, handleRestore);
+  const action = archiveActions(handleView, handleDelete, handleRestore);
   const columns = getColumns({
     userRole,
     schema: archiveSchema,
@@ -93,6 +99,17 @@ const ArchivePosts = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Archive</h1>
       <DataTable columns={columns} data={archive} context="archives" isLoading={loading} />
+
+      {viewItem && (
+        <ViewPostModal
+          isOpen={!!viewItem}
+          closeModal={() => setViewItem(null)}
+          postId={viewItem.id}
+          loadUpdates={loadArchive}
+          userRole={userRole}
+        />
+
+      )}
 
       {deleteItem && (
         <ErrorModal

@@ -465,7 +465,7 @@ class SchoolFormsController extends Controller
         return response()->json(['message' => 'Fields updated successfully.']);
     }
 
-    public function supdateDraftForm(Request $request, $id)
+    public function updateDraftForm(Request $request, $id)
     {
         try {
             $user = JWTAuth::authenticate();

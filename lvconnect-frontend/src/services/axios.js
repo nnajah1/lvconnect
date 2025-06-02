@@ -90,7 +90,8 @@ export const fbPost = (id) => api.post(`/posts/${id}/facebook-sync`);
 export const publishPost = (id) => api.post(`/posts/${id}/publish`);
 export const submitPost = (id) => api.post(`/posts/${id}/submit`);
 export const approvePost = (id) => api.post(`/posts/${id}/approve`);
-export const rejectPost = (id) => api.post(`/posts/${id}/reject`);
+export const rejectPost = (id, data) => api.post(`/posts/${id}/reject`, data);
+export const revisionPost = (id, data) => api.post(`/posts/${id}/revision`, data);
 
 export const requestRevision = async (id, revisionFields, revisionRemarks) => {
   await api.post(`/posts/${id}/status`, {

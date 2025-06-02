@@ -277,10 +277,12 @@ class DashboardController extends Controller
             ->groupBy('programs.program_name')
             ->get();
 
-
-        return response()->json([
+        $stats = [
             'total_enrolled_students' => $totalEnrolled,
             'total_investment' => $totalInvestment,
+        ];
+        return response()->json([
+            'stats' => $stats,
             'student_demographics' => $demographics,
             'higher_ed_population' => $higherEdPopulation,
         ]);
@@ -329,10 +331,14 @@ class DashboardController extends Controller
             ->groupBy('programs.program_name')
             ->get();
 
-        return response()->json([
+        $stats = [
             'current_enrolled_student' => $currentEnrolledCount,
             'pending_student_count' => $pendingCount,
             'temporary_enrolled_student_count' => $temporaryEnrolledCount,
+        ];
+
+        return response()->json([
+            'stats' => $stats,
             'higher_ed_population' => $higherEdPopulation,
         ]);
     }

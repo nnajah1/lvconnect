@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BarChart, Bar, XAxis, YAxis, LabelList, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, LabelList, ResponsiveContainer, Cell } from "recharts"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Users } from "lucide-react"
+import { colors } from "@/utils/statsDashboard"
 
 export default function DemographicsChart({ demographics }) {
   const [filters, setFilters] = useState({
@@ -69,7 +70,7 @@ export default function DemographicsChart({ demographics }) {
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-xl font-semibold">
           <Users className="h-5 w-5 text-primary" />
-          Demographics Distribution
+          Students Population
         </CardTitle>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4" />
@@ -179,7 +180,7 @@ export default function DemographicsChart({ demographics }) {
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-4" >
+        <div className="bg-gray-50 rounded-lg p-4">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={filteredChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <XAxis
@@ -193,8 +194,13 @@ export default function DemographicsChart({ demographics }) {
                 tickLine={{ stroke: "#d1d5db" }}
                 axisLine={{ stroke: "#d1d5db" }}
               />
-              <Bar dataKey="value" fill="hsl(var(--secondary))" radius={[6, 6, 0, 0]} className="drop-shadow-sm">
+              <Bar dataKey="value" radius={[6, 6, 0, 0]} className="drop-shadow-sm">
                 <LabelList dataKey="value" position="top" fontSize={12} fill="#374151" fontWeight="500" />
+                {
+                  filteredChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                  ))
+                }
               </Bar>
             </BarChart>
           </ResponsiveContainer>
