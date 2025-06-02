@@ -80,7 +80,7 @@ class UserSeeder extends Seeder
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
                     'password' => Hash::make('password'),
-                    'avatar' => $this->faker()->imageUrl(200, 200, null, true, 'animal', false, 'https://loremflickr.com'),
+                    'avatar' => 'https://loremflickr.com/200/200/animal?random=' . $this->faker()->unique()->numberBetween(1, 9999),
                     'must_change_password' => false,
                 ]
             );
