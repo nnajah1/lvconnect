@@ -45,8 +45,7 @@ const Surveys = () => {
 
   });
 
- useEffect(() => {
-    const loadSurveys = async () => {
+  const loadSurveys = async () => {
       setLoading(true)
       try {
         const data = await getSurveys();
@@ -59,6 +58,7 @@ const Surveys = () => {
       }
     };
 
+ useEffect(() => {
     loadSurveys(); 
   }, []);
 
@@ -98,7 +98,7 @@ const Surveys = () => {
       <DataTable columns={columns} data={survey} context="Surveys" globalFilter={globalFilter} isLoading={loading}/>
 
       {/* Modals */}
-      <CreateSurveyModal isOpen={isOpen} closeModal={() => setIsOpen(false)} />
+      <CreateSurveyModal isOpen={isOpen} closeModal={() => setIsOpen(false)} loadSurveys={loadSurveys}/>
       {formItem && (
         <EditSurveyModal
           isOpen={!!formItem}

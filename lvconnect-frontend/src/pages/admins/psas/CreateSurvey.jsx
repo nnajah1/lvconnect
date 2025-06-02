@@ -5,7 +5,7 @@ import ConfirmationModal, { InfoModal } from "@/components/dynamic/alertModal";
 import SurveyBuilder from "@/components/survey/SurveyBuilder";
 import { useState } from "react";
 
-const CreateSurveyModal = ({ isOpen, closeModal }) => {
+const CreateSurveyModal = ({ isOpen, closeModal, loadSurveys }) => {
 
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +39,7 @@ const CreateSurveyModal = ({ isOpen, closeModal }) => {
                     showDescription={false}
                     className="max-w-[45rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
 
-                    <SurveyBuilder closeModal={closeModal} onSuccess={handleSuccess} />
+                    <SurveyBuilder closeModal={closeModal} onSuccess={handleSuccess} loadSurveys={loadSurveys}/>
 
                 </DynamicModal>
             )}

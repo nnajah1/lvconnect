@@ -24,8 +24,10 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('student')) {
+        $surveys = collect(); // Start with an empty collection
 
+        // Check if the user has the 'student' role
+        if ($user->hasRole('student')) {
             $student = $user->studentInformation;
 
             if (!$student) {
@@ -33,7 +35,7 @@ class SurveyController extends Controller
             }
 
             // Get all visible surveys
-            $surveys = Survey::with('questions')
+            $studentSurveys = Survey::with('questions')
                 ->whereIn('visibility_mode', ['optional', 'mandatory'])
                 ->get();
 
@@ -41,22 +43,30 @@ class SurveyController extends Controller
             $completed = $student->surveys()->pluck('survey_student.completed_at', 'survey_id');
 
             // Merge completion status into each survey
-            $surveys->each(function ($survey) use ($completed) {
-            $survey->completed_at = $completed[$survey->id] ?? null;
-        });
+            $studentSurveys->each(function ($survey) use ($completed) {
+                $survey->completed_at = $completed[$survey->id] ?? null;
+            });
 
-            return $surveys;
+            $surveys = $surveys->merge($studentSurveys);
         }
 
-
+        // Check if the user has the 'psas' role
         if ($user->hasRole('psas')) {
-            // PSAS admin can see all surveys
-            return Survey::with('questions')
-                ->get();
+            $psasSurveys = Survey::with('questions')->get();
+
+            $surveys = $surveys->merge($psasSurveys);
         }
 
-        return response()->json(['message' => 'Unauthorized'], 403);
+        if ($surveys->isEmpty()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Remove duplicates if any (optional)
+        $surveys = $surveys->unique('id')->values();
+
+        return response()->json($surveys);
     }
+
 
     public function getSurveyResponses($surveyId)
     {
@@ -88,7 +98,7 @@ class SurveyController extends Controller
     public function checkSubmission($surveyId)
     {
         $user = JWTAuth::authenticate();
-         $studentInformationId = $user->studentInformation->id;
+        $studentInformationId = $user->studentInformation->id;
         $submission = SurveyResponse::where('survey_id', $surveyId)
             ->where('student_information_id', $studentInformationId)
             ->first();
@@ -230,9 +240,11 @@ class SurveyController extends Controller
         $user = JWTAuth::authenticate();
         $survey = Survey::with('questions')->findOrFail($id);
 
-        if ($user->hasRole('student') && in_array($survey->visibility_mode, ['hidden'])) {
+       if ($user->hasRole('student') && !$user->hasRole('psas')) {
+        if (in_array($survey->visibility_mode, ['hidden'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+    }
 
         return response()->json($survey);
     }

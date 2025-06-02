@@ -20,7 +20,8 @@ export default function SurveyBuilder({
     onSubmit,
     onSuccess,
     onDelete,
-    closeModal
+    closeModal,
+    loadSurveys
 }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -181,6 +182,7 @@ export default function SurveyBuilder({
 
                 const res = await createSurvey(formData);
                 if (onSuccess) onSuccess(res.survey_id);
+                await loadSurveys();
             }
         } catch (err) {
             toast.error(mode === 'edit' ? 'Failed to update survey.' : 'Failed to create survey.');
