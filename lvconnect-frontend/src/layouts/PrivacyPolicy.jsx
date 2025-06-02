@@ -8,11 +8,11 @@ export default function PrivacyPolicy() {
   const navigate = useNavigate();
 
   return (
-    <div className="h-full bg-muted flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center ">
       <div className="bg-white w-full max-w-3xl p-4 rounded-lg shadow-md border border-gray-300">
         <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
 
-        <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
+        <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
           <section>
             <h2 className="text-xl font-semibold mb-2">1. Introduction</h2>
             <p className="text-gray-700 text-sm">
@@ -60,12 +60,6 @@ export default function PrivacyPolicy() {
               with an updated effective date.
             </p>
           </section>
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <Button onClick={() => navigate(-1)} variant="outline">
-            Back
-          </Button>
         </div>
       </div>
     </div>
