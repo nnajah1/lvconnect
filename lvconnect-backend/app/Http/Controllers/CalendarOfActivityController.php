@@ -16,7 +16,7 @@ class CalendarOfActivityController extends Controller
         $user = JWTAuth::authenticate();
 
         if ($user->hasRole('student')) {
-            return CalendarOfActivity::select('event_title', 'description', 'start_date', 'end_date')->get();
+            return CalendarOfActivity::select('event_title', 'description', 'start_date', 'end_date', 'color')->get();
         }
 
         if ($user->hasRole('comms')) {
@@ -42,6 +42,7 @@ class CalendarOfActivityController extends Controller
             'description' => 'required|string|max:1000',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'color' => 'required|string',
         ]);
 
         $activity = CalendarOfActivity::create([
@@ -50,6 +51,7 @@ class CalendarOfActivityController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'created_by' => $user->id,
+            'color' => $request->color,
         ]);
 
         return response()->json([
@@ -101,6 +103,7 @@ class CalendarOfActivityController extends Controller
             'description' => 'sometimes|required|string|max:1000',
             'start_date' => 'sometimes|required|date',
             'end_date' => 'sometimes|required|date|after_or_equal:start_date',
+            'color' => 'required|string',
         ]);
 
         if ($request->has('event_title')) {
@@ -117,6 +120,9 @@ class CalendarOfActivityController extends Controller
 
         if ($request->has('end_date')) {
             $activity->end_date = $request->end_date;
+        }
+         if ($request->has('color')) {
+            $activity->color = $request->color;
         }
 
         $activity->save();

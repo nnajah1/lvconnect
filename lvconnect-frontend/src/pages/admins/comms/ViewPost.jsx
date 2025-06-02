@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
-import { getPostById } from "@/services/axios";
+import { archivePost, deletePost, fbPost, getPostById, publishPost } from "@/services/axios";
 import DynamicModal from "@/components/dynamic/DynamicModal";
 import DOMPurify from "dompurify"; // For safe HTML rendering
 import { Loader } from "@/components/dynamic/loader";
+import { ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
+import { toast } from "react-toastify";
 
-const ViewPostModal = ({ isOpen, closeModal, postId }) => {
+const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates }) => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(false);
   const [imageLoadStates, setImageLoadStates] = useState({});
+  
+  // State for modals
+  const [editItem, setEditItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
+  const [publishItem, setPublishItem] = useState(null);
+  const [archiveItem, setArchiveItem] = useState(null);
+  const [postItem, setPostItem] = useState(null);
 
   useEffect(() => {
     if (isOpen && postId) {
@@ -45,6 +54,111 @@ const ViewPostModal = ({ isOpen, closeModal, postId }) => {
     setImageLoadStates((prev) => ({ ...prev, [index]: "error" }));
   };
 
+  // Button handlers
+  const handleEdit = (item) => {
+    setEditItem(item);
+  };
+
+  const handleDelete = (item) => {
+    setDeleteItem(item);
+  };
+
+  const handlePublish = (item) => {
+    setPublishItem(item);
+  };
+
+  const handleArchive = (item) => {
+    setArchiveItem(item);
+  };
+
+  const handlePostFb = (item) => {
+    setPostItem(item);
+  };
+
+  // Action handlers
+  const handleDeletePost = async () => {
+    setLoading(true);
+    try {
+      await deletePost(deleteItem.id);
+      toast.success('Post deleted successfully!');
+      setDeleteItem(null);
+      await loadUpdates();
+      closeModal();
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to delete post');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleArchivePost = async () => {
+    setLoading(true);
+    try {
+      await archivePost(archiveItem.id);
+      await loadUpdates();
+      closeModal();
+      toast.success('Post archived successfully!');
+      setArchiveItem(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to archive post');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFbPost = async () => {
+    setLoading(true);
+    try {
+      const response = await fbPost(postItem.id);
+      await loadUpdates();
+      closeModal();
+      toast.success('Post synced to Facebook successfully!');
+      setPostItem(null);
+      console.log('FB Response:', response.data);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to sync to Facebook');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublishPost = async () => {
+    setLoading(true);
+    try {
+      await publishPost(publishItem.id);
+      await loadUpdates();
+      closeModal();
+      toast.success('Post published successfully!');
+      setPublishItem(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to publish post');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Status-based button visibility
+  const shouldShowButton = (action, item) => {
+    switch (action) {
+      case 'edit':
+        return item.status === "draft" || item.status === "rejected";
+      case 'delete':
+        return item.status === "archived";
+      case 'publish':
+        return item.status === "approved";
+      case 'archive':
+        return item.status === "published";
+      case 'postFb':
+        return item.status === "published" && item.status !== "published & synced";
+      default:
+        return false;
+    }
+  };
+
   return (
     <>
       {loading ? (
@@ -63,7 +177,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId }) => {
           className="w-[60rem]! max-h-[80vh]! rounded-lg overflow-hidden"
         >
           {post ? (
-            <div className="space-y-4 p-4 overflow-y-auto h-full bg-white rounded-lg mt-4">
+            <div className="space-y-4 p-4 overflow-y-auto  bg-white rounded-lg mt-4">
             
               <h1 className="text-sm text-gray-500 capitalize">{post.type}</h1>
               <h2 className="text-2xl font-bold text-center text-gray-900">{post.title}</h2>
@@ -164,11 +278,156 @@ const ViewPostModal = ({ isOpen, closeModal, postId }) => {
                   <div>Last updated: {new Date(post.updated_at).toLocaleString()}</div>
                 )}
               </div>
+              
+              {/* Action Buttons based on status */}
+              <div className="flex gap-2 justify-end mt-6">
+                {shouldShowButton('edit', post) && (
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+                    onClick={() => handleEdit(post)}
+                  >
+                    Edit
+                  </button>
+                )}
+                
+                {shouldShowButton('publish', post) && (
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
+                    onClick={() => handlePublish(post)}
+                  >
+                    Publish
+                  </button>
+                )}
+                
+                {shouldShowButton('archive', post) && (
+                  <button
+                    className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer"
+                    onClick={() => handleArchive(post)}
+                  >
+                    Archive
+                  </button>
+                )}
+                
+                {shouldShowButton('postFb', post) && (
+                  <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
+                    onClick={() => handlePostFb(post)}
+                  >
+                    Sync to Facebook
+                  </button>
+                )}
+                
+                {shouldShowButton('delete', post) && (
+                  <button
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
+                    onClick={() => handleDelete(post)}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+
             </div>
           ) : (
             <div className="text-center py-10 text-red-500">Post not found.</div>
           )}
         </DynamicModal>
+      )}
+
+      {/* Delete Modal */}
+      {deleteItem && (
+        <WarningModal
+          isOpen={!!deleteItem}
+          closeModal={() => setDeleteItem(null)}
+          title="Delete Post"
+          description="Are you sure you want to delete this post?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+            onClick={() => setDeleteItem(null)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
+            onClick={handleDeletePost}
+            disabled={loading}
+          >
+            {loading ? 'Deleting...' : 'Delete'}
+          </button>
+        </WarningModal>
+      )}
+
+      {/* Archive Modal */}
+      {archiveItem && (
+        <WarningModal
+          isOpen={!!archiveItem}
+          closeModal={() => setArchiveItem(null)}
+          title="Archive Post"
+          description="Are you sure you want to archive this post?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+            onClick={() => setArchiveItem(null)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer"
+            onClick={handleArchivePost}
+            disabled={loading}
+          >
+            {loading ? 'Archiving...' : 'Archive'}
+          </button>
+        </WarningModal>
+      )}
+
+      {/* Facebook Post Modal */}
+      {postItem && (
+        <InfoModal
+          isOpen={!!postItem}
+          closeModal={() => setPostItem(null)}
+          title="Post to Facebook"
+          description="Are you sure you want to post this post on Facebook? this is irreversible"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+            onClick={() => setPostItem(null)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+            onClick={handleFbPost}
+            disabled={loading}
+          >
+            {loading ? 'Syncing...' : 'Sync To Facebook'}
+          </button>
+        </InfoModal>
+      )}
+
+      {/* Publish Modal */}
+      {publishItem && (
+        <ConfirmationModal
+          isOpen={!!publishItem}
+          closeModal={() => setPublishItem(null)}
+          title="Publish Post"
+          description="Are you sure you want to publish this post?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+            onClick={() => setPublishItem(null)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
+            onClick={handlePublishPost}
+            disabled={loading}
+          >
+            {loading ? 'Publishing...' : 'Publish'}
+          </button>
+        </ConfirmationModal>
       )}
     </>
   );

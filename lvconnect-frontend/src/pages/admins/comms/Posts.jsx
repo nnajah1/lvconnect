@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { archivePost, deletePost, fbPost, getPosts, restorePost } from "@/services/axios";
+import { archivePost, deletePost, fbPost, getPosts, publishPost, restorePost } from "@/services/axios";
 import { actionConditions, actions, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreatePostModal from "@/pages/admins/comms/CreatePost";
@@ -28,6 +28,7 @@ const Posts = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [archiveItem, setArchiveItem] = useState(null);
   const [postItem, setPostItem] = useState(null);
+  const [publishItem, setPublishItem] = useState(null);
 
 
   const loadUpdates = async () => {
@@ -55,6 +56,10 @@ const Posts = () => {
 
   const handleDelete = (item) => {
     setDeleteItem(item);
+  };
+
+   const handlePublish = (item) => {
+    setPublishItem(item);
   };
 
   const handleDeletePost = async () => {
@@ -111,7 +116,22 @@ const Posts = () => {
     }
   };
 
-  const action = actions(handleViewPost, handleEdit, handleDelete, handleArchive, handlePostFb);
+  const handlePublishPost = async () => {
+    setLoading(true)
+    try {
+      await publishPost(publishItem.id);
+      await loadUpdates();
+      toast.success('Post published successfully!');
+      setPublishItem(null)
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to publish post');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const action = actions(handleViewPost, handlePublish, handleEdit, handleDelete, handleArchive, handlePostFb);
 
   const columns = getColumns({
     userRole,
@@ -161,6 +181,7 @@ const Posts = () => {
           isOpen={!!viewItem}
           closeModal={() => setViewItem(null)}
           postId={viewItem.id}
+          loadUpdates={loadUpdates}
         />
 
       )}
@@ -245,6 +266,30 @@ const Posts = () => {
           </button>
 
         </InfoModal>
+      )}
+
+      {publishItem && (
+        <ConfirmationModal
+          isOpen={!!publishItem}
+          closeModal={() => setPublishItem(null)}
+          title="Publish Post"
+          description="Are you sure you want to publish this post?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+            onClick={() => setPublishItem(null)}
+          >
+            cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
+            onClick={handlePublishPost}
+           disabled={loading}
+          >
+            {loading ? 'Publishing...' : 'Publish'}
+          </button>
+
+        </ConfirmationModal>
       )}
 
 

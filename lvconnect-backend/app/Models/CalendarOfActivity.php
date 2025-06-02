@@ -12,7 +12,14 @@ class CalendarOfActivity extends Model
         'start_date',
         'end_date',
         'created_by',
+        'color',
     ];
+
+    protected $casts = [
+    'start_date' => 'date:Y-m-d',
+    'end_date' => 'date:Y-m-d',
+];
+
 
     public function creator()
     {

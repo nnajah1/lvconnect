@@ -73,20 +73,21 @@ export const updatePost = async (id, formData) => {
   }
 };
 
-export const publishPost = async (id, formData) => {
-  try {
-    const response = await api.post(`/posts/${id}/publish`, formData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || "Something went wrong!";
-  }
-};
+// export const publishPost = async (id, formData) => {
+//   try {
+//     const response = await api.post(`/posts/${id}/publish`, formData);
+//     return response.data;
+//   } catch (error) {
+//     throw error.response?.data || "Something went wrong!";
+//   }
+// };
 
 export const archivePost = (id) => api.post(`/posts/${id}/archive`);
 export const restorePost = (id) => api.post(`/posts/${id}/restore`);
 export const deletePost = (id) => api.delete(`/posts/${id}/delete`);
 export const fbPost = (id) => api.post(`/posts/${id}/facebook-sync`);
 
+export const publishPost = (id) => api.post(`/posts/${id}/publish`);
 export const submitPost = (id) => api.post(`/posts/${id}/submit`);
 export const approvePost = (id) => api.post(`/posts/${id}/approve`);
 export const rejectPost = (id) => api.post(`/posts/${id}/reject`);

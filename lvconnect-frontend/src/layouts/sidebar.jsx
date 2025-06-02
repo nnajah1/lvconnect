@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import logo from "@/assets/lv-logo.png";
 import { RxTextAlignJustify } from "react-icons/rx";
 import { useAuthContext } from "@/context/AuthContext";
@@ -29,9 +29,8 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileMenuOpen, setIsMobi
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`fixed left-0 top-0 z-30 hidden h-screen bg-sidebar-foreground text-white transition-all duration-300 lg:block ${
-          isExpanded ? "w-64" : "w-20"
-        }`}
+        className={`fixed left-0 top-0 z-30 hidden h-screen bg-sidebar-foreground text-white transition-all duration-300 lg:block ${isExpanded ? "w-64" : "w-20"
+          }`}
       >
         <SidebarContent
           isExpanded={isExpanded}
@@ -45,9 +44,8 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileMenuOpen, setIsMobi
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed left-0 top-0 z-30 h-screen w-64 bg-sidebar-foreground text-white transition-transform duration-300 lg:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-0 z-30 h-screen w-64 bg-sidebar-foreground text-white transition-transform duration-300 lg:hidden ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <SidebarContent
           isExpanded={true}
@@ -64,28 +62,34 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileMenuOpen, setIsMobi
 }
 
 function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLinkClick, showCloseButton, onClose }) {
-  const { user, refreshUser } = useAuthContext(); 
-  const [selectedRole, setSelectedRole] = useState(user?.active_role || user?.roles?.[0]?.name);
+  const { user, refreshUser } = useAuthContext();
+  const [selectedRole, setSelectedRole] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      setSelectedRole(user.active_role || user.roles?.[0]?.name);
+    }
+  }, [user]);
+
   const handleRoleChange = async (e) => {
-  const role = e.target.value;
-  setLoading(true);
-  try {
-    await switchRole(role);
-    toast.success("Role switched successfully!");
+    const role = e.target.value;
+    setLoading(true);
+    try {
+      await switchRole(role);
+      toast.success("Role switched successfully!");
 
-    await refreshUser(); // Ensure this updates user.active_role
+      await refreshUser(); // Ensure this updates user.active_role
 
-    // Redirect based on new role
-    const redirectPath = roleRedirectMap[role] || "/";
-    window.location.href = redirectPath; 
-  } catch (err) {
-    toast.error(err.response?.data?.error || "Failed to switch role.");
-  } finally {
-    setLoading(false);
-  }
-};
+      // Redirect based on new role
+      const redirectPath = roleRedirectMap[role] || "/";
+      window.location.href = redirectPath;
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to switch role.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (
@@ -128,9 +132,8 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
                 <Link
                   to={path}
                   onClick={onLinkClick}
-                  className={`flex items-center rounded-md p-2 ${
-                    isExpanded ? "space-x-3" : "justify-center"
-                  } ${isActive ? "bg-[#20C1FB]" : "hover:bg-white/10"}`}
+                  className={`flex items-center rounded-md p-2 ${isExpanded ? "space-x-3" : "justify-center"
+                    } ${isActive ? "bg-[#20C1FB]" : "hover:bg-white/10"}`}
                 >
                   <Icon size={21} className="text-white" />
                   {isExpanded && <span>{name}</span>}
@@ -140,24 +143,26 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
           })}
         </ul>
       </nav>
-       {/* Role Switcher */}
-      <div className="mt-auto pt-4">
-        <label className="block text-xs font-medium text-white mb-1">
-          Switch Role for Alpha Testers:
-        </label>
-        <select
-          className="w-full rounded-md bg-white/10 p-2 text-white"
-          value={selectedRole}
-          onChange={handleRoleChange}
-          disabled={loading}
-        >
-          {user?.roles?.map((role) => (
-            <option key={role.name} value={role.name} className="bg-secondary">
-              {role.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Role Switcher */}
+      {user?.roles?.length > 1 && (
+        <div className="mt-auto pt-4">
+          <label className="block text-xs font-medium text-white mb-1">
+            Switch Role for Alpha Testers:
+          </label>
+          <select
+            className="w-full rounded-md bg-white/10 p-2 text-white"
+            value={selectedRole}
+            onChange={handleRoleChange}
+            disabled={loading}
+          >
+            {user?.roles?.map((role) => (
+              <option key={role.name} value={role.name} className="bg-secondary">
+                {role.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   )
 }

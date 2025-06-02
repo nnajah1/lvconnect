@@ -2,12 +2,12 @@
 import { useState } from "react"
 import Calendar from "@/components/dashboards/student_dashboard/calendar"
 import SchoolUpdates from "@/components/dashboards/student_dashboard/updates"
-import CalendarActivities from "@/components/dashboards/student_dashboard/calendar_of_activities"
- const semesterInfo = {
+import CalendarActivities from "@/components/dashboards/comms_dashboard/calendar_of_activities"
+const semesterInfo = {
   schoolYear: "2024–2025",
   semester: "First Semester"
-  }
-  const scheduleItems = [
+}
+const scheduleItems = [
   {
     day: "Mon",
     time: "9:00-10:00",
@@ -82,7 +82,7 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-gray-50 p-2 sm:p-3 lg:p-6 font-sans">
       <div className="max-w-7xl mx-auto">
         {showCalendarActivities ? (
-          <CalendarActivities onBack={handleBackFromCalendar} selectedDate={selectedDate} />
+          <CalendarActivities onBack={handleBackFromCalendar} selectedDate={selectedDate} isAdmin={false} />
         ) : !selectedUpdate ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6 min-h-0">
@@ -222,24 +222,28 @@ const UserDashboard = () => {
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col lg:flex-row gap-4 sm:gap-6">
+          <div className="h-[80vh] flex flex-col lg:flex-row gap-4 sm:gap-6">
             <div className="flex-1 bg-white rounded-xl shadow p-4 sm:p-6 overflow-y-auto">
-              <button onClick={handleBack} className="text-sm text-blue-600 mb-4 hover:underline">
+              <button onClick={handleBack} className="text-sm text-blue-600 mb-4 hover:underline cursor-pointer">
                 ←
               </button>
               <div className="text-xs text-gray-500 mb-2">
-                {type.announcement} &gt; <span className="text-blue-600 font-medium">{selectedUpdate.title}</span>
+                {selectedUpdate.type} &gt; <span className="text-blue-600 font-medium">{selectedUpdate.title}</span>
               </div>
               <h1 className="text-lg md:text-xl font-bold text-blue-800 mb-4">{selectedUpdate.title}</h1>
               <div
                 className="prose prose-sm max-w-none text-sm text-gray-800"
                 dangerouslySetInnerHTML={{ __html: selectedUpdate.content }}
               />
+              {selectedUpdate.image_url && (
+                <img src={selectedUpdate.image_url} alt={selectedUpdate.title} className="mt-4 rounded-lg w-full h-auto object-cover" />
+              )}
             </div>
-            <div className="w-full lg:w-1/3 h-full">
+            <div className="h-full">
               <SchoolUpdates onSelect={handleSelectUpdate} selected={selectedUpdate} />
             </div>
           </div>
+
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\CalendarOfActivityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ForgotPasswordController;
@@ -47,11 +48,11 @@ Route::middleware('auth.jwt')->group(function () {
   Route::delete('/trusted-devices/{device_id}', [TrustedDeviceController::class, 'destroy']); // Remove a trusted device
   Route::post('/verify-password-otp', [OTPController::class, 'verifyOtpForPasswordChange']);
   Route::post('/change-password', [ChangePasswordController::class, 'ChangePassword']);
-  
+
   Route::get('/posts', [SchoolUpdateController::class, 'index']);
   Route::get('/posts/{id}', [SchoolUpdateController::class, 'show']);
   Route::get('/archive', [SchoolUpdateController::class, 'archivedPosts']);
-  
+
   Route::post('/posts', [SchoolUpdateController::class, 'store']);
   Route::post('/posts/{schoolupdate}', [SchoolUpdateController::class, 'update']);
   Route::post('/posts/{schoolupdate}/submit', [SchoolUpdateController::class, 'submitForApproval']);
@@ -64,6 +65,10 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
   Route::delete('/posts/{id}/delete', [SchoolUpdateController::class, 'destroy']);
 
+  Route::get('/calendar-activities', [CalendarOfActivityController::class, 'index']);
+  Route::post('/calendar-activities', [CalendarOfActivityController::class, 'store']);
+  Route::put('/calendar-activities/{id}', [CalendarOfActivityController::class, 'update']);
+  Route::delete('/calendar-activities/{id}', [CalendarOfActivityController::class, 'destroy']);
 
   Route::post('/forms', [SchoolFormsController::class, 'store']);
   Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
@@ -102,7 +107,7 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
 
-  
+
   Route::get('/enrollment', [EnrollmentController::class, 'index']);
   Route::get('/enrollees', [EnrollmentController::class, 'adminView']);
   Route::get('/not-enrolled', [EnrollmentController::class, 'getStudentsWithoutEnrollment']);
@@ -136,7 +141,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::get('/analytics-summary/{surveyId}', [DashboardController::class, 'analyticsSummary']);
   Route::get('/psas-dashboard', [DashboardController::class, 'analyticsDashboard']);
   Route::get('/schooladmin-dashboard', [DashboardController::class, 'schoolDashboard']);
-  
+
 
 });
 

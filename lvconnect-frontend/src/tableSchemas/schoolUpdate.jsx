@@ -1,5 +1,6 @@
 import { Archive, ArchiveRestore, Eye, Pencil, Trash, Trash2 } from "lucide-react";
 import { FaFacebook } from "react-icons/fa6";
+import { MdPublish } from "react-icons/md";
 
 export const schoolUpdateSchema = {
     id: { header: "#", display: true },
@@ -15,7 +16,7 @@ export const schoolUpdateSchema = {
     updated_at: { header: "Last Modified", display: true, format: "date", sortable: true},
 };
 
-export const actions = (handleViewPost, handleEdit, handleDelete, handleArchive, handlePostFb) => ({
+export const actions = (handleViewPost, handlePublish, handleEdit, handleDelete, handleArchive, handlePostFb) => ({
     view: {
         icon: () => <Eye size={18} />,
         fn: (id, item) => handleViewPost(item),
@@ -25,6 +26,12 @@ export const actions = (handleViewPost, handleEdit, handleDelete, handleArchive,
     edit: {
         icon: () => <Pencil size={18} />,
         fn: (id, item) => handleEdit(item),
+        variant: () => "ghost",
+        className: "text-blue-600 hover:bg-blue-200 p-1"
+    },
+    publish: {
+        icon: () => <MdPublish size={18} />,
+        fn: (id, item) => handlePublish(item),
         variant: () => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
@@ -51,8 +58,9 @@ export const actions = (handleViewPost, handleEdit, handleDelete, handleArchive,
 // Sample action conditions
 export const actionConditions = {
     view: () => true,
-    edit: (item, userRole) => userRole === "comms" && item.status === "draft",
+    edit: (item, userRole) => userRole === "comms" && item.status === "draft" && item.status === "rejected",
     delete: (item, userRole) => userRole === "comms" && item.status === "archived",
+    publish: (item, userRole) => userRole === "comms" && item.status === "approved",
     archive: (item, userRole) => userRole === "comms" && item.status === "published",
     postFb: (item, userRole) => userRole === "comms" && item.status === "published" && item.status !== "published & synced",
     

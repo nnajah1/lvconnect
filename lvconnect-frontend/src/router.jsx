@@ -35,6 +35,7 @@ import ResetPassword from "./pages/authentication/ResetPassword";
 import PrivacyPolicy  from "./layouts/PrivacyPolicy";
 import { Authenticate } from "./components/dynamic/loader";
 import RegistrarDashboard from "./pages/registrar/AdminDashboard";
+import CommsDashboard from "./pages/admins/comms/AdminDashboard";
 // import ErrorPage from "./layouts/error";
 
 
@@ -97,7 +98,7 @@ const router = createBrowserRouter([
                         path: "comms-admin",
                         handle: { roles: ['comms'] },
                         children: [
-                            { index: true, element: <AdminDashboard /> },
+                            { index: true, element: <CommsDashboard /> },
                             { path: "posts", element: <Posts /> },
                             { path: "archive", element: <ArchivePosts /> },
 

@@ -2,6 +2,7 @@
 import { Navigate, Outlet, useLocation, useMatches } from "react-router-dom";
 import { useAuthContext } from "../context/AuthContext";
 import { roleRedirectMap } from "@/utils/roleRedirectMap";
+import { toast } from "react-toastify";
 
 export default function ProtectedRoute() {
     const { user, loading } = useAuthContext();
@@ -18,7 +19,7 @@ export default function ProtectedRoute() {
     }
 
    if (location.pathname === "/") {
-    const primaryRole = user.roles?.[0]?.name;
+    const primaryRole = user.active_role || user.roles?.[0]?.name;
     const redirectPath = roleRedirectMap[primaryRole];
     if (redirectPath) {
       return <Navigate to={redirectPath} replace />;
@@ -35,6 +36,12 @@ export default function ProtectedRoute() {
   if (!hasAccess) {
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
+
+  const currentPath = location.pathname;
+  if (!currentPath.startsWith(roleRedirectMap[user.active_role])) {
+  toast.warning("You are on a different role's page. Switch role to match access.");
+}
+
 
     return <Outlet />;
 }

@@ -449,7 +449,7 @@ class SchoolUpdateController extends Controller
         }
 
         // Only allow publish from draft or pending
-        if (!in_array($post->status, [SchoolUpdate::STATUS_DRAFT, SchoolUpdate::STATUS_PENDING])) {
+        if (!in_array($post->status, [SchoolUpdate::STATUS_DRAFT, SchoolUpdate::STATUS_PENDING, SchoolUpdate::STATUS_APPROVED,])) {
             return response()->json(['message' => 'Cannot publish this post'], 400);
         }
 

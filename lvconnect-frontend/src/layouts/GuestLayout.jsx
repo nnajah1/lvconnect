@@ -10,7 +10,7 @@ export default function GuestLayout() {
         return <Loader2 />;
     }
     if (user) {
-        const primaryRole = user.roles?.[0]?.name;
+        const primaryRole = user?.active_role || user.roles?.[0]?.name;
         const redirectPath = roleRedirectMap[primaryRole];
 
         if (redirectPath) {
