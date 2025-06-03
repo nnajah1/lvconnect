@@ -23,7 +23,7 @@ export const roleMenus = {
   ],
   scadmin: [
     { name: "Dashboard", path: "/school-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Review Posts", path: "/school-admin/posts/review", solidIcon: RiFileCopy2Fill, outlineIcon: RiFileCopy2Line },
+    { name: "School Updates", path: "/school-admin/posts", solidIcon: RiFileCopy2Fill, outlineIcon: RiFileCopy2Line },
   ],
   psas: [
     { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },

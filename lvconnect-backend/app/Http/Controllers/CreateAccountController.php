@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
 use App\Notifications\UserCredentialsNotification;
@@ -28,16 +29,22 @@ class CreateAccountController extends Controller
     {
         $authenticatedUser = JWTAuth::authenticate();
 
-        if (! $authenticatedUser || ! $authenticatedUser->hasRole('superadmin')) {
+        if (!$authenticatedUser || !$authenticatedUser->hasRole('superadmin')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
         $allowedAdminRoles = ['registrar', 'psas', 'comms', 'scadmin'];
+        $roles = $request->input('roles');
 
+        if (!is_array($roles)) {
+            $roles = [$roles];
+            $request->merge(['roles' => $roles]);
+        }
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'role'       => ['required', Rule::in($allowedAdminRoles)],
+            'last_name' => 'required|string|max:255',
+            'roles' => 'required|array',
+            'roles.*' => ['required', Rule::in($allowedAdminRoles)],
         ]);
 
         if ($validator->fails()) {
@@ -47,13 +54,15 @@ class CreateAccountController extends Controller
         // Generate email from first and last name
         $firstName = strtolower(preg_replace('/\s+/', '', $request->first_name));
         $lastName = strtolower(preg_replace('/\s+/', '', $request->last_name));
-        $email = $firstName . '.' . $lastName . '@example.com';
+        $email = $firstName . $lastName . '@laverdad.edu.ph';
 
         // Ensure email is unique (append number if needed)
-        $counter = 1;
+        // $counter = 1;
         while (User::where('email', $email)->exists()) {
-            $email = $firstName . '.' . $lastName . $counter . '@example.com';
-            $counter++;
+            // $email = $firstName . '.' . $lastName . $counter . '@example.com';
+            $email = $firstName . $lastName . '@laverdad.edu.ph';
+
+            // $counter++;
         }
 
         // Generate a random password
@@ -62,12 +71,12 @@ class CreateAccountController extends Controller
         // Create user
         $newAdmin = User::create([
             'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $email,
-            'password'   => Hash::make($randomPassword),
+            'last_name' => $request->last_name,
+            'email' => $email,
+            'password' => Hash::make($randomPassword),
         ]);
 
-        $newAdmin->assignRole($request->role);
+        $newAdmin->assignRole($request->roles);
 
         // Notify user with credentials
         $newAdmin->notify(new UserCredentialsNotification($randomPassword));
@@ -75,9 +84,9 @@ class CreateAccountController extends Controller
         return response()->json([
             'message' => 'Admin account created successfully.',
             'user' => [
-                'name'  => $newAdmin->first_name . ' ' . $newAdmin->last_name,
+                'name' => $newAdmin->first_name . ' ' . $newAdmin->last_name,
                 'email' => $newAdmin->email,
-                'role'  => $request->role,
+                'roles' => $newAdmin->getRoleNames(),
             ]
         ], 201);
     }
@@ -89,13 +98,13 @@ class CreateAccountController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (! $user || ! $user->hasRole('registrar')) {
+        if (!$user || !$user->hasRole('registrar')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -104,7 +113,7 @@ class CreateAccountController extends Controller
 
         // convert first and last name: only letters and lowercase
         $firstName = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->first_name));
-        $lastName  = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->last_name));
+        $lastName = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->last_name));
 
         // Create base email
         $email = $firstName . $lastName . '@student.laverdad.edu.ph';
@@ -122,9 +131,9 @@ class CreateAccountController extends Controller
         // Create student user
         $student = User::create([
             'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $email,
-            'password'   => Hash::make($randomPassword),
+            'last_name' => $request->last_name,
+            'email' => $email,
+            'password' => Hash::make($randomPassword),
         ]);
 
         $student->assignRole('student');
@@ -135,9 +144,9 @@ class CreateAccountController extends Controller
         return response()->json([
             'message' => 'Student account created successfully.',
             'user' => [
-                'name'  => $student->first_name . ' ' . $student->last_name,
+                'name' => $student->first_name . ' ' . $student->last_name,
                 'email' => $student->email,
-                'role'  => 'student',
+                'role' => 'student',
             ]
         ], 201);
     }
@@ -149,7 +158,7 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (! $authUser || ! $authUser->hasRole('registrar')) {
+        if (!$authUser || !$authUser->hasRole('registrar')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
@@ -215,13 +224,13 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (! $authUser || ! $authUser->hasAnyRole(['superadmin', 'registrar'])) {
+        if (!$authUser || !$authUser->hasAnyRole(['superadmin', 'registrar'])) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
         $user = User::find($id);
 
-        if (! $user) {
+        if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
@@ -230,7 +239,7 @@ class CreateAccountController extends Controller
         }
 
         // Registrar admin can only deactivate students
-        if ($authUser->hasRole('registrar') && ! $user->hasRole('student')) {
+        if ($authUser->hasRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['error' => 'Registrar can only deactivate student accounts'], 403);
         }
 
@@ -248,13 +257,13 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (! $authUser || ! $authUser->hasAnyRole(['superadmin', 'registrar'])) {
+        if (!$authUser || !$authUser->hasAnyRole(['superadmin', 'registrar'])) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
         $user = User::find($id);
 
-        if (! $user) {
+        if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
@@ -263,7 +272,7 @@ class CreateAccountController extends Controller
         }
 
         // Registrar admin can only reactivate students
-        if ($authUser->hasRole('registrar') && ! $user->hasRole('student')) {
+        if ($authUser->hasRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['error' => 'Registrar can only reactivate student accounts'], 403);
         }
 
@@ -281,14 +290,14 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (! $authUser || ! $authUser->hasRole('superadmin')) {
+        if (!$authUser || !$authUser->hasRole('superadmin')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
         if ($id) {
             $user = User::with('roles')->find($id);
 
-            if (! $user) {
+            if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
 
@@ -297,7 +306,7 @@ class CreateAccountController extends Controller
                     'id' => $user->id,
                     'name' => $user->first_name . ' ' . $user->last_name,
                     'email' => $user->email,
-                    'role' => $user->getRoleNames()->first(),
+                    'roles' => $user->getRoleNames(),
                 ]
             ]);
         }
@@ -309,13 +318,19 @@ class CreateAccountController extends Controller
                 'id' => $user->id,
                 'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'role' => $user->getRoleNames()->first(),
+                'is_active' => $user->is_active,
+                'roles' => $user->getRoleNames(),
             ];
         });
 
-        return response()->json($data);
-    }
+        // Get all role names
+        $roles = Role::pluck('name');
 
+        return response()->json([
+            'users' => $data,
+            'roles' => $roles,
+        ]);
+    }
     /**
      * Update the specified resource in storage.
      */
@@ -323,13 +338,13 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (! $authUser || ! $authUser->hasRole('superadmin')) {
+        if (!$authUser || !$authUser->hasRole('superadmin')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
         $admin = User::find($id);
 
-        if (! $admin) {
+        if (!$admin) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
@@ -337,26 +352,89 @@ class CreateAccountController extends Controller
             return response()->json(['error' => 'Cannot update another superadmin'], 403);
         }
 
-        $allowedRoles = ['registrar', 'psas', 'scadmin'];
+        $allowedAdminRoles = ['registrar', 'psas', 'scadmin', 'comms'];
+          $roles = $request->input('roles');
+
+        if (!is_array($roles)) {
+            $roles = [$roles];
+            $request->merge(['roles' => $roles]);
+        }
 
         $validator = Validator::make($request->all(), [
-            'role' => ['required', Rule::in($allowedRoles)],
+            'roles' => 'required|array',
+            'roles.*' => ['required', Rule::in($allowedAdminRoles)],
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $admin->syncRoles($request->role);
+        $admin->syncRoles($request->roles);
 
         return response()->json([
             'message' => 'Admin role updated successfully',
             'user' => [
                 'name' => $admin->first_name . ' ' . $admin->last_name,
-                'new_role' => $request->role,
+                'new_roles' => $admin->getRoleNames(),
             ]
         ]);
     }
+
+    public function updateAdminAccount2(Request $request, $id)
+    {
+        $authenticatedUser = JWTAuth::authenticate();
+
+        if (!$authenticatedUser || !$authenticatedUser->hasRole('superadmin')) {
+            return response()->json(['error' => 'Not authorized'], 403);
+        }
+
+        $allowedAdminRoles = ['registrar', 'psas', 'scadmin', 'comms'];
+        $roles = $request->input('roles');
+
+        if (!is_array($roles)) {
+            $roles = [$roles];
+            $request->merge(['roles' => $roles]);
+        }
+
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'roles' => 'required|array',
+            'roles.*' => ['required', Rule::in($allowedAdminRoles)],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Update user data
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+        ]);
+
+        // Sync roles
+        $user->syncRoles($request->roles);
+
+        return response()->json([
+            'message' => 'Admin account updated successfully.',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+                'roles' => $user->getRoleNames(),
+            ]
+        ]);
+    }
+
 
     /**
      * Soft delete user.
@@ -365,13 +443,13 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (! $authUser || ! $authUser->hasAnyRole(['superadmin', 'registrar'])) {
+        if (!$authUser || !$authUser->hasAnyRole(['superadmin', 'registrar'])) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
         $user = User::find($id);
 
-        if (! $user) {
+        if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
@@ -380,7 +458,7 @@ class CreateAccountController extends Controller
         }
 
         // Registrar admin can only delete users with the 'student' role
-        if ($authUser->hasRole('registrar') && ! $user->hasRole('student')) {
+        if ($authUser->hasRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['error' => 'Registrar can only delete student accounts'], 403);
         }
 
@@ -400,7 +478,7 @@ class CreateAccountController extends Controller
     {
         $user = User::onlyTrashed()->find($id);
 
-        if (! $user) {
+        if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
 

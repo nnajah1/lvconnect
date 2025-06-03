@@ -36,7 +36,7 @@ class FormFieldSeeder extends Seeder
                 ['type' => 'date', 'name' => 'Date of Birth', 'required' => true, 'page' => 1],
                 ['type' => 'text', 'name' => 'Previous School Attended', 'required' => false, 'page' => 2],
                 ['type' => 'radio', 'name' => 'Gender', 'options' => ['Male', 'Female', 'Other'], 'required' => true, 'page' => 1],
-                ['type' => 'textarea', 'name' => 'Guardian Details', 'required' => true, 'page' => 2],
+                ['type' => 'text', 'name' => 'Guardian Details', 'required' => true, 'page' => 2],
             ];
             $addFields($admissionForm, $fields);
         }

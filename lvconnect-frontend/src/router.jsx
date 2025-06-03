@@ -36,6 +36,7 @@ import { Authenticate } from "./components/dynamic/loader";
 import RegistrarDashboard from "./pages/registrar/AdminDashboard";
 import CommsDashboard from "./pages/admins/comms/AdminDashboard";
 import SchoolAdminDashboard from "./pages/admins/scadmin/AdminDashboard";
+import RoleManagement from "./pages/admins/systemAdmin/RoleManagement";
 // import ErrorPage from "./layouts/error";
 
 
@@ -143,7 +144,7 @@ const router = createBrowserRouter([
                         path: "system-admin",
                         handle: { roles: ['superadmin'] },
                         children: [
-                            { index: true, path: "super-admin", element: <PsasDashboard /> },
+                            { index: true, element: <RoleManagement /> },
 
                         ],
                     },

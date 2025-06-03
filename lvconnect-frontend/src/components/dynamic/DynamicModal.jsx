@@ -42,7 +42,7 @@ const DynamicModal = ({
                   shadow-lg 
                   pointer-events-auto 
                   min-w-[50vw]
-                  min-h-[50vh]
+                  min-h-[20vh]
                   max-w-full 
                   max-h-[90vh] 
                   overflow-y-auto 

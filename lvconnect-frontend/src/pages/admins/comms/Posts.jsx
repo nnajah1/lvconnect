@@ -2,14 +2,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { archivePost, deletePost, fbPost, getPosts, publishPost, restorePost } from "@/services/axios";
+import { approvePost, archivePost, deletePost, fbPost, getPosts, publishPost, rejectPost, restorePost, revisionPost } from "@/services/axios";
 import { actionConditions, actions, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreatePostModal from "@/pages/admins/comms/CreatePost";
 import ViewPostModal from "./ViewPost";
 import SearchBar from "@/components/dynamic/searchBar";
 import { useUserRole } from "@/utils/userRole";
-import { ConfirmationModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
+import { ConfirmationModal, ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
 import EditPostForm from "@/components/school_updates/editPostForm";
 import EditPostModal from "./EditPost";
 import { toast } from "react-toastify";
@@ -29,7 +29,11 @@ const Posts = () => {
   const [archiveItem, setArchiveItem] = useState(null);
   const [postItem, setPostItem] = useState(null);
   const [publishItem, setPublishItem] = useState(null);
-
+  const [approveItem, setApproveItem] = useState(null);
+  const [rejectItem, setRejectItem] = useState(null);
+  const [remarks, setRemarks] = useState("");
+  
+  const [revisionItem, setRevisionItem] = useState(null);
 
   const loadUpdates = async () => {
     setLoading(true)
@@ -43,6 +47,7 @@ const Posts = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     loadUpdates();
   }, []);
@@ -50,6 +55,7 @@ const Posts = () => {
   const handleViewPost = (item) => {
     setViewItem(item);
   };
+
   const handleEdit = (item) => {
     setEditItem(item);
   };
@@ -58,8 +64,20 @@ const Posts = () => {
     setDeleteItem(item);
   };
 
-   const handlePublish = (item) => {
+  const handlePublish = (item) => {
     setPublishItem(item);
+  };
+
+  const handleApprove = (item) => {
+    setApproveItem(item);
+  };
+
+  const handleReject = (item) => {
+    setRejectItem(item);
+  };
+
+   const handleRevision = (item) => {
+    setRevisionItem(item);
   };
 
   const handleDeletePost = async () => {
@@ -131,21 +149,118 @@ const Posts = () => {
     }
   };
 
-  const action = actions(handleViewPost, handlePublish, handleEdit, handleDelete, handleArchive, handlePostFb);
+  const handleApprovePost = async () => {
+    setLoading(true)
+    try {
+      await approvePost(approveItem.id);
+      await loadUpdates();
+      toast.success('Post approved successfully!');
+      setApproveItem(null)
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to approve post');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectPost = async () => {
+    if (!rejectItem.id) {
+      toast.info("No valid post found.");
+      console.log("rejectItem:", rejectItem);
+      return;
+    }
+    if (!remarks) {
+      toast.error("Input admin remarks");
+      console.log("rejectItem:", rejectItem);
+      return;
+    }
+    setLoading(true)
+    try {
+      await rejectPost(rejectItem.id, { revision_remarks: remarks });
+      await loadUpdates();
+      toast.success('Post rejected successfully!');
+      setRejectItem(null)
+      setRemarks("");     
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to reject post');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    const handleRevisionPost = async (e) => {
+    if (!revisionItem.id) {
+      toast.info("No valid post found.");
+      console.log("revisionItem:", revisionItem);
+      return;
+    }
+    if (!remarks) {
+      toast.error("Input admin remarks");
+      console.log("revisionItem:", revisionItem);
+      return;
+    }
+    setLoading(true)
+    try {
+      await revisionPost(revisionItem.id, { revision_remarks: remarks });
+      await loadUpdates();
+      toast.success('Post submitted for revision!');
+      setRevisionItem(null);
+      setRemarks("");
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to submit post for revision');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Modal handlers that will be passed to ViewPostModal
+  const modalHandlers = {
+    onEdit: (item) => {
+      setViewItem(null); 
+      setEditItem(item);  
+    },
+    onDelete: (item) => {
+      setViewItem(null);
+      setDeleteItem(item);
+    },
+    onArchive: (item) => {
+      setViewItem(null);
+      setArchiveItem(item);
+    },
+    onPublish: (item) => {
+      setViewItem(null);
+      setPublishItem(item);
+    },
+    onPostFb: (item) => {
+      setViewItem(null);
+      setPostItem(item);
+    },
+    onApprove: (item) => {
+      setViewItem(null);
+      setApproveItem(item);
+    },
+    onReject: (item) => {
+      setViewItem(null);
+      setRejectItem(item);
+    },
+    onRevision: (item) => {
+      setViewItem(null);
+      setRevisionItem(item);
+    }
+
+  };
+
+  const action = actions(handleViewPost, handlePublish, handleEdit, handleDelete, handleArchive, handlePostFb, handleApprove, handleReject,);
 
   const columns = getColumns({
     userRole,
     schema: schoolUpdateSchema,
     actions: action,
     actionConditions: actionConditions
-
   });
-
-
-  // if (error) {
-  //   return <p className="text-red-500">Error: {error}</p>;
-  // }
-
 
   return (
     <div className="container mx-auto p-4">
@@ -153,18 +268,19 @@ const Posts = () => {
 
       {/* Create & Search Section */}
       <div className="flex justify-between items-center mb-4">
-        {/* Create Update Button */}
+        {/* Create Update Button - Show for both comms and admin */}
         <div className="relative">
-          <button
-            onClick={() => {
-              setIsOpen(true)
-            }}
-            className="flex items-center space-x-2 bg-[#2CA4DD] text-white px-3 py-2 rounded-md cursor-pointer"
-          >
-            <CiCirclePlus size={25} />
-            <span>Create Update</span>
-            {/* <IoMdArrowDropdown size={25} /> */}
-          </button>
+          {(userRole === "comms") && (
+            <button
+              onClick={() => {
+                setIsOpen(true)
+              }}
+              className="flex items-center space-x-2 bg-[#2CA4DD] text-white px-3 py-2 rounded-md cursor-pointer"
+            >
+              <CiCirclePlus size={25} />
+              <span>Create Update</span>
+            </button>
+          )}
         </div>
 
         {/* Search Input */}
@@ -182,9 +298,11 @@ const Posts = () => {
           closeModal={() => setViewItem(null)}
           postId={viewItem.id}
           loadUpdates={loadUpdates}
+          userRole={userRole}
+          modalHandlers={modalHandlers}
         />
-
       )}
+
       {editItem && (
         <EditPostModal
           isOpen={!!editItem}
@@ -195,8 +313,9 @@ const Posts = () => {
           loadUpdates={loadUpdates}
         />
       )}
+
       {deleteItem && (
-        <WarningModal
+        <ErrorModal
           isOpen={!!deleteItem}
           closeModal={() => setDeleteItem(null)}
           title="Delete Post"
@@ -211,12 +330,11 @@ const Posts = () => {
           <button
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
             onClick={handleDeletePost}
-           disabled={loading}
+            disabled={loading}
           >
             {loading ? 'Deleting...' : 'Delete'}
           </button>
-
-        </WarningModal>
+        </ErrorModal>
       )}
 
       {archiveItem && (
@@ -235,14 +353,12 @@ const Posts = () => {
           <button
             className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 cursor-pointer"
             onClick={handleArchivePost}
-           disabled={loading}
+            disabled={loading}
           >
             {loading ? 'Archiving...' : 'Archive'}
           </button>
-
         </WarningModal>
       )}
-
 
       {postItem && (
         <InfoModal
@@ -264,7 +380,6 @@ const Posts = () => {
           >
             {loading ? 'Syncing...' : 'Sync To Facebook'}
           </button>
-
         </InfoModal>
       )}
 
@@ -284,14 +399,111 @@ const Posts = () => {
           <button
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
             onClick={handlePublishPost}
-           disabled={loading}
+            disabled={loading}
           >
             {loading ? 'Publishing...' : 'Publish'}
           </button>
-
         </ConfirmationModal>
       )}
 
+      {approveItem && (
+        <ConfirmationModal
+          isOpen={!!approveItem}
+          closeModal={() => setApproveItem(null)}
+          title="Approve Post"
+          description="Are you sure you want to approve this post?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+            onClick={() => setApproveItem(null)}
+          >
+            cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
+            onClick={handleApprovePost}
+            disabled={loading}
+          >
+            {loading ? 'Approving...' : 'Approve'}
+          </button>
+        </ConfirmationModal>
+      )}
+
+      {rejectItem && (
+        <ErrorModal
+          isOpen={!!rejectItem}
+          closeModal={() => { setRejectItem(null); setRemarks(""); }}
+          title="Reject Post"
+          description="Are you sure you want to reject this post?"
+        >
+          <div className="flex w-full flex-col">
+            <div className="w-full">
+              <textarea
+                placeholder="Enter admin remarks"
+                className="w-full px-3 py-2 border rounded mb-4"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+                onClick={() => { setRejectItem(null); setRemarks(""); }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" 
+                onClick={handleRejectPost}
+                disabled={loading}
+              >
+                {loading ? 'Rejecting...' : 'Reject'}
+              </button>
+            </div>
+          </div>
+        </ErrorModal>
+      )}
+
+       {revisionItem && (
+        <WarningModal
+          isOpen={!!revisionItem}
+          closeModal={() => { setRevisionItem(null); setRemarks(""); }}
+          title="For Revision Post"
+          description="Are you sure you want to submit this post for revision?"
+        >
+          <div className="flex w-full flex-col">
+            <div className="w-full">
+              <textarea
+                placeholder="Enter admin remarks"
+                className="w-full px-3 py-2 border rounded mb-4"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+                onClick={() => { setRevisionItem(null); setRemarks(""); }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                onClick={handleRevisionPost}
+                disabled={loading}
+              >
+                {loading ? 'Submitting...' : 'For Revision'}
+              </button>
+            </div>
+          </div>
+        </WarningModal>
+      )}
 
     </div>
   );

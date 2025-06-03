@@ -143,6 +143,14 @@ Route::middleware('auth.jwt')->group(function () {
   Route::get('/schoolAdmin-dashboard', [DashboardController::class, 'schoolAdminDashboard']);
   Route::get('/registrar-dashboard', [DashboardController::class, 'registrarDashboard']);
 
+  
+  Route::get('/users', [CreateAccountController::class, 'showUserRole']);
+  Route::delete('/users/{id}', [CreateAccountController::class, 'deleteUser']);
+  Route::post('/system-admin/create-user', [CreateAccountController::class, 'createAdminAccount']);
+  Route::put('/system-admin/update-role/{id}', [CreateAccountController::class, 'updateAdminAccount']);
+  Route::put('/system-admin/reactivate-user/{id}', [CreateAccountController::class, 'reactivateUser']);
+  Route::put('/system-admin/deactivate-user/{id}', [CreateAccountController::class, 'deactivateUser']);
+
 
 });
 
