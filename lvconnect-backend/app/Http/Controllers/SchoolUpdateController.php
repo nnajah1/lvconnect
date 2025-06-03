@@ -603,15 +603,9 @@ class SchoolUpdateController extends Controller
         try {
             $schoolupdate = SchoolUpdate::findOrFail($id);
 
-            $facebookData = [
-                'message' => strip_tags($request->content),
-                'link' => url('/posts/' . urlencode($request->title)),
-            ];
-
             $postData = [
                 'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
-                'message' => $facebookData['message'],
-                'link' => $facebookData['link'],
+                'message' => strip_tags($request->content),
             ];
 
             if (!empty($request->image_url)) {
