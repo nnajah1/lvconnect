@@ -22,6 +22,7 @@ export const religionOptions = [
   "Buddhist",
   "Hindu",
   "Judaism",
+  "N/A"
 ]
 
 export const programOptions = [
