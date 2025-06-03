@@ -602,25 +602,33 @@ class SchoolUpdateController extends Controller
 
         try {
             $schoolupdate = SchoolUpdate::findOrFail($id);
-
-            $postData = [
-                'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
-                'message' => strip_tags($request->content),
-            ];
+            $fbVersion = 'v18.0';
+            $pageId = env('FACEBOOK_PAGE_ID');
+            $accessToken = env('FACEBOOK_ACCESS_TOKEN');
 
             if (!empty($request->image_url)) {
-                $postData['picture'] = $request->image_url[0];
+                $postData = [
+                    'access_token' => $accessToken,
+                    'url' => $request->image_url[0],
+                    'caption' => strip_tags($request->content),
+                ];
+
+                $postUrl = "https://graph.facebook.com/{$fbVersion}/{$pageId}/photos";
+            } else {
+                $postData = [
+                    'access_token' => $accessToken,
+                    'message' => strip_tags($request->content),
+                ];
+
+                $postUrl = "https://graph.facebook.com/{$fbVersion}/{$pageId}/feed";
             }
 
-            $pageId = env('FACEBOOK_PAGE_ID');
-            $fbVersion = 'v18.0';
-
             Log::info('Sending data to Facebook', [
-                'url' => "https://graph.facebook.com/{$fbVersion}/{$pageId}/feed",
+                'url' => $postUrl,
                 'postData' => $postData,
             ]);
 
-            $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $postData);
+            $response = Http::post($postUrl, $postData);
 
             Log::info('Facebook response', [
                 'status' => $response->status(),

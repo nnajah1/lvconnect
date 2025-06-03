@@ -19,6 +19,7 @@ class SchoolUpdate extends Model
         'synced_at' => 'datetime',
         'restored_at'=> 'datetime',
         'approved_at' => 'datetime',
+        'image_url' => 'array',
     ];
     
     const TYPE_ANNOUNCEMENT = 'announcement';
