@@ -60,9 +60,7 @@ class SchoolUpdateController extends Controller
         $schoolUpdate = null;
 
         if ($user->hasRole('comms')) {
-            $schoolUpdate = SchoolUpdate::where('id', $id)
-                ->where('created_by', $user->id)
-                ->first();
+            $schoolUpdate = SchoolUpdate::all();
         }
 
         if ($user->hasRole('scadmin')) {
