@@ -85,7 +85,7 @@ export const updatePost = async (id, formData) => {
 export const archivePost = (id) => api.post(`/posts/${id}/archive`);
 export const restorePost = (id) => api.post(`/posts/${id}/restore`);
 export const deletePost = (id) => api.delete(`/posts/${id}/delete`);
-export const fbPost = (id) => api.post(`/posts/${id}/facebook-sync`);
+export const fbPost = (id, data) => api.post(`/posts/${id}/facebook-sync`, data);
 
 export const publishPost = (id) => api.post(`/posts/${id}/publish`);
 export const submitPost = (id) => api.post(`/posts/${id}/submit`);

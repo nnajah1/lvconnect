@@ -62,7 +62,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/posts/{schoolupdate}/publish', [SchoolUpdateController::class, 'publish']);
   Route::post('/posts/{schoolupdate}/archive', [SchoolUpdateController::class, 'archive']);
   Route::post('/posts/{schoolupdate}/restore', [SchoolUpdateController::class, 'restore']);
-  Route::post('/facebook-sync', [SchoolUpdateController::class, 'sync']);
+  Route::post('/posts/{id}/facebook-sync', [SchoolUpdateController::class, 'sync']);
   Route::delete('/posts/{id}/delete', [SchoolUpdateController::class, 'destroy']);
 
   Route::get('/calendar-activities', [CalendarOfActivityController::class, 'index']);
@@ -125,6 +125,10 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/archive-student-data/{id}', [StudentManagementController::class, 'archive']);
   Route::post('/enrollees/bulk-archive', [StudentManagementController::class, 'bulkArchive']);
   Route::post('/enrollment-schedule/toggle', [EnrollmentController::class, 'toggleEnrollmentSchedule']);
+
+  Route::post('/enrollment-schedule/open', [EnrollmentController::class, 'openSchedule']);
+  Route::post('/enrollment-schedule/close', [EnrollmentController::class, 'closeSchedule']);
+  Route::get('/enrollment-schedule/active', [EnrollmentController::class, 'getActiveEnrollmentSchedule']);
 
   Route::get('/enrollment-data', [EnrollmentController::class, 'showEnrollmentData']);
   Route::put('/manual-enrollment/{id}', [EnrollmentController::class, 'manualEnrollment']);

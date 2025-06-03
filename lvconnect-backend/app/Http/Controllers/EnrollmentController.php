@@ -24,48 +24,48 @@ class EnrollmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-  public function index()
-{
-    $user = JWTAuth::authenticate();
+    public function index()
+    {
+        $user = JWTAuth::authenticate();
 
-    if ($user->hasRole('student')) {
-        $studentInfoId = $user->studentInformation?->id;
+        if ($user->hasRole('student')) {
+            $studentInfoId = $user->studentInformation?->id;
 
-        if (!$studentInfoId) {
-            return response()->json(['message' => 'Student information not found.'], 404);
-        }
+            if (!$studentInfoId) {
+                return response()->json(['message' => 'Student information not found.'], 404);
+            }
 
-        // Get active enrollment schedule with student's enrollee records and their program
-        $activeSchedule = EnrollmentSchedule::where('is_active', true)
-            ->with([
-                'academicYear',
-                'enrollees' => function ($q) use ($studentInfoId) {
-                    $q->where('student_information_id', $studentInfoId)
-                      ->with('program');
-                }
-            ])
-            ->first();
+            // Get active enrollment schedule with student's enrollee records and their program
+            $activeSchedule = EnrollmentSchedule::where('is_active', true)
+                ->with([
+                    'academicYear',
+                    'enrollees' => function ($q) use ($studentInfoId) {
+                        $q->where('student_information_id', $studentInfoId)
+                            ->with('program');
+                    }
+                ])
+                ->first();
 
-        // Get all enrollee records for the student across all schedules
-        $allEnrollees = EnrolleeRecord::where('student_information_id', $studentInfoId)
-            ->with(['program', 'enrollmentSchedule.academicYear'])
-            ->get();
+            // Get all enrollee records for the student across all schedules
+            $allEnrollees = EnrolleeRecord::where('student_information_id', $studentInfoId)
+                ->with(['program', 'enrollmentSchedule.academicYear'])
+                ->get();
 
-        if (!$activeSchedule) {
+            if (!$activeSchedule) {
+                return response()->json([
+                    'message' => 'No active enrollment schedule found.'
+                ], 404);
+            }
+
             return response()->json([
-                'message' => 'No active enrollment schedule found.'
-            ], 404);
+                'data' => $activeSchedule,
+                'all_enrollees' => $allEnrollees,
+                'student_id' => $studentInfoId,
+            ]);
         }
 
-        return response()->json([
-            'data' => $activeSchedule,
-            'all_enrollees' => $allEnrollees,
-            'student_id' => $studentInfoId,
-        ]); 
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
-
-    return response()->json(['message' => 'Unauthorized'], 403);
-}
 
 
     public function AdminView(Request $request)
@@ -611,6 +611,92 @@ class EnrollmentController extends Controller
         return response()->json([
             'data' => $schedule,
             'message' => 'Enrollment schedule updated.',
+        ]);
+    }
+
+    public function openSchedule(Request $request)
+    {
+        $data = $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'semester' => 'required|in:first_semester,second_semester',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        if ($data['semester'] === 'second_semester') {
+            $firstExists = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
+                ->where('semester', 'first_semester')
+                ->exists();
+
+            if (!$firstExists) {
+                return response()->json(['message' => '1st semester must be created before 2nd.'], 422);
+            }
+        }
+
+        EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
+            ->update(['is_active' => false]);
+
+        $schedule = EnrollmentSchedule::updateOrCreate(
+            [
+                'academic_year_id' => $data['academic_year_id'],
+                'semester' => $data['semester'],
+            ],
+            [
+                'is_active' => true,
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
+            ]
+        );
+
+        Notification::send(User::role('student')->get(), new EnrollmentNotification(
+            AcademicYear::find($data['academic_year_id']),
+            $data['semester'],
+            true
+        ));
+
+        return response()->json(['data' => $schedule, 'message' => 'Schedule opened.']);
+    }
+
+    public function closeSchedule(Request $request)
+    {
+        $data = $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'semester' => 'required|in:first_semester,second_semester',
+        ]);
+
+        $schedule = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
+            ->where('semester', $data['semester'])
+            ->first();
+
+        if (!$schedule) {
+            return response()->json(['message' => 'Schedule not found.'], 404);
+        }
+
+        $schedule->update([
+            'is_active' => false,
+            'end_date' => now(),
+        ]);
+
+        Notification::send(User::role('student')->get(), new EnrollmentNotification(
+            AcademicYear::find($data['academic_year_id']),
+            $data['semester'],
+            false
+        ));
+
+        return response()->json(['data' => $schedule, 'message' => 'Schedule closed.']);
+    }
+
+    public function getActiveEnrollmentSchedule()
+    {
+        $activeSchedule = EnrollmentSchedule::where('is_active', true)->first();
+
+        if (!$activeSchedule) {
+            return response()->json(['active' => false]);
+        }
+
+        return response()->json([
+            'active' => true,
+            'data' => $activeSchedule,
         ]);
     }
 

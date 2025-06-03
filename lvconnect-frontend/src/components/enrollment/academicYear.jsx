@@ -3,6 +3,9 @@ import { formatDate, formatDateTime } from "@/utils/formatDate";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { InfoModal } from "../dynamic/alertModal";
+import TooltipComponent from "../dynamic/tooltip";
+import { BsFillInfoCircleFill } from "react-icons/bs";
+import api from "@/services/axios";
 
 const AcademicYear = ({
     selectedYear,
@@ -23,22 +26,22 @@ const AcademicYear = ({
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [isOpenAddModal, setIsOpenAddModal] = useState(false);
 
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
+    const [scheduleOpened, setScheduleOpened] = useState(false); // controls UI toggle
+
     // Fetch academic years on mount
     useEffect(() => {
         const fetchYears = async () => {
             // Restore from localStorage
             const savedYear = localStorage.getItem("selectedYear");
             const savedSemester = localStorage.getItem("selectedSemester");
-            // *** NEW: Retrieve saved enrollment open state ***
-            const savedIsEnrollmentOpen = localStorage.getItem("isEnrollmentOpen");
 
 
             if (savedYear) setSelectedYear(savedYear);
             if (savedSemester) setSemester(savedSemester);
-            // *** NEW: Apply saved enrollment open state immediately ***
-            if (savedIsEnrollmentOpen !== null) { // Check for null to differentiate from 'false'
-                setIsEnrollmentOpen(JSON.parse(savedIsEnrollmentOpen));
-            }
 
 
             // Fetch academic years
@@ -69,9 +72,7 @@ const AcademicYear = ({
     useEffect(() => {
         if (!selectedYearObj || !semester) {
             setCurrentSchedule(null);
-            setIsEnrollmentOpen(false); // Reset if no valid selection
-            // *** NEW: Also clear from localStorage if selection is invalid ***
-            localStorage.removeItem("isEnrollmentOpen");
+            setIsEnrollmentOpen(false);
             return;
         }
 
@@ -83,21 +84,15 @@ const AcademicYear = ({
                 });
                 setCurrentSchedule(res.data.data);
                 const newStatus = res.data.data?.is_active || false;
-                setIsEnrollmentOpen(newStatus);
-                // *** NEW: Save the actual fetched status to localStorage ***
-                localStorage.setItem("isEnrollmentOpen", JSON.stringify(newStatus));
             } catch {
                 setCurrentSchedule(null);
-                setIsEnrollmentOpen(false); // Reset if fetching fails
-                // *** NEW: Also clear from localStorage if fetching fails ***
-                localStorage.removeItem("isEnrollmentOpen");
             }
         };
 
         fetchSchedule();
     }, [selectedYearObj, semester]);
 
-    // This useEffect is good for saving selectedYear and semester
+    // This useEffect is for saving selectedYear and semester
     useEffect(() => {
         if (selectedYear) {
             localStorage.setItem("selectedYear", selectedYear);
@@ -110,7 +105,7 @@ const AcademicYear = ({
 
     const validateNewYear = () => {
         if (!newYear.trim()) {
-            toast.error("Please enter an academic year");
+            toast.error("Please select an academic year");
             return false;
         }
 
@@ -129,17 +124,25 @@ const AcademicYear = ({
                 toast.error(`You can only add the next academic year after ${latestYear}`);
                 return false;
             }
+
+            if (newStart > currentYear) {
+                toast.error("You cannot add future academic years yet");
+                return false;
+            }
         }
 
         return true;
     };
 
     const handleAddYear = async () => {
+        if (!validateNewYear()) return;
+
         setLoadingYears(true);
         try {
             await createAcademicYear(newYear.trim());
             toast.success("Academic year added");
             setNewYear("");
+
             const res = await getAcademicYears();
             setAcademicYears(res.data.data);
             setSelectedYear(newYear.trim());
@@ -150,7 +153,6 @@ const AcademicYear = ({
             setLoadingYears(false);
         }
     };
-
 
     // Toggle enrollment open/close
     const handleToggleEnrollment = async () => {
@@ -180,9 +182,88 @@ const AcademicYear = ({
             setLoadingToggle(false);
         }
     };
+
     const handleValidateAndOpenModal = () => {
         if (validateNewYear()) {
             setIsOpenAddModal(true);
+        }
+    };
+
+
+    const currentYear = new Date().getFullYear();
+    const latestYear = academicYears?.[0]?.school_year;
+    let nextYearToAdd = "";
+    let disableAdd = false;
+
+    if (latestYear) {
+        const [latestStart, latestEnd] = latestYear.split("-").map(Number);
+        if (latestStart >= currentYear) {
+            disableAdd = true; // It's still the latest year, no future year allowed
+        } else {
+            nextYearToAdd = `${latestStart + 1}-${latestEnd + 1}`;
+        }
+    } else {
+        // If no academic year exists, allow first one
+        nextYearToAdd = `${currentYear}-${currentYear + 1}`;
+    }
+
+    useEffect(() => {
+        const fetchActiveSchedule = async () => {
+            try {
+                const res = await api.get('/enrollment-schedule/active');
+                if (res.data.active) {
+                    const { academic_year_id, semester, start_date, end_date } = res.data.data;
+                    setSelectedYear(academic_year_id);
+                    setSemester(semester);
+                    setStartDate(start_date);
+                    setEndDate(end_date);
+                    setScheduleOpened(true);
+                } else {
+                    setScheduleOpened(false);
+                }
+            } catch (err) {
+                console.error('Failed to fetch active schedule');
+            }
+        };
+
+        fetchActiveSchedule();
+    }, []);
+
+    const handleOpen = async () => {
+        setLoading(true);
+        setMessage('');
+        try {
+            const res = await api.post('/enrollment-schedule/open', {
+                academic_year_id: selectedYearObj.id,
+                semester,
+                start_date: startDate,
+                end_date: endDate,
+            });
+            toast.success(res.data.message || 'Schedule opened.');
+            setScheduleOpened(true); // Show only dates and close button
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Something went wrong.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleClose = async () => {
+        setLoading(true);
+        setMessage('');
+        try {
+            const res = await api.post('/enrollment-schedule/close', {
+                academic_year_id: selectedYearObj.id,
+                semester,
+            });
+            setMessage(res.data.message || 'Schedule closed.');
+            setScheduleOpened(false); // Show form again
+            // setStartDate('');
+            // setEndDate('');
+        } catch (error) {
+            setMessage(error.response?.data?.message || 'Something went wrong.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -222,7 +303,7 @@ const AcademicYear = ({
             </div>
 
             {/* Enrollment Toggle */}
-            <div className="flex flex-col items-start mb-4 md:mb-0">
+            {/* <div className="flex flex-col items-start mb-4 md:mb-0">
                 <label className="text-gray-700 font-semibold mb-1">Enrollment Toggle</label>
                 <button
                     onClick={() => setIsOpenModal(true)}
@@ -251,27 +332,85 @@ const AcademicYear = ({
                         <div>End: {formatDateTime(currentSchedule.end_date)}</div>
                     )}
                 </div>
+            )} */}
+            {!scheduleOpened && (
+                <>
+                    <div>
+                        <label>Start Date:</label>
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="border p-2 w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <label>End Date:</label>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="border p-2 w-full"
+                        />
+                    </div>
+
+                    <button
+                        onClick={handleOpen}
+                        disabled={loading}
+                        className="bg-green-600 text-white px-4 py-2 rounded"
+                    >
+                        {loading ? 'Opening...' : 'Open Schedule'}
+                    </button>
+                </>
+            )}
+
+            {scheduleOpened && (
+                <>
+                    <div className="text-sm text-gray-700 space-y-1">
+                        <p>📅 <strong>Start Date:</strong> {startDate || 'N/A'}</p>
+                        <p>📅 <strong>End Date:</strong> {endDate || 'N/A'}</p>
+                    </div>
+
+                    <button
+                        onClick={handleClose}
+                        disabled={loading}
+                        className="bg-red-600 text-white px-4 py-2 rounded"
+                    >
+                        {loading ? 'Closing...' : 'Close Schedule'}
+                    </button>
+                </>
             )}
 
             {/* Add New Academic Year */}
-            <div className="flex flex-col items-start ml-auto max-w-xs">
+            <div className="flex flex-col items-center justify-end ml-auto max-w-xs">
                 <label className="text-gray-700 font-semibold mb-1">Add Academic Year</label>
-                <div className="flex gap-2 w-full">
-                    <input
-                        type="text"
-                        placeholder="e.g. 2023-2024"
+                <div className="flex gap-2">
+                    <select
                         value={newYear}
                         onChange={(e) => setNewYear(e.target.value)}
                         className="border border-gray-300 rounded px-3 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    />
+                        disabled={disableAdd}
+                    >
+                        <option value="">Select year</option>
+                        {nextYearToAdd && (
+                            <option value={nextYearToAdd} key={nextYearToAdd}>
+                                {nextYearToAdd}
+                            </option>
+                        )}
+                    </select>
+
                     <button
                         onClick={handleValidateAndOpenModal}
-                        disabled={loadingYears}
+                        disabled={loadingYears || !newYear || disableAdd}
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 rounded disabled:opacity-50"
                     >
                         {loadingYears ? "Adding..." : "Add"}
                     </button>
+                    <TooltipComponent text="
+                        You cannot add a future academic year until the current one ends."><BsFillInfoCircleFill size={14} /></TooltipComponent>
                 </div>
+
                 {isOpenAddModal && (
                     <InfoModal
                         isOpen={isOpenAddModal}

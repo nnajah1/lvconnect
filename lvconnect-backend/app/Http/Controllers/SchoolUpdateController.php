@@ -577,7 +577,7 @@ class SchoolUpdateController extends Controller
     //     }
     // }
 
-    public function sync(Request $request)
+    public function sync(Request $request, $id)
     {
         $request->validate([
             'schoolupdate_id' => 'required|exists:school_updates,id',
@@ -587,7 +587,7 @@ class SchoolUpdateController extends Controller
         ]);
 
         try {
-            $schoolupdate = SchoolUpdate::findOrFail($request->schoolupdate_id);
+            $schoolupdate = SchoolUpdate::findOrFail($id);
 
             $facebookData = [
                 'message' => strip_tags($request->content),

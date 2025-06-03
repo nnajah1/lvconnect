@@ -10,7 +10,7 @@ export const surveySchema = {
         customCell: (value) => {
             const map = {
                 hidden: "Hidden",
-                optional: "Optional",
+                optional: "Visible",
                 mandatory: "Mandatory",
             };
             return map[value] || "Unknown";

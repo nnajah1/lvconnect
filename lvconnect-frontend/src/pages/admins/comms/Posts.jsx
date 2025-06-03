@@ -32,7 +32,7 @@ const Posts = () => {
   const [approveItem, setApproveItem] = useState(null);
   const [rejectItem, setRejectItem] = useState(null);
   const [remarks, setRemarks] = useState("");
-  
+
   const [revisionItem, setRevisionItem] = useState(null);
 
   const loadUpdates = async () => {
@@ -76,7 +76,7 @@ const Posts = () => {
     setRejectItem(item);
   };
 
-   const handleRevision = (item) => {
+  const handleRevision = (item) => {
     setRevisionItem(item);
   };
 
@@ -118,10 +118,17 @@ const Posts = () => {
     setPostItem(item);
   };
 
+  console.log(postItem)
+
   const handleFbPost = async () => {
     setLoading(true)
     try {
-      const response = await fbPost(postItem.id);
+      const response = await fbPost(postItem.id, {
+        schoolupdate_id: postItem.id,
+        title: postItem.title,
+        content: postItem.content,
+        image_url: postItem.image_url || [],
+      });
       await loadUpdates();
       toast.success('Post synced to Facebook successfully!');
       setPostItem(null)
@@ -181,7 +188,7 @@ const Posts = () => {
       await loadUpdates();
       toast.success('Post rejected successfully!');
       setRejectItem(null)
-      setRemarks("");     
+      setRemarks("");
     } catch (error) {
       console.error(error);
       toast.error('Failed to reject post');
@@ -190,7 +197,7 @@ const Posts = () => {
     }
   };
 
-    const handleRevisionPost = async (e) => {
+  const handleRevisionPost = async (e) => {
     if (!revisionItem.id) {
       toast.info("No valid post found.");
       console.log("revisionItem:", revisionItem);
@@ -219,8 +226,8 @@ const Posts = () => {
   // Modal handlers that will be passed to ViewPostModal
   const modalHandlers = {
     onEdit: (item) => {
-      setViewItem(null); 
-      setEditItem(item);  
+      setViewItem(null);
+      setEditItem(item);
     },
     onDelete: (item) => {
       setViewItem(null);
@@ -456,7 +463,7 @@ const Posts = () => {
               </button>
 
               <button
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" 
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                 onClick={handleRejectPost}
                 disabled={loading}
               >
@@ -467,7 +474,7 @@ const Posts = () => {
         </ErrorModal>
       )}
 
-       {revisionItem && (
+      {revisionItem && (
         <WarningModal
           isOpen={!!revisionItem}
           closeModal={() => { setRevisionItem(null); setRemarks(""); }}
@@ -494,7 +501,7 @@ const Posts = () => {
               </button>
 
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 onClick={handleRevisionPost}
                 disabled={loading}
               >

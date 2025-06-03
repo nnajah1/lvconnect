@@ -220,8 +220,8 @@ export default function SurveyBuilder({
                         </SelectTrigger>
                         <SelectContent className="bg-white text-sm">
                             <SelectItem value="hidden">Hidden (Not shown to users)</SelectItem>
-                            <SelectItem value="optional">Optional (Visible in survey list)</SelectItem>
-                            <SelectItem value="mandatory">Mandatory (Shown on login, required)</SelectItem>
+                            <SelectItem value="optional">Visible (Visible in survey list)</SelectItem>
+                            {/* <SelectItem value="mandatory">Mandatory (Shown on login, required)</SelectItem> */}
                         </SelectContent>
                     </Select>
                 </div>

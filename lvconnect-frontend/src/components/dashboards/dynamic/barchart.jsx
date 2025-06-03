@@ -9,7 +9,7 @@ import {
   LabelList,
   Tooltip
 } from 'recharts';
-import { Users } from 'lucide-react';
+import { CircleOff, Users } from 'lucide-react';
 import { colors } from '@/utils/statsDashboard';
 
 function BarChartByProgram({ programs = [] }) {
@@ -25,8 +25,8 @@ function BarChartByProgram({ programs = [] }) {
 
       {filteredChartData.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
-          <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>No data available for the selected filters</p>
+          <CircleOff className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p>No data available</p>
         </div>
       ) : (
         <div className="bg-gray-50 rounded-lg p-4">

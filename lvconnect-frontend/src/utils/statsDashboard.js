@@ -19,11 +19,11 @@ export const statConfig = {
     icon: HiOutlineClipboardList,
     color: 'bg-yellow-500',
   },
-  mandatory_surveys: {
-    label: 'Mandatory Surveys',
-    icon: HiOutlineExclamationCircle,
-    color: 'bg-red-500',
-  },
+  // mandatory_surveys: {
+  //   label: 'Mandatory Surveys',
+  //   icon: HiOutlineExclamationCircle,
+  //   color: 'bg-red-500',
+  // },
   total_answers_submitted: {
     label: 'Total Submissions',
     icon: HiOutlineChartPie,

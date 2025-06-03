@@ -33,7 +33,7 @@ export const registrarSchema = {
         not_enrolled: <span style={{ color: "gray" }}>Not Enrolled</span>,
         enrolled: <span style={{ color: "green" }}>Enrolled</span>,
         pending: <span style={{ color: "orange" }}>Pending</span>,
-        rejected: <span style={{ color: "red" }}>Rejected</span>
+        rejected: <span style={{ color: "red" }}>Not Elligible</span>
       };
       return map[status] || "-";
     }

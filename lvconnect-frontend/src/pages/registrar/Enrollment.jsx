@@ -329,7 +329,7 @@ const Enrollment = () => {
           { label: "All", value: "all" },
           { label: "Enrolled", value: "enrolled" },
           { label: "Pending", value: "pending" },
-          { label: "Rejected", value: "rejected" },
+          { label: "Not Elligible", value: "rejected" },
           { label: "Not Enrolled", value: "not_enrolled" },
         ]}
         activeTab={activeTab}

@@ -13,7 +13,7 @@ export const schoolUpdateSchema = {
     },
     status: { header: "Status", display: true },
     type: { header: "Type", display: true },
-    updated_at: { header: "Last Modified", display: true, format: "date", sortable: true},
+    updated_at: { header: "Last Modified", display: true, format: "date", sortable: true },
 };
 
 export const actions = (handleViewPost, handlePublish, handleEdit, handleDelete, handleArchive, handlePostFb, handleApprove, handleReject) => ({
@@ -56,7 +56,7 @@ export const actions = (handleViewPost, handlePublish, handleEdit, handleDelete,
     approve: {
         icon: () => <Check size={18} />,
         fn: (id, item) => handleApprove(item),
-        variant: () => "default",className: "hover:bg-green-300 bg-green-500 p-1 text-xs sm:text-sm max-w-xs"
+        variant: () => "default", className: "hover:bg-green-300 bg-green-500 p-1 text-xs sm:text-sm max-w-xs"
     },
     reject: {
         icon: () => <X size={18} />,
@@ -74,16 +74,19 @@ export const actionConditions = {
     publish: (item, userRole) => userRole === "comms" && item.status === "approved",
     archive: (item, userRole) => userRole === "comms" && item.status === "published",
     postFb: (item, userRole) => userRole === "comms" && item.status === "published" && item.status !== "published & synced",
-    approve: (item, userRole) => userRole === "scadmin" && item.status === "pending" || item.status === "revision", 
-    reject: (item, userRole) => userRole === "scadmin" && item.status === "pending" || item.status === "revision", 
-    
+    approve: (item, userRole) =>
+        userRole === "scadmin" && (item.status === "pending" || item.status === "revision"),
+    reject: (item, userRole) =>
+        userRole === "scadmin" && (item.status === "pending" || item.status === "revision"),
+
+
 };
 
 export const archiveSchema = {
     title: {
         header: "Updates",
         display: true,
-        enableSorting: true,    
+        enableSorting: true,
         customCell: (value) => {
             return value.split(" ").slice(0, 3).join(" ");
         }
@@ -140,6 +143,6 @@ export const archiveActionConditions = {
     view: () => true,
     delete: (item, userRole) => userRole === "comms" && item.status === "archived",
     restore: (item, userRole) => userRole === "comms" && item.status === "archived",
-    
+
 };
 
