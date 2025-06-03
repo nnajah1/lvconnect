@@ -6,6 +6,7 @@ import { InfoModal } from "../dynamic/alertModal";
 import TooltipComponent from "../dynamic/tooltip";
 import { BsFillInfoCircleFill } from "react-icons/bs";
 import api from "@/services/axios";
+import { Loader3, Loader4 } from "../dynamic/loader";
 
 const AcademicYear = ({
     selectedYear,
@@ -209,11 +210,12 @@ const AcademicYear = ({
 
     useEffect(() => {
         const fetchActiveSchedule = async () => {
+            setLoading(true)
             try {
                 const res = await api.get('/enrollment-schedule/active');
                 if (res.data.active) {
-                    const { academic_year_id, semester, start_date, end_date } = res.data.data;
-                    setSelectedYear(academic_year_id);
+                    const { school_year, semester, start_date, end_date } = res.data.data;
+                    setSelectedYear(school_year);
                     setSemester(semester);
                     setStartDate(start_date);
                     setEndDate(end_date);
@@ -223,6 +225,8 @@ const AcademicYear = ({
                 }
             } catch (err) {
                 console.error('Failed to fetch active schedule');
+            } finally {
+                setLoading(false)
             }
         };
 
@@ -258,8 +262,8 @@ const AcademicYear = ({
             });
             setMessage(res.data.message || 'Schedule closed.');
             setScheduleOpened(false); // Show form again
-            // setStartDate('');
-            // setEndDate('');
+            setStartDate('');
+            setEndDate('');
         } catch (error) {
             setMessage(error.response?.data?.message || 'Something went wrong.');
         } finally {
@@ -267,185 +271,168 @@ const AcademicYear = ({
         }
     };
 
+    // if(loading) {
+    //     return <Loader4 />
+    // }
     return (
-        <div className="bg-white rounded shadow p-4 mb-4 flex flex-col md:flex-row md:items-center md:gap-6">
-            {/* Academic Year */}
-            <div className="flex flex-col mb-4 md:mb-0">
-                <label className="text-gray-700 font-semibold mb-1">Academic Year</label>
-                <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="border border-gray-300 rounded px-3 py-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    disabled={loadingYears}
-                >
-                    <option value="">Select Year</option>
-                    {academicYears.map((year) => (
-                        <option key={year.id} value={year.school_year}>
-                            {year.school_year} {year.is_active && "(Active)"}
-                        </option>
-                    ))}
-                </select>
-            </div>
+        <div className="bg-white rounded shadow p-4 mb-4 flex justify-evenly items-center">
+            {/* All elements in flex-row layout */}
+            <div className="flex flex-row flex-wrap items-end gap-4">
 
-            {/* Semester */}
-            <div className="flex flex-col mb-4 md:mb-0">
-                <label className="text-gray-700 font-semibold mb-1">Semester</label>
-                <select
-                    value={semester}
-                    onChange={(e) => setSemester(e.target.value)}
-                    className="border border-gray-300 rounded px-3 py-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    disabled={!selectedYear}
-                >
-                    <option value="">Select Semester</option>
-                    <option value="first_semester">1st Semester</option>
-                    <option value="second_semester">2nd Semester</option>
-                </select>
-            </div>
-
-            {/* Enrollment Toggle */}
-            {/* <div className="flex flex-col items-start mb-4 md:mb-0">
-                <label className="text-gray-700 font-semibold mb-1">Enrollment Toggle</label>
-                <button
-                    onClick={() => setIsOpenModal(true)}
-                    disabled={!selectedYear || !semester || loadingToggle || !selectedYearObj?.is_active}
-                    className={`px-4 py-2 rounded font-semibold text-white transition ${isEnrollmentOpen
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "bg-green-600 hover:bg-green-700"
-                        } disabled:opacity-50`}
-                >
-                    {loadingToggle ? "Processing..." : isEnrollmentOpen ? "Close Enrollment" : "Open Enrollment"}
-                </button>
-            </div>
-
-            {currentSchedule && (
-                <div className="flex flex-col mb-4 md:mb-0">
-                    <div>
-                        <strong>Enrollment Status:</strong>{" "}
-                        <span className={currentSchedule.is_active ? "text-green-600" : "text-red-600"}>
-                            {currentSchedule.is_active ? "Open" : "Closed"}
-                        </span>
-                    </div>
-                    {currentSchedule.start_date && (
-                        <div>Start: {formatDateTime(currentSchedule.start_date)}</div>
-                    )}
-                    {currentSchedule.end_date && (
-                        <div>End: {formatDateTime(currentSchedule.end_date)}</div>
-                    )}
-                </div>
-            )} */}
-            {!scheduleOpened && (
-                <>
-                    <div>
-                        <label>Start Date:</label>
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="border p-2 w-full"
-                        />
-                    </div>
-
-                    <div>
-                        <label>End Date:</label>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="border p-2 w-full"
-                        />
-                    </div>
-
-                    <button
-                        onClick={handleOpen}
-                        disabled={loading}
-                        className="bg-green-600 text-white px-4 py-2 rounded"
-                    >
-                        {loading ? 'Opening...' : 'Open Schedule'}
-                    </button>
-                </>
-            )}
-
-            {scheduleOpened && (
-                <>
-                    <div className="text-sm text-gray-700 space-y-1">
-                        <p>📅 <strong>Start Date:</strong> {startDate || 'N/A'}</p>
-                        <p>📅 <strong>End Date:</strong> {endDate || 'N/A'}</p>
-                    </div>
-
-                    <button
-                        onClick={handleClose}
-                        disabled={loading}
-                        className="bg-red-600 text-white px-4 py-2 rounded"
-                    >
-                        {loading ? 'Closing...' : 'Close Schedule'}
-                    </button>
-                </>
-            )}
-
-            {/* Add New Academic Year */}
-            <div className="flex flex-col items-center justify-end ml-auto max-w-xs">
-                <label className="text-gray-700 font-semibold mb-1">Add Academic Year</label>
-                <div className="flex gap-2">
+                {/* Academic Year */}
+                <div className="flex flex-col">
+                    <label className="text-gray-700 font-semibold mb-1">Academic Year</label>
                     <select
-                        value={newYear}
-                        onChange={(e) => setNewYear(e.target.value)}
-                        className="border border-gray-300 rounded px-3 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        disabled={disableAdd}
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 w-fit focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        disabled={loadingYears}
                     >
-                        <option value="">Select year</option>
-                        {nextYearToAdd && (
-                            <option value={nextYearToAdd} key={nextYearToAdd}>
-                                {nextYearToAdd}
+                        <option value="">Select Year</option>
+                        {academicYears.map((year) => (
+                            <option key={year.id} value={year.school_year}>
+                                {year.school_year} {year.is_active && "(Active)"}
                             </option>
-                        )}
+                        ))}
                     </select>
-
-                    <button
-                        onClick={handleValidateAndOpenModal}
-                        disabled={loadingYears || !newYear || disableAdd}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 rounded disabled:opacity-50"
-                    >
-                        {loadingYears ? "Adding..." : "Add"}
-                    </button>
-                    <TooltipComponent text="
-                        You cannot add a future academic year until the current one ends."><BsFillInfoCircleFill size={14} /></TooltipComponent>
                 </div>
 
-                {isOpenAddModal && (
-                    <InfoModal
-                        isOpen={isOpenAddModal}
-                        closeModal={() => setIsOpenAddModal(false)}
-                        title="Confirm Adding Academic Year"
-                        description={`Are you sure you want to add new academic year ${newYear}?`}
+                {/* Semester */}
+                <div className="flex flex-col">
+                    <label className="text-gray-700 font-semibold mb-1">Semester</label>
+                    <select
+                        value={semester}
+                        onChange={(e) => setSemester(e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        disabled={!selectedYear}
                     >
-                        <button
-                            onClick={() => setIsOpenAddModal(false)}
-                            className="mr-3 px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
+                        <option value="">Select Semester</option>
+                        <option value="first_semester">1st Semester</option>
+                        <option value="second_semester">2nd Semester</option>
+                    </select>
+                </div>
+                <div className="flex gap-4 border-x-1 p-2">
+                    {!scheduleOpened && (
+                        <div className="text-sm flex gap-2">
+                            {/* Start Date */}
+                            <div className="flex flex-col">
+                                <label className="text-gray-700 font-semibold mb-1">Start Date</label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="border border-gray-300 rounded px-3 py-2 w-30 m-auto"
+                                />
+                            </div>
+
+                            {/* End Date */}
+                            <div className="flex flex-col text-sm">
+                                <label className="text-gray-700 font-semibold mb-1">End Date</label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="border border-gray-300 rounded px-3 py-2 w-30 m-auto"
+                                />
+                            </div>
+
+                            {/* Open Button */}
+                            <button
+                                onClick={handleOpen}
+                                disabled={loading}
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded px-4 py-2 m-auto mt-6"
+                            >
+                                {loading ? 'Opening...' : 'Open Schedule'}
+                            </button>
+                        </div>
+                    )}
+
+                    {scheduleOpened && (
+                        <div className="text-sm flex gap-2">
+                            {/* Schedule Info */}
+                            <div className="text-sm text-gray-700 space-y-1">
+                                <p>📅 <strong>Start Date:</strong> {formatDate(startDate) || 'N/A'}</p>
+                                <p>📅 <strong>End Date:</strong> {formatDate(endDate) || 'N/A'}</p>
+                            </div>
+
+                            {/* Close Button */}
+                            <button
+                                onClick={handleClose}
+                                disabled={loading}
+                                className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded"
+                            >
+                                {loading ? 'Closing...' : 'Close Schedule'}
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Add Academic Year */}
+                <div className="flex flex-col">
+                    <label className="text-gray-700 font-semibold mb-1">Add Academic Year</label>
+                    <div className="flex gap-2 items-center">
+                        <select
+                            value={newYear}
+                            onChange={(e) => setNewYear(e.target.value)}
+                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            disabled={disableAdd}
                         >
-                            Cancel
-                        </button>
+                            <option value="">Select year</option>
+                            {nextYearToAdd && (
+                                <option value={nextYearToAdd} key={nextYearToAdd}>
+                                    {nextYearToAdd}
+                                </option>
+                            )}
+                        </select>
+
                         <button
-                            onClick={() => {
-                                handleAddYear();
-                                setIsOpenAddModal(false);
-                            }}
-                            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                            onClick={handleValidateAndOpenModal}
+                            disabled={loadingYears || !newYear || disableAdd}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded disabled:opacity-50"
                         >
-                            Confirm
+                            {loadingYears ? "Adding..." : "Add"}
                         </button>
-                    </InfoModal>
-                )}
+
+                        <TooltipComponent text="You cannot add a future academic year until the current one ends.">
+                            <BsFillInfoCircleFill size={14} />
+                        </TooltipComponent>
+                    </div>
+                </div>
             </div>
 
-            {/* Modal */}
+            {/* Modals */}
+            {isOpenAddModal && (
+                <InfoModal
+                    isOpen={isOpenAddModal}
+                    closeModal={() => setIsOpenAddModal(false)}
+                    title="Confirm Adding Academic Year"
+                    description={`Are you sure you want to add new academic year ${newYear}?`}
+                >
+                    <button
+                        onClick={() => setIsOpenAddModal(false)}
+                        className="mr-3 px-4 py-2 rounded border border-gray-300 hover:bg-gray-100"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleAddYear();
+                            setIsOpenAddModal(false);
+                        }}
+                        className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                        Confirm
+                    </button>
+                </InfoModal>
+            )}
+
+            {/* Confirm Toggle Enrollment Modal */}
             {isOpenModal && (
                 <InfoModal
                     isOpen={isOpenModal}
                     closeModal={() => setIsOpenModal(false)}
                     title="Confirm Enrollment Toggle"
-                    description={`Are you sure you want to ${isEnrollmentOpen ? "close" : "open"
-                        } enrollment for ${selectedYear}, ${semester === "first_semester" ? "1st Semester" : "2nd Semester"
-                        }?`}
+                    description={`Are you sure you want to ${isEnrollmentOpen ? "close" : "open"} enrollment for ${selectedYear}, ${semester === "first_semester" ? "1st Semester" : "2nd Semester"}?`}
                 >
                     <button
                         onClick={() => setIsOpenModal(false)}
@@ -465,6 +452,7 @@ const AcademicYear = ({
                 </InfoModal>
             )}
         </div>
+
     );
 };
 

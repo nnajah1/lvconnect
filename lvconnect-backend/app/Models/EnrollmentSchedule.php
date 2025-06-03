@@ -16,10 +16,10 @@ class EnrollmentSchedule extends Model
         'end_date' => 'datetime'
     ];
 
-    protected $appends = ['academic_year', ];
+    protected $appends = ['school_year'];
 
    
-    public function getAcademicYearAttribute()
+    public function getSchoolYearAttribute()
     {
         return $this->academicYear?->school_year;
     }

@@ -623,6 +623,11 @@ class EnrollmentController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
+        $year = AcademicYear::find($data['academic_year_id']);
+        if (!$year || !$year->is_active) {
+            return response()->json(['message' => 'You can only open a schedule for an active academic year.'], 422);
+        }
+
         if ($data['semester'] === 'second_semester') {
             $firstExists = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
                 ->where('semester', 'first_semester')
@@ -635,6 +640,7 @@ class EnrollmentController extends Controller
 
         EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
             ->update(['is_active' => false]);
+
 
         $schedule = EnrollmentSchedule::updateOrCreate(
             [
@@ -688,7 +694,8 @@ class EnrollmentController extends Controller
 
     public function getActiveEnrollmentSchedule()
     {
-        $activeSchedule = EnrollmentSchedule::where('is_active', true)->first();
+        $activeSchedule = EnrollmentSchedule::with('academicYear')
+            ->where('is_active', true)->first();
 
         if (!$activeSchedule) {
             return response()->json(['active' => false]);
