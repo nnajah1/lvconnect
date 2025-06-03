@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Http;
 use App\Models\StudentFamilyInformation;
 use App\Models\Program;
 use App\Models\EnrolleeRecord;
+use App\Models\Course;
+use App\Models\Grade;
+use App\Models\GradeTemplate;
 use Illuminate\Support\Carbon;
 
 class DummyDataSyncController extends Controller
@@ -120,6 +123,7 @@ class DummyDataSyncController extends Controller
                         ]
                     );
                 }
+
                 // Sync only program_id in enrollee_records
                 if (!empty($applicant['grade_level_course_to_be_taken'])) {
                     $program = Program::where('program_name', $applicant['grade_level_course_to_be_taken'])->first();
@@ -134,6 +138,49 @@ class DummyDataSyncController extends Controller
                             ]
                         );
                     }
+                }
+
+                // Sync Courses and Grades
+                if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
+                    foreach ($applicant['grades'] as $gradeData) {
+                        if (empty($gradeData['course']) || !isset($gradeData['grade'])) {
+                            continue;
+                        }
+
+                        $course = Course::firstOrCreate(
+                            ['course' => $gradeData['course']],
+                            ['unit' => $gradeData['unit'] ?? 0]
+                        );
+
+                        Grade::updateOrCreate(
+                            [
+                                'student_information_id' => $student->id,
+                                'course_id' => $course->id,
+                                'term' => $gradeData['term'],
+                                'academic_year' => $gradeData['academic_year'],
+                            ],
+                            [
+                                'grade' => $gradeData['grade'],
+                            ]
+                        );
+                    }
+                }
+
+                // Sync GradeTemplate
+                if (!empty($applicant['grade_template'])) {
+                    $template = $applicant['grade_template'];
+
+                    GradeTemplate::updateOrCreate(
+                        [
+                            'student_information_id' => $student->id,
+                            'term' => $template['term'] ?? null,
+                            'school_year' => $template['school_year'] ?? null,
+                        ],
+                        [
+                            'target_GWA' => $template['target_GWA'] ?? null,
+                            'actual_GWA' => $template['actual_GWA'] ?? null,
+                        ]
+                    );
                 }
             }
 
