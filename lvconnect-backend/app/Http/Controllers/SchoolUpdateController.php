@@ -579,12 +579,26 @@ class SchoolUpdateController extends Controller
 
     public function sync(Request $request, $id)
     {
-        $request->validate([
-            'schoolupdate_id' => 'required|exists:school_updates,id',
-            'title' => 'required|string',
-            'content' => 'required|string',
-            'image_url' => 'nullable|array',
+        Log::info('Facebook Sync Request Received', [
+            'request_data' => $request->all(),
         ]);
+
+        try {
+            $validated = $request->validate([
+                'schoolupdate_id' => 'required|exists:school_updates,id',
+                'title' => 'required|string',
+                'content' => 'required|string',
+                'image_url' => 'nullable|array',
+            ]);
+        } catch (ValidationException $ex) {
+            Log::error('Validation failed', [
+                'errors' => $ex->errors(),
+            ]);
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => $ex->errors(),
+            ], 422);
+        }
 
         try {
             $schoolupdate = SchoolUpdate::findOrFail($id);
@@ -607,7 +621,17 @@ class SchoolUpdateController extends Controller
             $pageId = env('FACEBOOK_PAGE_ID');
             $fbVersion = 'v18.0';
 
+            Log::info('Sending data to Facebook', [
+                'url' => "https://graph.facebook.com/{$fbVersion}/{$pageId}/feed",
+                'postData' => $postData,
+            ]);
+
             $response = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $postData);
+
+            Log::info('Facebook response', [
+                'status' => $response->status(),
+                'body' => $response->json(),
+            ]);
 
             if ($response->successful()) {
                 $schoolupdate->update([
@@ -627,7 +651,9 @@ class SchoolUpdateController extends Controller
                 ], 400);
             }
         } catch (\Exception $e) {
-            \Log::error('Facebook sync error: ' . $e->getMessage());
+            Log::error('Facebook sync error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json(['error' => 'Facebook sync failed'], 500);
         }
     }
