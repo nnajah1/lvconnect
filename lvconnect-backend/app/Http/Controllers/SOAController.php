@@ -14,21 +14,47 @@ class SOAController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function index()
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('student')) {
-            $templates = FeeTemplate::where('is_visible', true)
-                ->with('fees')
-                ->get();
-
-            return response()->json($templates);
-        }
 
         if ($user->hasRole('registrar')) {
-            return FeeTemplate::with('fees')
+            return FeeTemplate::with('fees', 'academicYear')
+                ->whereHas('academicYear', function ($query) {
+                    $query->where('is_active', 0);
+                })
                 ->get();
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+    public function student()
+    {
+        $user = JWTAuth::authenticate();
+
+        if ($user->hasRole('student')) {
+            // Active Academic Year
+            $activeTemplates = FeeTemplate::where('is_visible', true)
+                ->with('fees', 'academicYear')
+                ->whereHas('academicYear', function ($query) {
+                    $query->where('is_active', 1);
+                })
+                ->first();
+
+            // Inactive Academic Years
+            $pastTemplates = FeeTemplate::where('is_visible', true)
+                ->with('fees', 'academicYear')
+                ->whereHas('academicYear', function ($query) {
+                    $query->where('is_active', 0);
+                })
+                ->get();
+
+            return response()->json([
+                'active' => $activeTemplates,
+                'past' => $pastTemplates,
+            ]);
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -194,19 +220,19 @@ class SOAController extends Controller
         return view('soa.view', ['soaData' => $soaData]);
     }
 
-   public function show($id)
+    public function show($id)
     {
-        
-            $user = JWTAuth::authenticate();
-        
+
+        $user = JWTAuth::authenticate();
+
 
         if (!$user->hasRole('registrar')) {
-             return response()->json(['message' => 'Unauthorized to view SOAs'], 403);
+            return response()->json(['message' => 'Unauthorized to view SOAs'], 403);
         }
 
         $feeTemplate = FeeTemplate::where('academic_year_id', $id)
-                                  ->with('fees')
-                                  ->first();
+            ->with('fees')
+            ->first();
 
         if (!$feeTemplate) {
             return response()->json(['message' => 'No Fee Template found for the specified academic year.'], 404);

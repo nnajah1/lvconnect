@@ -325,7 +325,6 @@ const AdminSoa = () => {
 
   const { tuitionTotal, miscTotal, termTotal, yearTotal } = calculateTotals();
 
-  console.log(otherSoas)
   if (loading) {
     return <Loader3 />
   }

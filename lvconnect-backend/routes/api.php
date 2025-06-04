@@ -142,6 +142,7 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::get('/soa/{id}', [SOAController::class, 'show']);
   Route::get('/get-soa', [SOAController::class, 'index']);
+  Route::get('/get-student-soa', [SOAController::class, 'student']);
   Route::get('/soa', [SOAController::class, 'viewSoa']);
   Route::get('/fee-categories', [SOAController::class, 'feeCategory']);
   Route::post('/fee-categories', [SOAController::class, 'feeCategory']);

@@ -13,29 +13,31 @@ export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther 
         {title}
         {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
       </button>
-      <div className="flex items-center gap-2">
-        {soaData.is_visible ? (
-          <span className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-            <Eye className="w-4 h-4" />
-            Visible
-          </span>
+      {userRole === "registrar" && (
+        <div className="flex items-center gap-2">
+          {soaData.is_visible ? (
+            <span className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              <Eye className="w-4 h-4" />
+              Visible
+            </span>
 
-        ) : (
-          <span className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-            <EyeOff className="w-4 h-4" />
-            Hidden
-          </span>
-        )}
-        {!isOther && (
-          <button
-            onClick={handleEdit}
-            className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Edit className="w-4 h-4" />
-            Edit
-          </button>
-        )}
-      </div>
+          ) : (
+            <span className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+              <EyeOff className="w-4 h-4" />
+              Hidden
+            </span>
+          )}
+          {!isOther && (
+            <button
+              onClick={handleEdit}
+              className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Edit className="w-4 h-4" />
+              Edit
+            </button>
+          )}
+        </div>
+      )}
     </div>
 
     {!isCollapsed && (
@@ -139,17 +141,16 @@ export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther 
             <div className="flex justify-between font-semibold text-lg">
               {userRole === "registrar" ? (
                 <span>Academic Year Total Per Student:</span>
-              ): (<span>Academic Year Total:</span>)}
+              ) : (<span>Academic Year Total:</span>)}
               <span>₱{soaData.whole_academic_year?.toLocaleString()}.00</span>
             </div>
+            <div className="flex justify-between"></div>
             {userRole === "student" && (
               <div>
-                <div className="flex justify-between"></div>
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Scholarship Discount:</span>
                   <span>₱{soaData.scholarship_discount?.toLocaleString()}.00</span>
                 </div>
-                <div className="flex justify-between"></div>
                 <div className="flex justify-between font-semibold text-lg text-green-500">
                   <span>Total Payment:</span>
                   <span>₱{soaData.total_payment?.toLocaleString()}.00</span>

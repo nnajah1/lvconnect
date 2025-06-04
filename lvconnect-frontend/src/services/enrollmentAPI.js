@@ -85,7 +85,7 @@ export const toggleEnrollmentSchedule = (payload) =>
 
 
 export const getAllSoa = () => api.get("/get-soa");
-
+export const getStudentSoa = () => api.get("/get-student-soa");
 
 export const getSoa = (schoolYear) => api.get(`/soa/${schoolYear.id}`);
 

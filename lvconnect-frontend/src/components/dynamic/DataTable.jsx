@@ -11,13 +11,13 @@ import {
 import { Loader, Loader2 } from "./loader"
 import { Loader2Icon } from "lucide-react"
 
-export function DataTable({ columns, data, globalFilter, bulkActions = [], showSelection = true, isLoading }) {
+export function DataTable({ columns, data, globalFilter, bulkActions = [], showSelection = true, isLoading, pagesize = 5,  }) {
   const [sorting, setSorting] = useState([])
   const [columnFilters, setColumnFilters] = useState([])
   const [rowSelection, setRowSelection] = useState({})
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 5,
+    pageSize: pagesize,
   })
 
   const table = useReactTable({
