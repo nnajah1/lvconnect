@@ -287,7 +287,7 @@ const generateFormFromContent = (content, fields, control) => {
   });
 };
 
-const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, }) => {
+const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, closeModal}) => {
   const { control, handleSubmit, getValues, setValue, formState: { errors } } = useForm();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -303,9 +303,9 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
           ...response.data.form,
           fields: response.data.fields,
         });
-
       } catch (err) {
-        console.log('Failed to load form');
+        console.error('Failed to load form:', err);
+        setError('Failed to load form');
       } finally {
         setLoading(false);
       }
@@ -314,21 +314,21 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
   }, [formId]);
 
   useEffect(() => {
-    if (initialData) {
+    if (initialData && Object.keys(initialData).length > 0) {
       for (const [key, value] of Object.entries(initialData)) {
         setValue(key, value);
       }
     }
   }, [initialData, setValue]);
 
-  if (loading) return <div className="p-4">Loading form...</div>;
-  // if (error) return <div className="p-4 text-red-600">{error}</div>;
+  if (loading) return <div className="p-4 flex items-center justify-center">Loading form...</div>;
+  if (error) return <div className="p-4 text-red-600">{error}</div>;
   if (!form) return <div className="p-4 text-red-600">Form not found.</div>;
 
   const { content = '', fields = [], title, description } = form;
 
   const handleImageUpload = async (file) => {
-    if (!file) return null; // Ensure function returns something
+    if (!file) return null;
 
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
     const maxSize = 2 * 1024 * 1024; // 2MB
@@ -350,9 +350,12 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
       image.src = URL.createObjectURL(file);
 
       image.onload = async () => {
+        // Clean up the object URL
+        URL.revokeObjectURL(image.src);
+
         if (image.width !== 600 || image.height !== 600) {
           toast.error("Image must be exactly 600x600 pixels.");
-          reject(null);
+          reject(new Error("Invalid image dimensions"));
           return;
         }
 
@@ -360,109 +363,184 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
           const formData = new FormData();
           formData.append("photo", file);
 
-          const res = await api.post("/upload-2x2-image", formData);
-          resolve(res.data.image_url);
+          const res = await api.post("/upload-2x2-image", formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            timeout: 30000, // 30 second timeout
+          });
+          
+          if (res.data && res.data.image_url) {
+            resolve(res.data.image_url);
+          } else {
+            throw new Error("No image URL returned from server");
+          }
         } catch (error) {
-          toast.error("Image upload failed.");
-          reject(null);
+          console.error("Image upload error:", error);
+          toast.error("Image upload failed: " + (error.response?.data?.message || error.message));
+          reject(error);
         }
       };
 
       image.onerror = () => {
+        URL.revokeObjectURL(image.src);
         toast.error("Invalid image file.");
-        reject(null);
+        reject(new Error("Invalid image file"));
       };
     });
   };
 
-  const onSubmit = async (data, status = "pending") => {
-    if (loading) return; // Prevent multiple submissions
+  const validateFormData = (data, fields, status) => {
+    const errors = [];
+    let hasValidData = false;
 
-    // Check if form has validation errors
+    for (const field of fields) {
+      const fieldName = field.field_data.name;
+      const value = data[fieldName];
+      const isRequired = field.is_required && status !== 'draft';
+
+      // Check if we have any valid data
+      if (value && (
+        (typeof value === 'string' && value.trim() !== '') ||
+        (Array.isArray(value) && value.length > 0) ||
+        (value instanceof File && value.size > 0)
+      )) {
+        hasValidData = true;
+      }
+
+      // Check required fields
+      if (isRequired && (
+        !value || 
+        (Array.isArray(value) && value.length === 0) || 
+        (typeof value === 'string' && value.trim() === '')
+      )) {
+        errors.push(`Field "${fieldName}" is required.`);
+      }
+    }
+
+    return { errors, hasValidData };
+  };
+
+  const onSubmit = async (data, status = "pending") => {
+    if (loading) return;
+
+    // Check React Hook Form validation errors
     if (Object.keys(errors).length > 0) {
       toast.error("Please fix the validation errors before submitting.");
       return;
     }
 
-    // Improved empty form check
-    const hasValidData = fields.some(field => {
-      const fieldName = field.field_data.name;
-      const value = data[fieldName];
+    // Custom validation
+    const validation = validateFormData(data, fields, status);
+    
+    if (validation.errors.length > 0) {
+      validation.errors.forEach(error => toast.error(error));
+      return;
+    }
 
-      if (!value) return false;
-
-      if (typeof value === 'string') return value.trim() !== '';
-      if (Array.isArray(value)) return value.length > 0;
-      if (value instanceof File) return value.size > 0;
-
-      return true;
-    });
-
-    if (!hasValidData) {
+    if (!validation.hasValidData && status !== 'draft') {
       toast.error("Please fill out at least one field before submitting.");
       return;
     }
 
     setLoading(true);
     try {
-      let hasError = false;
       const updatedFields = {};
+      const imageUploadPromises = [];
 
+      // Process all fields
       for (const field of fields) {
         const fieldId = field.id;
         const fieldName = field.field_data.name;
         const type = field.field_data.type;
         const value = data[fieldName];
 
-        // Check required fields for all types
-        if (field.is_required && (!value || (Array.isArray(value) && value.length === 0) || (typeof value === 'string' && value.trim() === ''))) {
-          toast.error(`Field "${fieldName}" is required.`);
-          hasError = true;
+        // Skip empty values
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
           continue;
         }
 
-        if (type === "2x2_image") {
-          if (value instanceof File) {
-            try {
-              const imagePath = await handleImageUpload(value);
-              if (!imagePath) {
-                hasError = true;
-                toast.error(`Invalid image: "${fieldName}". Please fix before submitting.`);
-              } else {
-                updatedFields[fieldId] = imagePath;
-              }
-            } catch {
-              hasError = true;
-              toast.error(`Image upload failed for "${fieldName}".`);
-            }
-          } else if (typeof value === "string" && value.trim() !== "") {
-            updatedFields[fieldId] = value;
-          }
+        if (type === "2x2_image" && value instanceof File) {
+          // Handle image upload asynchronously
+          imageUploadPromises.push(
+            handleImageUpload(value)
+              .then(imagePath => {
+                if (imagePath) {
+                  updatedFields[fieldId] = imagePath;
+                }
+                return { fieldId, success: !!imagePath, fieldName };
+              })
+              .catch(error => {
+                console.error(`Image upload failed for ${fieldName}:`, error);
+                return { fieldId, success: false, fieldName, error };
+              })
+          );
         } else {
-          if (value) {
-            updatedFields[fieldId] = value;
-          }
+          // Handle non-image fields
+          updatedFields[fieldId] = value;
         }
       }
 
-      if (hasError) {
-        console.error("Cannot save due to validation errors.");
-        setLoading(false);
-        return;
+      // Wait for all image uploads to complete
+      if (imageUploadPromises.length > 0) {
+        const uploadResults = await Promise.all(imageUploadPromises);
+        
+        // Check if any image uploads failed
+        const failedUploads = uploadResults.filter(result => !result.success);
+        if (failedUploads.length > 0) {
+          failedUploads.forEach(result => {
+            toast.error(`Image upload failed for "${result.fieldName}".`);
+          });
+          return;
+        }
       }
 
-      const payload = { fields: updatedFields, status };
+      const payload = { 
+        fields: updatedFields, 
+        status 
+      };
+
+      console.log('Submitting payload:', payload);
+
+      let response;
       if (draftId) {
-        await updateDraftForm(draftId, payload);
+        response = await updateDraftForm(draftId, payload);
       } else {
-        await submitForm(formId, payload);
+        response = await submitForm(formId, payload);
       }
 
+      // Success handling
       await fetchSubmitted();
-      if (onSuccess) onSuccess(formId);
+      
+      const message = status === 'draft' 
+        ? 'Form saved as draft successfully!' 
+        : 'Form submitted successfully!';
+      toast.success(message);
+      
+      if (onSuccess) {
+        onSuccess(formId);
+      }
+
     } catch (err) {
-      console.error(err);
-      toast.error("Form submission failed. Please try again.");
+      console.error('Form submission error:', err);
+      
+      // More detailed error handling
+      let errorMessage = 'Form submission failed. Please try again.';
+      
+      if (err.response) {
+        if (err.response.status === 422 && err.response.data.errors) {
+          // Validation errors
+          const validationErrors = Object.values(err.response.data.errors).flat();
+          validationErrors.forEach(error => toast.error(error));
+          return;
+        } else if (err.response.data?.message) {
+          errorMessage = err.response.data.message;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -477,6 +555,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         <div className='ql-editor border-1 mt-2'>
           {generateFormFromContent(content, fields, control)}
         </div>
+        
         <div className="flex mt-4 gap-4 justify-end">
           <Button
             className="bg-gray-500"
@@ -484,7 +563,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
             disabled={loading}
             onClick={handleSubmit((data) => onSubmit(data, "draft"))}
           >
-            Save as Draft
+            {loading ? 'Saving...' : 'Save as Draft'}
           </Button>
 
           <Button
@@ -492,14 +571,11 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
             disabled={loading}
             onClick={handleSubmit((data) => onSubmit(data, "pending"))}
           >
-            Submit for Review
+            {loading ? 'Submitting...' : 'Submit for Review'}
           </Button>
-
         </div>
       </form>
-
     </div>
-
   );
 };
 

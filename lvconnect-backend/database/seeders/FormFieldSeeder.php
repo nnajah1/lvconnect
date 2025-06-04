@@ -58,7 +58,7 @@ class FormFieldSeeder extends Seeder
                 ['type' => 'text', 'name' => 'Current Course/Program', 'required' => true, 'page' => 1],
                 ['type' => 'text', 'name' => 'Desired Course/Program', 'required' => true, 'page' => 1],
                 ['type' => 'textarea', 'name' => 'Reason for Change', 'required' => true, 'page' => 1],
-                ['type' => 'file', 'name' => 'Supporting Documents', 'required' => false, 'page' => 2],
+                ['type' => 'date', 'name' => 'Date Today', 'required' => false, 'page' => 2],
             ];
             $addFields($courseChangeForm, $fields);
         }
@@ -80,7 +80,7 @@ class FormFieldSeeder extends Seeder
                 ['type' => 'text', 'name' => 'Full Name', 'required' => true, 'page' => 1],
                 ['type' => 'textarea', 'name' => 'Academic Achievements', 'required' => false, 'page' => 1],
                 ['type' => 'textarea', 'name' => 'Financial Need Explanation', 'required' => true, 'page' => 2],
-                ['type' => 'file', 'name' => 'Supporting Documents', 'required' => false, 'page' => 2],
+                ['type' => 'date', 'name' => 'Date today', 'required' => false, 'page' => 2],
             ];
             $addFields($scholarshipForm, $fields);
         }
