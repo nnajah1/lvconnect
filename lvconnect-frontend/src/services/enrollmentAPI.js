@@ -83,16 +83,24 @@ export const getEnrollmentSchedule = ({ academic_year_id, semester }) =>
 export const toggleEnrollmentSchedule = (payload) =>
   api.post("/enrollment-schedule/toggle", payload);
 
-export const getSoa = (schoolYear) => {
-  return api.get(`/soa/${schoolYear}`);
+
+export const getAllSoa = () => api.get("/get-soa");
+
+
+export const getSoa = (schoolYear) => api.get(`/soa/${schoolYear.id}`);
+
+export const getActiveAcademicYear = () => api.get("/academic-years-active");
+
+export const getFeeCategories = () => {
+  return api.get('/fee-categories'); 
 };
 
-export const createSoa = (data) => {
-  return api.post("/soa", data);
+export const createSoa = (payload) => {
+  return api.post("/fee-templates", payload);
 };
 
-export const updateSoa = (schoolYear, data) => {
-  return api.put(`/soa/${schoolYear}`, data);
+export const updateSoa = (currentTemplateId, payload) => {
+  return api.put(`/fee-templates/${currentTemplateId}`, payload);
 };
 
 

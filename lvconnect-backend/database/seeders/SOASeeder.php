@@ -11,6 +11,7 @@ class SOASeeder extends Seeder
     public function run(): void
     {
         $templateId = DB::table('fee_templates')->insertGetId([
+            'academic_year_id' => 1,
             'tuition_per_unit' => 1500.00,
             'total_units' => 18,
             'tuition_total' => 0, // to be updated later

@@ -1,70 +1,162 @@
 
 import { useEffect, useState } from "react";
 import "@/styles/admin_soa.css";
-import { createSoa, getSoa } from "@/services/enrollmentAPI";
+import { createSoa, getActiveAcademicYear, getAllSoa, getFeeCategories, getSoa, updateSoa } from "@/services/enrollmentAPI";
 import { toast } from "react-toastify";
+import api from "@/services/axios";
+import { Button } from "@/components/ui/button";
+import { Loader3 } from "@/components/dynamic/loader";
+import { SOADetailsView } from "@/components/enrollment/soaManager";
+import { useUserRole } from "@/utils/userRole";
 
 const AdminSoa = () => {
+  const UserRole = useUserRole();
+  const [isEditing, setIsEditing] = useState(false);
+  const [showForm, setShowForm] = useState(true); // Controls form visibility
+  const [currentTemplateId, setCurrentTemplateId] = useState(null);
+  const [currentSoaData, setCurrentSoaData] = useState(null);
+  const [schoolYear, setSchoolYear] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [feeCategories, setFeeCategories] = useState([]);
+  const [currentSoaCollapsed, setCurrentSoaCollapsed] = useState(false);
+  const [collapsedSoas, setCollapsedSoas] = useState({});
+  const [otherSoas, setOtherSoas] = useState([]);
+
   const [formData, setFormData] = useState({
     schoolYear: "",
-    tuitionFee: {
-      ratePerUnit: "",
-      units: "",
-    },
-    miscFees: [], // each fee must have fee_category_id, fee_name, amount
-    scholarshipDiscount: "",
-    programInfo: "",
-    status: "saved", // or "archived"
-    is_visible: true, // or false
+    tuition_per_unit: "",
+    total_units: "",
+    miscFees: [],
+    is_visible: 0,
   });
 
-
   const [newFee, setNewFee] = useState({
-    name: "",
+    fee_category_id: "",
+    fee_name: "",
     amount: "",
   });
 
-  const [isEditing, setIsEditing] = useState(false);
+  useEffect(() => {
+    const fetchYear = async () => {
+      setLoading(true);
+      try {
+        const res = await getActiveAcademicYear();
+        const activeYear = res.data.data;
+
+        setSchoolYear(activeYear);
+        setFormData((prev) => ({
+          ...prev,
+          schoolYear: activeYear.school_year,
+        }));
+      } catch (e) {
+        toast.error("Failed to load active academic year");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchFeeCategories = async () => {
+      try {
+        const res = await getFeeCategories();
+        setFeeCategories(res.data.data);
+      } catch (e) {
+        toast.error("Failed to load fee categories");
+      }
+    };
+
+    fetchYear();
+    fetchFeeCategories();
+  }, []);
+
+  const refreshSoa = async (schoolYear) => {
+    if (!schoolYear) return;
+
+    try {
+      const res = await getSoa(schoolYear);
+      const data = res.data.data;
+
+      setFormData((prev) => ({
+        ...prev,
+        tuition_per_unit: data.tuition_per_unit || "",
+        total_units: data.total_units || "",
+        miscFees: data.fees || [],
+        is_visible: data.is_visible !== undefined ? data.is_visible : 1,
+      }));
+
+      setCurrentTemplateId(data.id);
+      setCurrentSoaData(data);
+      setIsEditing(true);
+      setShowForm(false);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.log("No existing SOA found. Ready to create new.");
+      } else {
+        console.error("Error fetching SOA:", err);
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        tuition_per_unit: "",
+        total_units: "",
+        miscFees: [],
+        is_visible: 0,
+      }));
+      setCurrentTemplateId(null);
+      setCurrentSoaData(null);
+      setIsEditing(false);
+      setShowForm(true);
+    }
+  };
 
   useEffect(() => {
-    if (formData.schoolYear) {
-      getSoa(formData.schoolYear)
-        .then((res) => {
-          setFormData(res.data);
-          setIsEditing(true);
-        })
-        .catch((err) => {
-          console.log('No existing SOA found. Ready to create new.', err);
-          setIsEditing(false);
-        });
+    if (schoolYear) {
+      refreshSoa(schoolYear);
     }
-  }, [formData.schoolYear]);
+  }, [schoolYear]);
+
+  useEffect(() => {
+    const fetchAllSoas = async () => {
+      setLoading(true);
+      try {
+        const res = await getAllSoa();
+        setOtherSoas(res.data);
+      } catch (err) {
+        toast.error("Failed to fetch SOAs");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllSoas();
+  }, []);
 
   const handleInputChange = (e) => {
-    const { name, value, type } = e.target;
-    const processedValue = type === "number" ? (value === "" ? "" : Math.max(0, Number(value))) : value;
+    const { name, value, type, checked } = e.target;
+    let processedValue;
 
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setFormData({
-        ...formData,
-        [parent]: {
-          ...formData[parent],
-          [child]: processedValue,
-        },
-      });
+    if (type === "checkbox") {
+      processedValue = checked;
+    } else if (type === "number") {
+      processedValue = value === "" ? "" : Math.max(0, Number(value));
     } else {
-      setFormData({
-        ...formData,
-        [name]: processedValue,
-      });
+      processedValue = value;
     }
+
+    setFormData({
+      ...formData,
+      [name]: processedValue,
+    });
   };
 
   const handleMiscFeeChange = (index, e) => {
     const { name, value, type } = e.target;
     const updatedFees = [...formData.miscFees];
-    updatedFees[index][name] = type === "number" ? (value === "" ? "" : Math.max(0, Number(value))) : value;
+
+    if (type === "number") {
+      updatedFees[index][name] = value === "" ? "" : Math.max(0, Number(value));
+    } else {
+      updatedFees[index][name] = value;
+    }
 
     setFormData({
       ...formData,
@@ -74,23 +166,38 @@ const AdminSoa = () => {
 
   const handleNewFeeChange = (e) => {
     const { name, value, type } = e.target;
+    let processedValue;
+
+    if (type === "number") {
+      processedValue = value === "" ? "" : Math.max(0, Number(value));
+    } else {
+      processedValue = value;
+    }
+
     setNewFee({
       ...newFee,
-      [name]: type === "number" ? (value === "" ? "" : Math.max(0, Number(value))) : value,
+      [name]: processedValue,
     });
   };
 
   const addNewFee = () => {
-    if (!newFee.name.trim() || newFee.amount === "" || Number(newFee.amount) <= 0) {
-      toast.info("Please enter a valid fee name and a positive amount.");
+    if (!newFee.fee_name.trim() ||
+      newFee.amount === "" ||
+      Number(newFee.amount) <= 0 ||
+      !newFee.fee_category_id) {
+      toast.info("Please enter a valid fee category, fee name, and a positive amount.");
       return;
     }
 
     setFormData({
       ...formData,
-      miscFees: [...formData.miscFees, { ...newFee, amount: Number(newFee.amount) }],
+      miscFees: [...formData.miscFees, {
+        ...newFee,
+        amount: Number(newFee.amount),
+        fee_category_id: Number(newFee.fee_category_id)
+      }],
     });
-    setNewFee({ name: "", amount: "" });
+    setNewFee({ fee_category_id: "", fee_name: "", amount: "" });
   };
 
   const removeFee = (index) => {
@@ -102,263 +209,423 @@ const AdminSoa = () => {
     });
   };
 
-  const calculateTotals = () => {
-    const rate = parseFloat(formData.tuitionFee.ratePerUnit) || 0;
-    const units = parseFloat(formData.tuitionFee.units) || 0;
-    const tuitionTotal = rate * units;
-
-    const miscTotal = formData.miscFees.reduce((sum, fee) => sum + (parseFloat(fee.amount) || 0), 0);
-    const semesterTotal = tuitionTotal + miscTotal;
-    const yearTotal = semesterTotal * 2;
-    const scholarship = parseFloat(formData.scholarshipDiscount) || 0;
-
-    return {
-      tuitionTotal,
-      miscTotal,
-      semesterTotal,
-      yearTotal,
-      totalPayment: yearTotal - scholarship,
-    };
+  const handleEdit = () => {
+    setShowForm(true);
   };
 
-  const { tuitionTotal, miscTotal, semesterTotal, yearTotal, totalPayment } = calculateTotals();
+  const handleCancelEdit = () => {
+    if (currentSoaData) {
+      // Reset form data to current SOA data - preserve schoolYear
+      setFormData(prev => ({
+        schoolYear: prev.schoolYear, // Keep the schoolYear from formData
+        tuition_per_unit: currentSoaData.tuition_per_unit || "",
+        total_units: currentSoaData.total_units || "",
+        miscFees: currentSoaData.fees || [],
+        is_visible: currentSoaData.is_visible !== undefined ? currentSoaData.is_visible : true,
+      }));
+      setShowForm(false);
+    }
+  };
+
+  const toggleCurrentSoa = () => {
+    setCurrentSoaCollapsed(!currentSoaCollapsed);
+  };
+
+  const toggleSoa = (soaId) => {
+    setCollapsedSoas(prev => ({
+      ...prev,
+      [soaId]: !prev[soaId]
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      status: formData.status,
-      is_visible: formData.is_visible,
-      fees: formData.miscFees.map((fee) => ({
-        fee_category_id: fee.fee_category_id,
-        fee_name: fee.fee_name || fee.name,
-        amount: parseFloat(fee.amount),
-      })),
-    };
+    if (!formData.tuition_per_unit || !formData.total_units) {
+      toast.error("Please fill in tuition per unit and total units");
+      return;
+    }
+
+    if (formData.miscFees.length === 0) {
+      toast.error("Please add at least one miscellaneous fee");
+      return;
+    }
 
     try {
-      const res = await createSoa(payload);
-      toast.success("SOA created successfully!");
-      setIsEditing(true);
+      // Create new categories 
+      const resolvedFees = await Promise.all(
+        formData.miscFees.map(async (fee) => {
+          if (fee.category_name && !fee.fee_category_id) {
+            const res = await api.post("/api/fee-categories", {
+              name: fee.category_name.trim(),
+            });
+            return {
+              ...fee,
+              fee_category_id: res.data.data.id,
+            };
+          }
+          return fee;
+        })
+      );
+
+      // Prepare final payload
+      const payload = {
+        is_visible: formData.is_visible,
+        tuition_per_unit: parseFloat(formData.tuition_per_unit),
+        total_units: parseInt(formData.total_units),
+        fees: resolvedFees.map((fee) => ({
+          fee_category_id: parseInt(fee.fee_category_id),
+          fee_name: fee.fee_name,
+          amount: parseFloat(fee.amount),
+        })),
+      };
+
+      // Submit the SOA
+      let res;
+      if (isEditing && currentTemplateId) {
+        res = await updateSoa(currentTemplateId, payload);
+        toast.success("SOA updated successfully!");
+        refreshSoa(schoolYear);
+      } else {
+        res = await createSoa(payload);
+        toast.success("SOA created successfully!");
+        refreshSoa(schoolYear);
+        setCurrentTemplateId(res.data.data.id);
+        setCurrentSoaData(res.data.data);
+        setIsEditing(true);
+      }
+
+      // Update current SOA data and hide form
+      const updatedSoaData = {
+        ...payload,
+        id: currentTemplateId || res?.data?.data?.id,
+        fees: resolvedFees,
+        school_year: formData.schoolYear
+      };
+      setCurrentSoaData(updatedSoaData);
+      setShowForm(false);
+
     } catch (error) {
       console.error("Failed to submit SOA", error);
-      toast.error("Something went wrong.");
+      toast.error(error.response?.data?.message || "Something went wrong.");
     }
   };
 
 
+  const calculateTotals = () => {
+    const rate = parseFloat(formData.tuition_per_unit) || 0;
+    const units = parseFloat(formData.total_units) || 0;
+    const tuitionTotal = rate * units;
+    const miscTotal = formData.miscFees.reduce((sum, fee) => sum + (parseFloat(fee.amount) || 0), 0);
+    const termTotal = tuitionTotal + miscTotal;
+    const yearTotal = termTotal * 2;
+
+    return { tuitionTotal, miscTotal, termTotal, yearTotal };
+  };
+
+  const { tuitionTotal, miscTotal, termTotal, yearTotal } = calculateTotals();
+
+  console.log(otherSoas)
+  if (loading) {
+    return <Loader3 />
+  }
+
   return (
-    <div className="admin-container">
-      <div className="admin-header">
-        <div className="admin-header-title">
-          <h1>Statement of Account of Students</h1>
-        </div>
-      </div>
+    <div className="max-w-7xl mx-auto p-4 space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Statement of Account Management</h1>
 
-      <div className="form-container">
-        <form onSubmit={handleSubmit}>
-          {/* <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label>Status</label>
-              <select name="status" value={formData.status} onChange={handleInputChange} className="input-field">
-                <option value="saved">Saved</option>
-                <option value="archived">Archived</option>
-              </select>
-            </div>
-            <div>
-              <label>Visible to Students?</label>
-              <select name="is_visible" value={formData.is_visible} onChange={handleInputChange} className="input-field">
-                <option value={true}>Yes</option>
-                <option value={false}>No</option>
-              </select>
-            </div>
-          </div> */}
+        {/* Current SOA Section - Collapsible */}
+        {!loading && currentSoaData && !showForm && (
+          <SOADetailsView
+            soaData={currentSoaData}
+            isCollapsed={currentSoaCollapsed}
+            onToggle={toggleCurrentSoa}
+            title={`Current SOA for ${currentSoaData.school_year || formData.schoolYear}`}
+            handleEdit={handleEdit}
+            userRole={UserRole}
+          />
+        )}
 
+        {/* Other SOAs Section */}
+        {!loading && !showForm && otherSoas.length > 0 && (
           <div className="mb-6">
-            <h2 className="section-title">General Information</h2>
-            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
-            <div>
-              <label className="input-label">School Year</label>
-              <input
-                type="text"
-                name="schoolYear"
-                value={formData.schoolYear}
-                onChange={handleInputChange}
-                className="input-field"
-              />
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Previous SOAs</h2>
+            <div className="space-y-4">
+              {otherSoas.map((soa) => (
+                <SOADetailsView
+                  key={soa.id}
+                  soaData={soa}
+                  isCollapsed={collapsedSoas[soa.id] || false}
+                  onToggle={() => toggleSoa(soa.id)}
+                  title={`SOA for ${soa.school_year}`}
+                  isOther={true}
+                  userRole={UserRole}
+                />
+              ))}
             </div>
-            {/* <div>
-                <label className="input-label">Program & Year Level</label>
+          </div>
+        )}
+
+        {/* Create New SOA Button */}
+        {/* {!loading && !showForm && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+            >
+              Create New SOA
+            </button>
+          </div>
+        )} */}
+
+        {/* Form Section */}
+        {!loading && showForm && (
+          <div className="space-y-6">
+            {/* Header with Visibility Toggle */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-lg font-semibold text-gray-800">
+                {isEditing ? 'Edit SOA' : 'Create New SOA'}
+              </h2>
+              <div className="flex items-center gap-4">
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="is_visible"
+                    name="is_visible"
+                    checked={formData.is_visible}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 m-auto"
+                  />
+                  <label htmlFor="is_visible" className="text-sm font-medium text-gray-700">
+                    Visible to Students
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* General Information */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-700 mb-3">General Information</h3>
+              <div className="max-w-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">School Year</label>
                 <input
                   type="text"
-                  name="programInfo"
-                  value={formData.programInfo}
-                  onChange={handleInputChange}
-                  className="input-field"
-                />
-              </div> */}
-            {/* </div> */}
-          </div>
-
-          <div className="mb-6">
-            <h2 className="section-title">Tuition Fee</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="input-label">Rate Per Unit (₱)</label>
-                <input
-                  type="number"
-                  name="tuitionFee.ratePerUnit"
-                  value={formData.tuitionFee.ratePerUnit}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="input-label">Number of Units</label>
-                <input
-                  type="number"
-                  name="tuitionFee.units"
-                  value={formData.tuitionFee.units}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  min="0"
+                  value={formData.schoolYear}
+                  readOnly
+                  className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
                 />
               </div>
             </div>
-            <div className="mt-2">
-              <p className="font-medium">Tuition Fee Total: ₱{tuitionTotal.toLocaleString()}.00</p>
-            </div>
-          </div>
 
-          <div className="mb-6">
-            <h2 className="section-title">Miscellaneous Fees</h2>
-            <div className="table-container">
-              <table className="table">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th>Fee Name</th>
-                    <th>Amount (₱)</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formData.miscFees.map((fee, index) => (
-                    <tr key={index}>
-                      <td>
+            {/* Tuition Fee */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-700 mb-3">Tuition Fee</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rate Per Unit (₱)</label>
+                  <input
+                    type="number"
+                    name="tuition_per_unit"
+                    value={formData.tuition_per_unit}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Number of Units</label>
+                  <input
+                    type="number"
+                    name="total_units"
+                    value={formData.total_units}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <div className="text-sm font-medium text-gray-700">
+                Tuition Fee Total: ₱{tuitionTotal.toLocaleString()}.00
+              </div>
+            </div>
+
+            {/* Miscellaneous Fees */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-700 mb-3">Miscellaneous Fees</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-white">
+                      <th className="text-left py-2 px-3">Fee Category</th>
+                      <th className="text-left py-2 px-3">Fee Name</th>
+                      <th className="text-left py-2 px-3">Amount (₱)</th>
+                      <th className="text-left py-2 px-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formData.miscFees.map((fee, index) => (
+                      <tr key={index} className="border-b bg-white">
+                        <td className="py-2 px-3">
+                          <select
+                            name="fee_category_id"
+                            value={fee.fee_category_id}
+                            onChange={(e) => handleMiscFeeChange(index, e)}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          >
+                            <option value="">Select Category</option>
+                            {feeCategories.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="py-2 px-3">
+                          <input
+                            type="text"
+                            name="fee_name"
+                            value={fee.fee_name}
+                            onChange={(e) => handleMiscFeeChange(index, e)}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="py-2 px-3">
+                          <input
+                            type="number"
+                            name="amount"
+                            value={fee.amount}
+                            onChange={(e) => handleMiscFeeChange(index, e)}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td className="py-2 px-3">
+                          <button
+                            type="button"
+                            onClick={() => removeFee(index)}
+                            className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Add New Fee Row */}
+                    <tr className="border-b bg-blue-50">
+                      <td className="py-2 px-3">
+                        <select
+                          name="fee_category_id"
+                          value={newFee.fee_category_id}
+                          onChange={handleNewFeeChange}
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="">Select Category</option>
+                          {feeCategories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="py-2 px-3">
                         <input
                           type="text"
-                          name="name"
-                          value={fee.name}
-                          onChange={(e) => handleMiscFeeChange(index, e)}
-                          className="input-field"
+                          name="fee_name"
+                          value={newFee.fee_name}
+                          onChange={handleNewFeeChange}
+                          placeholder="New fee name"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
                         />
                       </td>
-                      <td>
+                      <td className="py-2 px-3">
                         <input
                           type="number"
                           name="amount"
-                          value={fee.amount}
-                          onChange={(e) => handleMiscFeeChange(index, e)}
-                          className="input-field"
+                          value={newFee.amount}
+                          onChange={handleNewFeeChange}
+                          placeholder="Amount"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
                           min="0"
+                          step="0.01"
                         />
                       </td>
-                      <td>
+                      <td className="py-2 px-3">
                         <button
                           type="button"
-                          onClick={() => removeFee(index)}
-                          className="remove-fee-button"
+                          onClick={addNewFee}
+                          className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                          disabled={!newFee.fee_name.trim() || !newFee.amount || !newFee.fee_category_id}
                         >
-                          Remove
+                          Add Fee
                         </button>
                       </td>
                     </tr>
-                  ))}
-                  <tr>
-                    <td>
-                      <input
-                        type="text"
-                        name="name"
-                        value={newFee.name}
-                        onChange={handleNewFeeChange}
-                        placeholder="New fee name"
-                        className="input-field"
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="amount"
-                        value={newFee.amount}
-                        onChange={handleNewFeeChange}
-                        placeholder="Amount"
-                        className="input-field"
-                        min="0"
-                      />
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        onClick={addNewFee}
-                        className="add-fee-button"
-                        disabled={!newFee.name.trim() || !newFee.amount}
-                      >
-                        Add Fee
-                      </button>
-
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr className="bg-gray-100">
-                    <td className="font-semibold">Miscellaneous Fee Total</td>
-                    <td className="font-semibold" colSpan="2">
-                      ₱{miscTotal.toLocaleString()}.00
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h2 className="section-title">Scholarship & Totals</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="input-label">Scholarship Discount (₱)</label>
-                <input
-                  type="number"
-                  name="scholarshipDiscount"
-                  value={formData.scholarshipDiscount}
-                  onChange={handleInputChange}
-                  className="input-field"
-                  min="0"
-                />
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-y-2 bg-gray-100 font-semibold">
+                      <td className="py-2 px-3" colSpan="2">Miscellaneous Fee Total</td>
+                      <td className="py-2 px-3" colSpan="2">
+                        ₱{miscTotal.toLocaleString()}.00
+                      </td>
+                    </tr>
+                    <tr className=" bg-gray-100 font-semibold">
+                      <td className="py-2 px-3" colSpan="2">Miscellaneous Fee + Tuition Fee (1st Semester)</td>
+                      <td className="py-2 px-3" colSpan="2">
+                        ₱{termTotal.toLocaleString()}.00
+                      </td>
+                    </tr>
+                    <tr className=" bg-gray-100 font-semibold">
+                      <td className="py-2 px-3" colSpan="2">Miscellaneous Fee + Tuition Fee (2nd Semester)</td>
+                      <td className="py-2 px-3" colSpan="2">
+                        ₱{termTotal.toLocaleString()}.00
+                      </td>
+                    </tr>
+                  
+                  </tfoot>
+                </table>
               </div>
             </div>
 
-            <div className="total-container">
-              <div className="grid grid-cols-2 gap-2">
-                <p className="font-medium">Miscellaneous Fees + Tuition Fee for 1st semister and 2nd semister:</p>
-                <p>₱{semesterTotal.toLocaleString()}.00</p>
-
-                <p className="font-medium">Academic Year Total:</p>
-                <p>₱{yearTotal.toLocaleString()}.00</p>
-
-                <p className="font-medium">Scholarship Discount:</p>
-                <p>₱{(parseFloat(formData.scholarshipDiscount) || 0).toLocaleString()}.00</p>
-
-                <p className="font-semibold text-lg">Total Payment:</p>
-                <p className="font-semibold text-lg">₱{totalPayment.toLocaleString()}.00</p>
+            {/* Summary */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-700 mb-3">Summary</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between font-semibold text-lg">
+                    <span>Academic Year Total Per Student:</span>
+                    <span>₱{yearTotal.toLocaleString()}.00</span>
+                  </div>
+          
+                  
+                </div>
               </div>
             </div>
-            <button type="submit">{isEditing ? "Update SOA" : "Save SOA"}</button>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button onClick={handleSubmit} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                {isEditing ? "Update SOA" : "Create SOA"}
+              </Button>
+            </div>
           </div>
-        </form>
+        )}
       </div>
     </div>
   );
 };
-
 export default AdminSoa;

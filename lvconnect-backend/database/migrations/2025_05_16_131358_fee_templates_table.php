@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('fee_templates', function (Blueprint $table) {
             $table->id();
-
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             // Tuition details
             $table->decimal('tuition_per_unit', 10, 2)->default(0);
             $table->integer('total_units')->default(0);

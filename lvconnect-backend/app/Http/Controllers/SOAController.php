@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
+use App\Models\FeeCategory;
 use Illuminate\Http\Request;
 use App\Models\FeeTemplate;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -17,17 +19,57 @@ class SOAController extends Controller
         $user = JWTAuth::authenticate();
 
         if ($user->hasRole('student')) {
-            return FeeTemplate::where('status', 'saved')
-                            ->where('is_visible', true)
-                            ->with('fees')
-                            ->get();
+            $templates = FeeTemplate::where('is_visible', true)
+                ->with('fees')
+                ->get();
+
+            return response()->json($templates);
         }
 
         if ($user->hasRole('registrar')) {
-            return FeeTemplate::with('fees')->get();
+            return FeeTemplate::with('fees')
+                ->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    public function getActiveAcademicYear()
+    {
+        $activeYear = AcademicYear::where('is_active', 1)->first();
+
+        if (!$activeYear) {
+            return response()->json(['message' => 'No active academic year found'], 404);
+        }
+
+        return response()->json([
+            'data' => $activeYear
+        ]);
+    }
+
+
+
+    public function feeCategory()
+    {
+        $categories = FeeCategory::select('id', 'name')->orderBy('name')->get();
+
+        return response()->json([
+            'data' => $categories
+        ]);
+    }
+
+    public function createFeeCategory(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:fee_categories,name',
+        ]);
+
+
+        $category = FeeCategory::create([
+            'name' => $request->name,
+        ]);
+
+        return response()->json(['message' => 'Category created successfully', 'data' => $category], 201);
     }
 
     /**
@@ -42,20 +84,43 @@ class SOAController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:saved,archived',
             'is_visible' => 'required|boolean',
+            'tuition_per_unit' => 'required|numeric|min:0',
+            'total_units' => 'required|integer|min:0',
             'fees' => 'required|array',
             'fees.*.fee_category_id' => 'required|exists:fee_categories,id',
             'fees.*.fee_name' => 'required|string',
             'fees.*.amount' => 'required|numeric|min:0',
         ]);
 
-        $termTotal = collect($request->fees)->sum('amount');
+
+        $tuitionTotal = $request->tuition_per_unit * $request->total_units;
+        $miscellaneousCategoryId = FeeCategory::where('name', 'Miscellaneous')->value('id');
+
+        if (!$miscellaneousCategoryId) {
+            return response()->json(['message' => 'The "Miscellaneous" fee category does not exist.'], 400);
+        }
+
+        $miscellaneousTotal = collect($request->fees)
+            ->where('fee_category_id', $miscellaneousCategoryId)
+            ->sum('amount');
+
+        $termTotal = $tuitionTotal + $miscellaneousTotal;
         $wholeYear = $termTotal * 2;
 
+        $activeYear = AcademicYear::where('is_active', 1)->first();
+        if (!$activeYear) {
+            return response()->json(['message' => 'No active academic year found'], 404);
+        }
+
         $template = FeeTemplate::create([
-            'status' => $request->status,
+            // 'status' => $request->status,
+            'academic_year_id' => $activeYear->id,
             'is_visible' => $request->is_visible,
+            'tuition_per_unit' => $request->tuition_per_unit,
+            'total_units' => $request->total_units,
+            'tuition_total' => $tuitionTotal,
+            'miscellaneous_total' => $miscellaneousTotal,
             'first_term_total' => $termTotal,
             'second_term_total' => $termTotal,
             'whole_academic_year' => $wholeYear,
@@ -81,7 +146,7 @@ class SOAController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user->hasRole('registrar') && ! $user->hasRole('student')) {
+        if (!$user->hasRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -129,6 +194,28 @@ class SOAController extends Controller
         return view('soa.view', ['soaData' => $soaData]);
     }
 
+   public function show($id)
+    {
+        
+            $user = JWTAuth::authenticate();
+        
+
+        if (!$user->hasRole('registrar')) {
+             return response()->json(['message' => 'Unauthorized to view SOAs'], 403);
+        }
+
+        $feeTemplate = FeeTemplate::where('academic_year_id', $id)
+                                  ->with('fees')
+                                  ->first();
+
+        if (!$feeTemplate) {
+            return response()->json(['message' => 'No Fee Template found for the specified academic year.'], 404);
+        }
+
+        return response()->json(['data' => $feeTemplate], 200);
+    }
+
+
     /**
      * Update the specified resource in storage.
      */
@@ -140,42 +227,45 @@ class SOAController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+
+        $template = FeeTemplate::findOrFail($id);
         $request->validate([
-            'status' => 'required|in:saved,archived',
             'is_visible' => 'required|boolean',
+            'tuition_per_unit' => 'required|numeric|min:0',
+            'total_units' => 'required|integer|min:0',
             'fees' => 'required|array',
             'fees.*.fee_category_id' => 'required|exists:fee_categories,id',
             'fees.*.fee_name' => 'required|string',
             'fees.*.amount' => 'required|numeric|min:0',
         ]);
-//         $request->validate([
-//     'schoolYear' => 'required|string|exists:academic_years,year',
-//     'tuitionFee.ratePerUnit' => 'required|numeric|min:0',
-//     'tuitionFee.units' => 'required|numeric|min:0',
-//     'tuitionFee.total' => 'required|numeric|min:0',
 
-//     'miscFees' => 'required|array',
-//     'miscFees.*.name' => 'required|string',
-//     'miscFees.*.amount' => 'required|numeric|min:0',
+        $tuitionTotal = $request->tuition_per_unit * $request->total_units;
+        $miscellaneousCategoryId = FeeCategory::where('name', 'Miscellaneous')->value('id');
 
-//     'scholarshipDiscount' => 'nullable|numeric|min:0',
-//     'programInfo' => 'nullable|string',
+        if (!$miscellaneousCategoryId) {
+            return response()->json(['message' => 'The "Miscellaneous" fee category does not exist.'], 400);
+        }
 
-//     'miscTotal' => 'required|numeric|min:0',
-//     'semesterTotal' => 'required|numeric|min:0',
-//     'yearTotal' => 'required|numeric|min:0',
-//     'totalPayment' => 'required|numeric|min:0',
-// ]);
+        $miscellaneousTotal = collect($request->fees)
+            ->where('fee_category_id', $miscellaneousCategoryId)
+            ->sum('amount');
 
-
-        $template = FeeTemplate::findOrFail($id);
-
-        $termTotal = collect($request->fees)->sum('amount');
+        $termTotal = $tuitionTotal + $miscellaneousTotal;
         $wholeYear = $termTotal * 2;
 
+        $activeYear = AcademicYear::where('is_active', 1)->first();
+        if (!$activeYear) {
+            return response()->json(['message' => 'No active academic year found'], 404);
+        }
+
         $template->update([
-            'status' => $request->status,
+            // 'status' => $request->status,
+            'academic_year_id' => $activeYear->id,
             'is_visible' => $request->is_visible,
+            'tuition_per_unit' => $request->tuition_per_unit,
+            'total_units' => $request->total_units,
+            'tuition_total' => $tuitionTotal,
+            'miscellaneous_total' => $miscellaneousTotal,
             'first_term_total' => $termTotal,
             'second_term_total' => $termTotal,
             'whole_academic_year' => $wholeYear,

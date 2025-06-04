@@ -137,17 +137,23 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/enrollees/{id}', [StudentManagementController::class, 'archive']);
   Route::post('/academic-years', [AcademicYearController::class, 'store']);
   Route::get('/academic-years', [AcademicYearController::class, 'index']);
+  Route::get('/academic-years-active', [SOAController::class, 'getActiveAcademicYear']);
+  
 
-  Route::get('/soa/{schoolYear}', [SOAController::class, 'show']);
-  Route::post('/soa', [SOAController::class, 'store']);
-  Route::put('/soa/{schoolYear}', [SOAController::class, 'update']);
+  Route::get('/soa/{id}', [SOAController::class, 'show']);
+  Route::get('/get-soa', [SOAController::class, 'index']);
+  Route::get('/soa', [SOAController::class, 'viewSoa']);
+  Route::get('/fee-categories', [SOAController::class, 'feeCategory']);
+  Route::post('/fee-categories', [SOAController::class, 'feeCategory']);
+  Route::post('/fee-templates', [SOAController::class, 'store']);
+  Route::put('/fee-templates/{id}', [SOAController::class, 'update']);
 
   Route::get('/analytics-summary/{surveyId}', [DashboardController::class, 'analyticsSummary']);
   Route::get('/psas-dashboard', [DashboardController::class, 'analyticsDashboard']);
   Route::get('/schoolAdmin-dashboard', [DashboardController::class, 'schoolAdminDashboard']);
   Route::get('/registrar-dashboard', [DashboardController::class, 'registrarDashboard']);
 
-  
+
   Route::get('/users', [CreateAccountController::class, 'showUserRole']);
   Route::delete('/users/{id}', [CreateAccountController::class, 'deleteUser']);
   Route::post('/system-admin/create-user', [CreateAccountController::class, 'createAdminAccount']);
