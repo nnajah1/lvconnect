@@ -72,7 +72,7 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::post('/forms', [SchoolFormsController::class, 'store']);
   Route::post('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'storeFields']);
-  Route::post('forms/student-submissions/{id}', [SchoolFormsController::class, 'submitForm']);
+  Route::post('/student-submit/{id}', [SchoolFormsController::class, 'submitForm']);
   Route::post('/forms/submissions/{id}/review', [SchoolFormsController::class, 'reviewSubmission']);
   Route::post('/upload-2x2-image', [SchoolFormsController::class, 'upload2x2Image']);
 
@@ -88,7 +88,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
   Route::put('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'updateFields']);
   Route::put('/forms/submissions/{id}', [SchoolFormsController::class, 'reviewSubmission']);
-  Route::put('/submissions/{id}', [SchoolFormsController::class, 'updateDraftForm']);
+  Route::put('/student-draft/{id}', [SchoolFormsController::class, 'updateDraftForm']);
   Route::delete('/forms/{id}', [SchoolFormsController::class, 'destroy']);
 
 

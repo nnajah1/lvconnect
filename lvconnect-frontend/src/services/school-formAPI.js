@@ -63,18 +63,10 @@ export const extractPdfFields = async (pdfFile) => {
 
 // forms submission
 
-export const submitForm = async (formId, payload) => {
-  return await api.post(`forms/student-submissions/${formId}`, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export const submitForm = (formId, payload) => {
+  return api.post(`/student-submit/${formId}`, payload);
 };  
 
-export const updateDraftForm = async (draftId, payload) => {
-  return await api.put(`/submissions/${draftId}`, payload, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export const updateDraftForm = (draftId, payload) => {
+  return api.put(`/student-draft/${draftId}`, payload);
 };
