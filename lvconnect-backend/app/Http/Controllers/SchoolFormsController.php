@@ -162,21 +162,21 @@ class SchoolFormsController extends Controller
         $formType = FormType::with('formFields')->findOrFail($id);
         $status = $request->input('status', 'pending');
 
-        $rules = [];
+        $rules = [
+            'status' => 'required|in:draft,pending',
+            'fields' => 'required|array',
+
+        ];
         foreach ($formType->formFields as $field) {
             $fieldKey = "fields.{$field->id}";
             $type = $field->field_data['type'] ?? 'text';
 
             // Apply validation for both drafts and pending submissions
             if ($type === '2x2_image') {
-                $rules[$fieldKey] = $field->is_required
-                    ? 'required|url'
-                    : ($status === 'draft' ? 'nullable|url' : 'required|url');
-            } else {
-                $rules[$fieldKey] = $field->is_required
-                    ? 'required|string'
-                    : ($status === 'draft' ? 'nullable|string' : 'nullable|string'); // Ensure truly optional when not required
+                $rules[$fieldKey] = $field->is_required && $status !== 'draft' ? 'required|url' : 'nullable|url';
 
+            } else {
+                $rules[$fieldKey] = $field->is_required && $status !== 'draft' ? 'required|string' : 'nullable|string';
             }
         }
 
