@@ -63,10 +63,50 @@ export const extractPdfFields = async (pdfFile) => {
 
 // forms submission
 
-export const submitForm = (formId, payload) => {
-  return api.post(`/student-submit/${formId}`, payload);
-};  
+export const submitForm = async (formId, payload) => {
+  try {
+    console.log('Submitting form:', { formId, payload });
+    
+    const response = await api.post(`/student-submit/${formId}`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    });
+    
+    console.log('Submit form response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Submit form error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config
+    });
+    throw error;
+  }
+};
 
-export const updateDraftForm = (draftId, payload) => {
-  return api.put(`/student-draft/${draftId}`, payload);
+export const updateDraftForm = async (draftId, payload) => {
+  try {
+    console.log('Updating draft:', { draftId, payload });
+    
+    const response = await api.put(`/student-draft/${draftId}`, payload, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    });
+    
+    console.log('Update draft response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Update draft error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+      config: error.config
+    });
+    throw error;
+  }
 };
