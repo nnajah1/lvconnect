@@ -24,7 +24,7 @@ export default function EnrollmentForm({ mode, editType, setStudentData, student
   const [isAgreed, setIsAgreed] = useState(false)
 
 
-  const dataPrivacyPolicy = [""]
+  const dataPrivacyPolicy = ["In compliance with data privacy laws, such as, but not limited to, Republic Act No. 10173 (Philippine Data Privacy Act of 2012) and implementing rules and regulations, we within the Organization of La Verdad Christian College, Inc. (LVCC), collect and process your personal information in this Enrollment Form for enrollment and student records management purposes only, keeping them securely and with confidentiality using our organizational, technical, and physical security measures, and retain them in accordance with our Retention Policy. We don't share them to any external group without your consent, unless otherwise stated in our Privacy Notice. You have the right to be informed, to object, to access, to rectify, to erase or to block the processing of your personal information, as well as your right to data portability, to file a complaint and be entitled to damages for violation of your rights under this data privacy. For your data privacy inquiries, you may reach our Data Protection Officer through: Email: dpo@laverdad.edu.ph"]
 
 
   const handleFieldChange = (nameOrEvent, maybeValue) => {
