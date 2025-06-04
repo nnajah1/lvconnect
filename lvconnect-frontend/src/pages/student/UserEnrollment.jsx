@@ -227,7 +227,7 @@ const UserEnrollment = ({ mode, editType }) => {
                   </div>
                   <div className="subenroll-status mb-2">
                     <span
-                      className={`subenroll-status-label ${record.enrollment_status === 'Active'
+                      className={`subenroll-status-label ${record.enrollment_status === 'Enrolled'
                         ? 'text-green-600'
                         : record.enrollment_status === 'pending'
                           ? 'text-yellow-600'

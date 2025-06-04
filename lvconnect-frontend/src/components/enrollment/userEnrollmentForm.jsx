@@ -143,9 +143,6 @@ const goToPreviousStep = (e) => {
       },
     };
 
-    // Optional: Log the data to be sent to verify its structure
-    // console.log("Data being sent to backend:", JSON.stringify(updatedData, null, 2));
-
     await submitEnrollment(updatedData);
     await loadEnroll();
     isExpanded(!isExpanded); 
