@@ -11,6 +11,7 @@ use App\Models\EnrolleeRecord;
 use App\Models\Course;
 use App\Models\Grade;
 use App\Models\GradeTemplate;
+use App\Models\Schedule;
 use Illuminate\Support\Carbon;
 
 class DummyDataSyncController extends Controller
@@ -26,6 +27,7 @@ class DummyDataSyncController extends Controller
             }
 
             $data = $response->json();
+            dd($data);
 
             foreach ($data as $applicant) {
                 // Skip if first_name or last_name is missing
@@ -182,6 +184,48 @@ class DummyDataSyncController extends Controller
                         ]
                     );
                 }
+
+                // Sync Schedules
+                if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
+                    foreach ($applicant['schedules'] as $scheduleData) {
+                        // Skip if any required field is missing
+                        if (
+                            empty($scheduleData['program']) ||
+                            empty($scheduleData['course']) ||
+                            empty($scheduleData['term']) ||
+                            empty($scheduleData['year_level']) ||
+                            empty($scheduleData['section']) ||
+                            empty($scheduleData['day']) ||
+                            empty($scheduleData['start_time']) ||
+                            empty($scheduleData['end_time']) ||
+                            empty($scheduleData['room'])
+                        ) {
+                            continue;
+                        }
+
+                        $program = Program::where('program_name', $scheduleData['program'])->first();
+                        $course = Course::where('course', $scheduleData['course'])->first();
+
+                        if (!$program || !$course) {
+                            continue;
+                        }
+
+                        Schedule::updateOrCreate(
+                            [
+                                'program_id' => $program->id,
+                                'course_id' => $course->id,
+                                'term' => $scheduleData['term'],
+                                'year_level' => $scheduleData['year_level'],
+                                'section' => $scheduleData['section'],
+                                'day' => $scheduleData['day'],
+                                'start_time' => $scheduleData['start_time'],
+                                'end_time' => $scheduleData['end_time'],
+                                'room' => $scheduleData['room'],
+                            ]
+                        );
+                    }
+                }
+
             }
 
             return response()->json(['message' => 'Applicants synced successfully.']);
