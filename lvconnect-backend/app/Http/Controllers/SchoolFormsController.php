@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\FormSubmissionData;
 use App\Models\FormType;
 use App\Models\FormField;
+use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -192,6 +193,7 @@ class SchoolFormsController extends Controller
                 'form_type_id' => $id,
                 'submitted_by' => $user->id,
                 'status' => $status,
+                'submitted_at' => Carbon::now()
             ]);
 
             foreach ($request->fields as $fieldId => $value) {
@@ -532,6 +534,7 @@ class SchoolFormsController extends Controller
                         'field_name' => $fieldName,
                         'answer_data' => $value,
                         'is_verified' => true,
+                        'submitted_at' => Carbon::now()
                     ]
                 );
             }
