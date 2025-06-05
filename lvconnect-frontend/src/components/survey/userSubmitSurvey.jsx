@@ -229,7 +229,7 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
           handleModal()
         }}
       >
-        <div className="space-y-8 w-lg">
+        <div className="space-y-8 w-full">
           {survey.questions.sort((a, b) => a.order - b.order).map((q, index) => (
             <Card key={q.id} className=" overflow-hidden border border-gray-200 shadow-sm bg-white">
               <CardContent className="px-6">

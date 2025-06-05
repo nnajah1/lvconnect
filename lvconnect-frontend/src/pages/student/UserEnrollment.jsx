@@ -5,6 +5,7 @@ import { getEnrollee, getEnrollment } from "@/services/enrollmentAPI";
 import { Loader2, Loader3 } from "@/components/dynamic/loader";
 import EnrollmentForm from "@/components/enrollment/userEnrollmentForm";
 import { formatLabel } from "@/utils/formatDate";
+import { Button } from "@/components/ui/button";
 
 const UserEnrollment = ({ mode, editType }) => {
   const [enrollment, setEnrollment] = useState(null);
@@ -206,9 +207,9 @@ const UserEnrollment = ({ mode, editType }) => {
         Current Enrollment Schedule: {enrollment.academic_year?.school_year} - {formatLabel(enrollment.semester)}
       </div>
       {!expanded && (
-        <div className="flex items-start justify-between m-6 border border-gray-300 rounded-md p-6">
+        <div className="flex flex-col sm:flex-row items-start justify-between m-6 border border-gray-300 rounded-md p-6">
 
-          <div className="flex flex-col  flex-grow">
+          <div className="flex flex-col flex-grow">
             {latestRecord && (
               <p className="subenroll-program-text">
                 <span className="subenroll-label">Program & Year Level:</span>{" "}
@@ -256,7 +257,7 @@ const UserEnrollment = ({ mode, editType }) => {
             )}
           </div> {/* END left-aligned content wrapper */}
 
-          <div>
+          <div className="p-2 flex items-center">
             {(enrollment.is_active &&
               (!hasRecordForActiveSchedule || hasRejectedRecordForActiveSchedule)) && (
                 <button onClick={toggleEnroll} className="subenroll-submit-btn cursor-pointer whitespace-nowrap">
