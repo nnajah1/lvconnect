@@ -1,4 +1,3 @@
-
 import React, { useState } from "react"
 import { ArrowDown, ArrowUp, ArrowUpDown, Filter, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,40 +10,39 @@ const FilterPopover = ({ column, config }) => {
   const [filterValue, setFilterValue] = useState("")
 
   return (
-    <Popover open={open} onOpenChange={setOpen} >
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger onClick={(e) => e.stopPropagation()}>
         <Button
           variant="ghost"
           size="icon"
-          className="h-5 w-5 align-middle hover:bg-gray-100 dark:hover:bg-gray-700 "
+          className="h-5 w-5 align-middle hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={(e) => {
-            e.stopPropagation();
-            setOpen(!open);
+            e.stopPropagation()
+            setOpen(!open)
           }}
         >
           <Filter className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-60 p-3 bg-white" align="start" onClick={(e) => e.stopPropagation()}>
+      <PopoverContent className="max-w-xs w-full p-3 bg-white" align="start" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-2">
-          <h4 className="font-medium">Filter {config.header}</h4>
+          <h4 className="font-medium text-sm sm:text-base">Filter {config.header}</h4>
           <Input
             placeholder={`Filter ${config.header.toLowerCase()}...`}
             value={filterValue}
             onChange={(e) => {
-              e.stopPropagation();
+              e.stopPropagation()
               column.setFilterValue(e.target.value)
               setFilterValue(e.target.value)
             }}
             className="h-8"
           />
-          <div className="flex justify-between">
+          <div className="flex flex-wrap justify-between gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
-                // e.stopPropagation();
                 column.setFilterValue("")
                 setFilterValue("")
               }}
@@ -53,10 +51,14 @@ const FilterPopover = ({ column, config }) => {
               <X className="mr-1 h-4 w-4" />
               Clear
             </Button>
-            <Button size="sm" onClick={(e) => {
-              e.stopPropagation()
-              setOpen(false)
-            }} className="text-xs">
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                setOpen(false)
+              }}
+              className="text-xs"
+            >
               Apply
             </Button>
           </div>
@@ -78,27 +80,27 @@ export const getColumns = ({
   // Define the selection column, will be included only if showSelectionColumn is true
   const selectionColumn = showSelectionColumn
     ? {
-      id: "select",
-      header: ({ table }) => (
-        <input
-          type="checkbox"
-          checked={table.getIsAllPageRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()}
-          className="m-auto"
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type="checkbox"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          className="m-auto"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    }
-    : null; // If showSelectionColumn is false, set to null to hide it
+        id: "select",
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
+            className="m-auto"
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className="m-auto"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      }
+    : null // If showSelectionColumn is false, set to null to hide it
 
   const baseColumns = Object.entries(schema)
     .filter(([_, config]) => config.display !== false)
@@ -113,14 +115,16 @@ export const getColumns = ({
 
           return (
             <div
-              className={`flex items-center gap-1 w-full ${isInteractive ? "cursor-pointer justify-between" : "justify-center"}`}
+              className={`flex flex-wrap items-center gap-1 w-full ${
+                isInteractive ? "cursor-pointer justify-between" : "justify-center"
+              }`}
               onClick={() => {
                 if (config.sortable) {
                   column.toggleSorting(isSorted === "asc")
                 }
               }}
             >
-              <span className="truncate">{config.header}</span>
+              <span className="truncate max-w-[120px] text-sm sm:text-base">{config.header}</span>
               <div className="flex items-center flex-shrink-0">
                 {config.filterable && <FilterPopover column={column} config={config} />}
                 {config.sortable && (
@@ -166,9 +170,7 @@ export const getColumns = ({
         enableSorting: config.sortable || false,
         enableFiltering: config.filterable || false,
         enableGlobalFilter: true,
-        
       }
-      
     })
 
   const actionColumn = {
@@ -194,7 +196,7 @@ export const getColumns = ({
           </Button>
         ))
 
-      return <div className="flex justify-center gap-2">{applicableActions}</div>
+      return <div className="flex flex-wrap justify-center gap-2">{applicableActions}</div>
     },
   }
 
