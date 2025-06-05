@@ -29,7 +29,6 @@ class DummyDataSyncController extends Controller
             $data = $response->json();
 
             foreach ($data as $applicant) {
-                dd($applicant);
                 // Skip if first_name or last_name is missing
                 if (empty($applicant['first_name']) || empty($applicant['last_name'])) {
                     continue;
