@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { getFormById, submitForm, updateDraftForm } from '@/services/school-formAPI';
 import { useForms } from '@/context/FormsContext';
 import { Button } from '../ui/button';
-import api from '@/services/axios';
+import api, { getSupabaseSignedUrl } from '@/services/axios';
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -287,7 +287,7 @@ const generateFormFromContent = (content, fields, control) => {
   });
 };
 
-const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, closeModal}) => {
+const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, closeModal }) => {
   const { control, handleSubmit, getValues, setValue, formState: { errors } } = useForm();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -331,26 +331,23 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
     if (!file) return null;
 
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 2 * 1024 * 1024;
 
-    // Check file type
     if (!allowedTypes.includes(file.type)) {
       toast.error("Only JPEG or PNG files are allowed.");
       return null;
     }
 
-    // Check file size
     if (file.size > maxSize) {
       toast.error("File size must not exceed 2MB.");
       return null;
     }
 
-    return new Promise((resolve, reject) => {
-      const image = new Image();
-      image.src = URL.createObjectURL(file);
+    const image = new Image();
+    image.src = URL.createObjectURL(file);
 
+    return new Promise((resolve, reject) => {
       image.onload = async () => {
-        // Clean up the object URL
         URL.revokeObjectURL(image.src);
 
         if (image.width !== 600 || image.height !== 600) {
@@ -360,24 +357,25 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         }
 
         try {
-          const formData = new FormData();
-          formData.append("photo", file);
-
-          const res = await api.post("/upload-2x2-image", formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-            timeout: 30000, // 30 second timeout
+          const filename = `2x2/${Date.now()}-${file.name}`;
+          const { signedURL, path } = await getSupabaseSignedUrl({
+            filename,
+            content_type: file.type,
           });
-          
-          if (res.data && res.data.image_url) {
-            resolve(res.data.image_url);
-          } else {
-            throw new Error("No image URL returned from server");
-          }
+
+          await fetch(signedURL, {
+            method: "PUT",
+            headers: {
+              "Content-Type": file.type,
+            },
+            body: file,
+          });
+
+          const publicUrl = `${import.meta.env.VITE_SUPABASE}/storage/v1/object/public/${path}`;
+          resolve(publicUrl);
         } catch (error) {
-          console.error("Image upload error:", error);
-          toast.error("Image upload failed: " + (error.response?.data?.message || error.message));
+          console.error(error);
+          toast.error("Image upload failed.");
           reject(error);
         }
       };
@@ -410,8 +408,8 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
 
       // Check required fields
       if (isRequired && (
-        !value || 
-        (Array.isArray(value) && value.length === 0) || 
+        !value ||
+        (Array.isArray(value) && value.length === 0) ||
         (typeof value === 'string' && value.trim() === '')
       )) {
         errors.push(`Field "${fieldName}" is required.`);
@@ -432,7 +430,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
 
     // Custom validation
     const validation = validateFormData(data, fields, status);
-    
+
     if (validation.errors.length > 0) {
       validation.errors.forEach(error => toast.error(error));
       return;
@@ -461,21 +459,33 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         }
 
         if (type === "2x2_image" && value instanceof File) {
-          // Handle image upload asynchronously
           imageUploadPromises.push(
-            handleImageUpload(value)
-              .then(imagePath => {
-                if (imagePath) {
-                  updatedFields[fieldId] = imagePath;
+            (async () => {
+              try {
+                const imageUrl = await handleImageUpload(value);
+
+                if (imageUrl) {
+                  updatedFields[fieldId] = imageUrl;
                 }
-                return { fieldId, success: !!imagePath, fieldName };
-              })
-              .catch(error => {
+
+                return {
+                  fieldId,
+                  fieldName,
+                  success: !!imageUrl,
+                };
+              } catch (error) {
                 console.error(`Image upload failed for ${fieldName}:`, error);
-                return { fieldId, success: false, fieldName, error };
-              })
+                return {
+                  fieldId,
+                  fieldName,
+                  success: false,
+                  error,
+                };
+              }
+            })()
           );
-        } else {
+        }
+        else {
           // Handle non-image fields
           updatedFields[fieldId] = value;
         }
@@ -484,7 +494,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
       // Wait for all image uploads to complete
       if (imageUploadPromises.length > 0) {
         const uploadResults = await Promise.all(imageUploadPromises);
-        
+
         // Check if any image uploads failed
         const failedUploads = uploadResults.filter(result => !result.success);
         if (failedUploads.length > 0) {
@@ -495,9 +505,9 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         }
       }
 
-      const payload = { 
-        fields: updatedFields, 
-        status 
+      const payload = {
+        fields: updatedFields,
+        status
       };
 
       console.log('Submitting payload:', payload);
@@ -511,22 +521,22 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
 
       // Success handling
       await fetchSubmitted();
-      
-      const message = status === 'draft' 
-        ? 'Form saved as draft successfully!' 
+
+      const message = status === 'draft'
+        ? 'Form saved as draft successfully!'
         : 'Form submitted successfully!';
       toast.success(message);
-      
+
       if (onSuccess) {
         onSuccess(formId);
       }
 
     } catch (err) {
       console.error('Form submission error:', err);
-      
+
       // More detailed error handling
       let errorMessage = 'Form submission failed. Please try again.';
-      
+
       if (err.response) {
         if (err.response.status === 422 && err.response.data.errors) {
           // Validation errors
@@ -539,7 +549,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -555,7 +565,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         <div className='ql-editor border-1 mt-2'>
           {generateFormFromContent(content, fields, control)}
         </div>
-        
+
         <div className="flex mt-4 gap-4 justify-end">
           <Button
             className="bg-gray-500"

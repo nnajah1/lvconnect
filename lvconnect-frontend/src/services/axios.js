@@ -107,4 +107,14 @@ export function switchRole(role) {
   return api.post("/switch-role", { role });
 }
 
+
+export const getSupabaseSignedUrl = async ({ filename, content_type }) => {
+  const response = await api.post("/upload", {
+    filename,
+    content_type,
+  });
+  return response.data;
+};
+
+
 export default api;

@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\FormSubmissionData;
 use App\Models\FormType;
 use App\Models\FormField;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -152,99 +153,87 @@ class SchoolFormsController extends Controller
      * Submit form for student.
      */
     public function submitForm(Request $request, $id)
-{
-    try {
+    {
         $user = JWTAuth::authenticate();
 
         if (!$user->hasRole('student')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $formType = FormType::with('formFields')->findOrFail($id);
-        $status = $request->input('status', 'pending');
+        DB::beginTransaction();
 
-        $rules = [
-            'status' => 'required|in:draft,pending',
-            'fields' => 'required|array',
-        ];
+        try {
+            $formType = FormType::with('formFields')->findOrFail($id);
+            $status = $request->input('status', 'pending');
 
-        foreach ($formType->formFields as $field) {
-            $fieldKey = "fields.{$field->id}";
-            $type = $field->field_data['type'] ?? 'text';
-            $isRequired = $field->is_required && $status !== 'draft';
+            $rules = [
+                'status' => 'required|in:draft,pending',
+                'fields' => 'required|array',
+            ];
 
-            if ($type === '2x2_image') {
-                $rules[$fieldKey] = [$isRequired ? 'required' : 'nullable', 'url'];
-            } else {
-                $rules[$fieldKey] = [$isRequired ? 'required' : 'nullable', 'string'];
-            }
-        }
+            foreach ($formType->formFields as $field) {
+                $fieldKey = "fields.{$field->id}";
+                $type = $field->field_data['type'] ?? 'text';
+                $isRequired = $field->is_required && $status !== 'draft';
 
-        // Apply validation rules for both draft and pending submissions
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Log the incoming request for debugging
-        \Log::info('Incoming Form Submission Request:', $request->all());
-
-        // Create form submission
-        $submission = FormSubmission::create([
-            'form_type_id' => $id,
-            'submitted_by' => $user->id,
-            'status' => $status,
-        ]);
-
-        // Ensure `fields` exist before processing submission data
-        $fields = $request->input('fields', []);
-        if (empty($fields) || !is_array($fields)) {
-            return response()->json(['message' => 'No fields were submitted.'], 400);
-        }
-
-        foreach ($fields as $fieldId => $value) {
-            $field = $formType->formFields->find($fieldId);
-            if (!$field) {
-                continue;
+                $rules[$fieldKey] = [$isRequired ? 'required' : 'nullable', $type === '2x2_image' ? 'url' : 'string'];
             }
 
-            $fieldData = $field->field_data;
-            $fieldName = $fieldData['name'] ?? null;
-
-            // Skip if field is not required and value is null/empty
-            if (!$field->is_required && (is_null($value) || $value === '')) {
-                continue;
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            FormSubmissionData::create([
-                'form_submission_id' => $submission->id,
-                'form_field_id' => $fieldId,
-                'field_name' => $fieldName,
-                'answer_data' => $value,
-                'is_verified' => true,
+            if (!isset($request->fields) || !is_array($request->fields)) {
+                return response()->json(['message' => 'No fields were submitted.'], 400);
+            }
+
+            $submission = FormSubmission::create([
+                'form_type_id' => $id,
+                'submitted_by' => $user->id,
+                'status' => $status,
             ]);
+
+            foreach ($request->fields as $fieldId => $value) {
+                $field = $formType->formFields->find($fieldId);
+                if (!$field)
+                    continue;
+
+                $fieldName = $field->field_data['name'] ?? null;
+
+                // Don't store optional null values
+                if (!$field->is_required && is_null($value))
+                    continue;
+
+                FormSubmissionData::create([
+                    'form_submission_id' => $submission->id,
+                    'form_field_id' => $fieldId,
+                    'field_name' => $fieldName,
+                    'answer_data' => $value,
+                    'is_verified' => true,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $status === 'draft'
+                    ? 'Form saved as draft.'
+                    : 'Form submitted successfully and is now pending review.',
+                'submission_id' => $submission->id,
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Failed to submit form.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        return response()->json([
-            'message' => $status === 'draft' ? 'Form saved as draft.' : 'Form submitted successfully and is now pending review.',
-            'submission_id' => $submission->id,
-        ], 201);
-
-    } catch (\Exception $e) {
-        \Log::error('submitForm error', [
-            'form_id' => $id,
-            'user_id' => auth()->id(),
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-            'request_data' => $request->all()
-        ]);
-
-        return response()->json([
-            'message' => 'Form submission failed',
-            'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
-        ], 500);
     }
-}
+
+
 
     /**
      * Approved or Rejected for admin
@@ -486,101 +475,81 @@ class SchoolFormsController extends Controller
     }
 
     public function updateDraftForm(Request $request, $id)
-{
-    try {
+    {
         $user = JWTAuth::authenticate();
-        $submission = FormSubmission::with('formType.formFields')->findOrFail($id);
 
-        if ($submission->submitted_by !== $user->id || $submission->status !== 'draft') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        DB::beginTransaction();
+        try {
+            $submission = FormSubmission::with('formType.formFields')->findOrFail($id);
 
-        $formType = $submission->formType;
+            if ($submission->submitted_by !== $user->id || $submission->status !== 'draft') {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
 
-        // Base validation rules
-        $rules = [
-            'status' => 'required|in:draft,pending,submitted',
-            'fields' => 'required|array',
-        ];
+            $formType = $submission->formType;
 
-        // Dynamic field validation
-        foreach ($formType->formFields as $field) {
-            $fieldKey = "fields.{$field->id}";
-            $type = $field->field_data['type'] ?? 'text';
-            $isDraft = $request->input('status') === 'draft';
+            $rules = [
+                'status' => 'required|in:draft,pending,submitted',
+                'fields' => 'required|array',
+            ];
 
-            if ($type === '2x2_image') {
-                if ($field->is_required && !$isDraft) {
-                    $rules[$fieldKey] = 'required|url';
+            foreach ($formType->formFields as $field) {
+                $fieldKey = "fields.{$field->id}";
+                $type = $field->field_data['type'] ?? 'text';
+                $isDraft = $request->input('status') === 'draft';
+
+                if ($type === '2x2_image') {
+                    $rules[$fieldKey] = $field->is_required && !$isDraft ? 'required|url' : 'nullable|url';
                 } else {
-                    $rules[$fieldKey] = 'nullable|url';
-                }
-            } else {
-                if ($field->is_required && !$isDraft) {
-                    $rules[$fieldKey] = 'required|string';
-                } else {
-                    $rules[$fieldKey] = 'nullable|string';
+                    $rules[$fieldKey] = $field->is_required && !$isDraft ? 'required|string' : 'nullable|string';
                 }
             }
-        }
 
-        $validator = Validator::make($request->all(), $rules);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        // Update submission status
-        $submission->status = $request->input('status');
-        $submission->save();
-
-        // Update fields
-        $fields = $request->input('fields', []);
-        
-        // Delete existing submission data to avoid duplicates
-        FormSubmissionData::where('form_submission_id', $submission->id)->delete();
-        
-        foreach ($fields as $fieldId => $value) {
-            $field = $formType->formFields->find($fieldId);
-            if (!$field) {
-                continue;
+            $validator = Validator::make($request->all(), $rules);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $fieldName = $field->field_data['name'] ?? null;
+            // Update submission status
+            $submission->status = $request->input('status');
+            $submission->save();
 
-            // Skip empty values for non-required fields
-            if (!$field->is_required && (is_null($value) || $value === '')) {
-                continue;
+            // Update fields
+            $fields = $request->input('fields', []);
+            foreach ($fields as $fieldId => $value) {
+                $field = $formType->formFields->find($fieldId);
+                if (!$field)
+                    continue;
+
+                $fieldName = $field->field_data['name'] ?? null;
+
+                FormSubmissionData::updateOrCreate(
+                    [
+                        'form_submission_id' => $submission->id,
+                        'form_field_id' => $fieldId,
+                    ],
+                    [
+                        'field_name' => $fieldName,
+                        'answer_data' => $value,
+                        'is_verified' => true,
+                    ]
+                );
             }
 
-            FormSubmissionData::create([
-                'form_submission_id' => $submission->id,
-                'form_field_id' => $fieldId,
-                'field_name' => $fieldName,
-                'answer_data' => $value,
-                'is_verified' => true,
+            DB::commit();
+            return response()->json([
+                'message' => 'Draft updated successfully',
+                'submission' => $submission->fresh()
             ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to update draft',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'message' => 'Draft updated successfully',
-            'submission' => $submission->fresh()
-        ]);
-
-    } catch (\Exception $e) {
-        \Log::error('updateDraftForm error', [
-            'id' => $id,
-            'user_id' => auth()->id(),
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-            'request_data' => $request->all()
-        ]);
-
-        return response()->json([
-            'message' => 'Failed to update draft',
-            'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
-        ], 500);
     }
-}
 
 
     /**

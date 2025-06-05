@@ -8,6 +8,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\SchoolFormsController;
 use App\Http\Controllers\SOAController;
 use App\Http\Controllers\StudentManagementController;
+use App\Http\Controllers\supabaseController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ChangePasswordController;
@@ -138,7 +139,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/academic-years', [AcademicYearController::class, 'store']);
   Route::get('/academic-years', [AcademicYearController::class, 'index']);
   Route::get('/academic-years-active', [SOAController::class, 'getActiveAcademicYear']);
-  
+
 
   Route::get('/soa/{id}', [SOAController::class, 'show']);
   Route::get('/get-soa', [SOAController::class, 'index']);
@@ -162,6 +163,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::put('/system-admin/reactivate-user/{id}', [CreateAccountController::class, 'reactivateUser']);
   Route::put('/system-admin/deactivate-user/{id}', [CreateAccountController::class, 'deactivateUser']);
 
+Route::post('/upload', [supabaseController::class, 'getSignedUrl']);
 
 });
 
