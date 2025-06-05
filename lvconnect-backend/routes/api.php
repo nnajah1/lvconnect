@@ -21,8 +21,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OTPController;
 
-Route::prefix('api')->group(base_path('routes/api.php'));
-
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/refresh', [AuthController::class, 'refreshToken']);
 
