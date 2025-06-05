@@ -134,11 +134,11 @@ export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther 
         </div>
 
         {/* Academic Year Summary */}
-        <div className="mt-6 bg-white rounded-lg p-4">
+        <div className="mt-6 bg-white rounded-lg p-4 overflow-auto ">
           <h3 className="font-semibold text-gray-700 mb-3">Academic Year Summary</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div className="flex justify-between"></div>
-            <div className="flex justify-between font-semibold text-lg">
+            <div className="flex justify-between items-center font-semibold text-lg">
               {userRole === "registrar" ? (
                 <span>Academic Year Total Per Student:</span>
               ) : (<span>Academic Year Total:</span>)}
@@ -146,12 +146,12 @@ export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther 
             </div>
             <div className="flex justify-between"></div>
             {userRole === "student" && (
-              <div>
-                <div className="flex justify-between font-semibold text-lg">
+              <div className=''>
+                <div className="flex justify-between items-center font-semibold text-lg">
                   <span>Scholarship Discount:</span>
                   <span>₱{soaData.scholarship_discount?.toLocaleString()}.00</span>
                 </div>
-                <div className="flex justify-between font-semibold text-lg text-green-500">
+                <div className="flex justify-between items-center font-semibold text-lg text-green-500">
                   <span>Total Payment:</span>
                   <span>₱{soaData.total_payment?.toLocaleString()}.00</span>
                 </div>

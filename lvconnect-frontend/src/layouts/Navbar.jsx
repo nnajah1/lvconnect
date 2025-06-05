@@ -6,30 +6,32 @@ import { ProfileDropdown } from "./Profile"
 
 export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) {
   return (
-    <header
-      className={` sticky top-0 z-10 bg-secondary p-2 text-white shadow-base transition-all duration-300 ${
-        isSidebarExpanded ? "lg:ml-64" : "lg:ml-20"
-      }`}
-    >
-      <div className="flex items-center justify-between px-4 py-3 md:px-6">
-        {/* Left side - Mobile menu toggle and title */}
-        <div className="flex items-center space-x-4">
+    <header className="fixed top-0 left-0 right-0 z-10 bg-secondary text-white shadow-base transition-all duration-300 w-full">
+      <div
+        className={`flex flex-wrap items-center justify-between px-4 py-3 md:px-6 transition-all duration-300 ${
+          isSidebarExpanded ? "lg:pl-64" : "lg:pl-20"
+        }`}
+      >
+        {/* Left: Menu + Title */}
+        <div className="flex items-center space-x-3 min-w-0">
           <button
             onClick={onMobileMenuToggle}
-            className="rounded p-1.5 hover:bg-blue-800 lg:hidden"
-            aria-label="Toggle mobile menu"
+            className="p-2 rounded hover:bg-blue-800 lg:hidden"
+            aria-label="Toggle Mobile Menu"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-semibold md:text-xl">Welcome, {user.first_name}</h1>
+          <h1 className="pl-6 text-base sm:text-lg md:text-xl font-semibold truncate max-w-xs sm:max-w-sm md:max-w-md">
+            Welcome, {user?.first_name || "User"}
+          </h1>
         </div>
 
-        {/* Right side - Notifications and profile */}
-        <div className="flex items-center space-x-1 md:space-x-4">
+        {/* Right: Dropdowns */}
+        <div className="mt-2 flex items-center space-x-2 sm:mt-0 sm:space-x-4 flex-shrink-0">
           <NotificationDropdown />
           <ProfileDropdown user={user} logout={logout} />
         </div>
       </div>
     </header>
-  )
+  );
 }
