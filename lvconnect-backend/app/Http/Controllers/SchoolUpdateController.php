@@ -153,6 +153,7 @@ class SchoolUpdateController extends Controller
     }
 
 
+
     /**
      * Update an existing school update post (Communications Officer only)
      */
@@ -164,7 +165,7 @@ class SchoolUpdateController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Allow update only if post is in draft or revision status
+        // Only allow update if current status is draft or revision
         if (!in_array($schoolupdate->status, [SchoolUpdate::STATUS_DRAFT, SchoolUpdate::STATUS_REVISION])) {
             return response()->json(['error' => 'Only draft or revision posts can be edited'], 403);
         }
@@ -173,15 +174,54 @@ class SchoolUpdateController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'type' => 'required|in:announcement,event',
-            'image_paths' => 'nullable|array', // Supabase object paths
-            'image_paths.*' => 'string',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'existing_images' => 'nullable|string', // JSON string of existing image URLs
             'is_notified' => 'sometimes|boolean',
             'is_urgent' => 'sometimes|boolean',
             'status' => 'required|in:draft,pending,published',
         ]);
 
         try {
-            $content = Purifier::clean($request->content);
+            // Start with existing images
+            $existingImages = json_decode($request->input('existing_images', '[]'), true);
+            $existingImages = is_array($existingImages) ? $existingImages : [];
+
+            $newImageUrls = [];
+            $content = $request->content;
+
+            // Upload new images
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('SchoolUpdates', 'public');
+                    $newImageUrls[] = Storage::url($path);
+                }
+            }
+
+            // Combine existing and new images
+            $allImageUrls = array_merge($existingImages, $newImageUrls);
+
+            // Clean content and replace base64 images with actual URLs
+            $content = Purifier::clean($content);
+
+            // Find all base64 images in content
+            preg_match_all('/<img[^>]+src=["\']data:image\/[^"\']+;base64,[^"\']+["\'][^>]*>/i', $content, $matches);
+
+            if (!empty($matches[0]) && !empty($newImageUrls)) {
+                // Replace base64 images with newly uploaded URLs
+                $newImageIndex = 0;
+                foreach ($matches[0] as $base64ImageTag) {
+                    if (isset($newImageUrls[$newImageIndex])) {
+                        // Extract any additional attributes from the original img tag
+                        preg_match('/class=["\']([^"\']*)["\']/', $base64ImageTag, $classMatch);
+                        $classAttr = !empty($classMatch[1]) ? ' class="' . $classMatch[1] . '"' : '';
+
+                        $newImageTag = '<img src="' . $newImageUrls[$newImageIndex] . '"' . $classAttr . ' />';
+                        $content = str_replace($base64ImageTag, $newImageTag, $content);
+                        $newImageIndex++;
+                    }
+                }
+            }
 
             $isUrgent = $request->boolean('is_urgent');
             $finalStatus = $isUrgent ? SchoolUpdate::STATUS_PUBLISHED : $request->status;
@@ -190,23 +230,19 @@ class SchoolUpdateController extends Controller
                 'title' => $request->title,
                 'content' => $content,
                 'type' => $request->type,
-                'image_url' => $request->image_paths ? json_encode($request->image_paths) : null, // store only paths
+                'image_url' => !empty($allImageUrls) ? json_encode($allImageUrls) : null,
                 'is_notified' => $request->boolean('is_notified'),
                 'is_urgent' => $isUrgent,
                 'status' => $finalStatus,
-                'published_at' => $finalStatus === SchoolUpdate::STATUS_PUBLISHED ? now() : $schoolupdate->published_at,
             ]);
 
-             // Notify students if published and notified
+            // Notify students if published and notified
             // if ($finalStatus === SchoolUpdate::STATUS_PUBLISHED && $schoolupdate->is_notified) {
             //     $comms = new \App\Services\StudentCommService();
             //     $comms->notify(new \App\Notifications\PostNotification($schoolupdate));
-            // }    
+            // }
 
-            return response()->json([
-                'message' => 'Post updated successfully',
-                'post' => $schoolupdate,
-            ]);
+            return response()->json(['message' => 'Post updated successfully', 'post' => $schoolupdate]);
 
         } catch (\Exception $e) {
             \Log::error('Post update failed', ['error' => $e->getMessage()]);

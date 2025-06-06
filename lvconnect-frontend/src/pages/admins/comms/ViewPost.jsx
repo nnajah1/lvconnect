@@ -6,26 +6,6 @@ import { Loader } from "@/components/dynamic/loader";
 import { ConfirmationModal, ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
 import { toast } from "react-toastify";
 import { useUserRole } from "@/utils/userRole";
-import { useSignedImages } from "@/hooks/imagehandlers";
-
-const parseImageUrls = (imageUrl) => {
-  try {
-    if (!imageUrl) return [];
-
-    const parsed = typeof imageUrl === "string" ? JSON.parse(imageUrl) : imageUrl;
-
-    const array = Array.isArray(parsed) ? parsed : [parsed];
-
-    return array
-      .map((url) => (typeof url === "string" ? url.trim() : null))
-      .filter((url) => !!url);
-  } catch {
-    // If it's not JSON-parsable, assume it's a single plain string
-    return typeof imageUrl === "string" && imageUrl.trim()
-      ? [imageUrl.trim()]
-      : [];
-  }
-};
 
 const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, modalHandlers }) => {
 
@@ -54,6 +34,14 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
     }
   }, [isOpen, postId]);
 
+  const parseImageUrls = (imageUrl) => {
+    try {
+      const urls = typeof imageUrl === "string" ? JSON.parse(imageUrl) : imageUrl;
+      return Array.isArray(urls) ? urls.filter((url) => url) : [urls].filter((url) => url);
+    } catch {
+      return imageUrl ? [imageUrl] : [];
+    }
+  };
 
   const handleImageLoad = (index) => {
     setImageLoadStates((prev) => ({ ...prev, [index]: "loaded" }));
@@ -143,25 +131,27 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
 
                 {/* Facebook-style Image Grid (Below Content) */}
                 {post.image_url && (() => {
-                  const images = useSignedImages(post.image_url);
-
-                  if (images.length === 0) return null;
-
+                  const images = parseImageUrls(post.image_url);
                   const imageCount = images.length;
 
                   const getGridClass = () => {
                     switch (imageCount) {
-                      case 1: return "grid-cols-1";
-                      case 2: return "grid-cols-2";
+                      case 1:
+                        return "grid-cols-1";
+                      case 2:
+                        return "grid-cols-2";
                       case 3:
-                      case 4: return "grid-cols-2";
-                      default: return "grid-cols-3";
+                      case 4:
+                        return "grid-cols-2";
+                      default:
+                        return "grid-cols-3";
                     }
                   };
 
                   return (
                     <div className={`place-items-center grid gap-2 ${getGridClass()}`}>
-                      {images.map(({ url }, idx) => {
+                      {images.map((url, idx) => {
+                        const imageUrl = `${import.meta.env.VITE_BASE_URL}${url}`;
                         const state = imageLoadStates[idx] || "loading";
                         const isPrimary = (imageCount === 3 && idx === 0) || imageCount === 1;
 
@@ -182,17 +172,19 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                             )}
 
                             <img
-                              src={state === "error" ? "/placeholder-image.png" : url}
+                              src={state === "error" ? "/placeholder-image.png" : imageUrl}
                               alt={`Post image ${idx + 1}`}
                               className={`w-full h-full object-cover transition-opacity duration-300 ${state === "loaded" ? "opacity-100" : "opacity-0"
                                 }`}
+
+                              // crossOrigin="anonymous"
                               onLoad={() => handleImageLoad(idx)}
                               onError={() => handleImageError(idx)}
                             />
 
                             {state === "loaded" && (
                               <a
-                                href={url}
+                                href={imageUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200"
@@ -328,7 +320,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
         </DynamicModal>
       )}
 
-
+      
       {restoreItem && (
         <InfoModal
           isOpen={!!restoreItem}
@@ -353,7 +345,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
       )}
     </>
   );
-};
+};  
 
 
 export default ViewPostModal;
