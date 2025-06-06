@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
+import { getSignedUrl } from "@/services/axios";
 
 
 const TextEditor = ({
@@ -13,6 +14,8 @@ const TextEditor = ({
   const editorRef = useRef(null);
   const quillRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [signedUrls, setSignedUrls] = useState({});
+  const [loadingUrls, setLoadingUrls] = useState(new Set());
 
   // Initialize Quill editor
   useEffect(() => {
@@ -50,6 +53,38 @@ const TextEditor = ({
     }
   }, [content]);
 
+  useEffect(() => {
+    const loadSignedUrls = async () => {
+      const existingImages = images.filter(img => !img.file && img.url);
+
+      for (const image of existingImages) {
+        if (!signedUrls[image.url] && !loadingUrls.has(image.url)) {
+          setLoadingUrls(prev => new Set([...prev, image.url]));
+
+          try {
+            const signedUrl = await getSignedUrl(image.url);
+            if (signedUrl) {
+              setSignedUrls(prev => ({
+                ...prev,
+                [image.url]: signedUrl
+              }));
+            }
+          } catch (error) {
+            console.error('Failed to get signed URL:', error);
+          } finally {
+            setLoadingUrls(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(image.url);
+              return newSet;
+            });
+          }
+        }
+      }
+    };
+
+    loadSignedUrls();
+  }, [images]);
+
   const handleImageUpload = (e) => {
     if (disabled) return;
 
@@ -65,7 +100,6 @@ const TextEditor = ({
       onImagesChange([...images, ...newImages]);
     }
 
-    // Reset file input
     e.target.value = '';
   };
 
@@ -79,6 +113,26 @@ const TextEditor = ({
     if (onImagesChange) {
       onImagesChange(newImages);
     }
+  };
+
+  const getImageUrl = (image, index) => {
+    if (image.file) {
+      return image.preview;
+    }
+
+    if (image.url) {
+      if (signedUrls[image.url]) {
+        return signedUrls[image.url];
+      }
+
+      if (loadingUrls.has(image.url)) {
+        return null; // Show loading state
+      }
+
+      return '/image-placeholder.png'; // Fallback
+    }
+
+    return '/image-placeholder.png';
   };
 
   return (
@@ -95,20 +149,34 @@ const TextEditor = ({
         <div className="p-3 border-t bg-gray-50">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {images.map((image, index) => {
-              const imageUrl = image.preview ||
-                (image.url ? `${import.meta.env.VITE_BASE_URL}${image.url}` : '');
+              const imageUrl = getImageUrl(image, index);
+              const isLoading = !image.file && image.url && loadingUrls.has(image.url);
 
               return (
                 <div key={index} className="relative group">
-                  <img
-                    src={imageUrl}
-                    alt={`Preview ${index}`}
-                    className="w-full h-24 object-cover rounded border"
-                    onError={(e) => {
-                      e.target.src = '/image-placeholder.png';
-                      e.target.className = 'w-full h-24 object-contain rounded border bg-gray-100 p-2';
-                    }}
-                  />
+                  {isLoading ? (
+                    <div className="w-full h-24 bg-gray-100 rounded border flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : (
+                    <>
+                      {imageUrl ? (
+                        <img
+                        crossOrigin="anonymous"
+                          src={imageUrl}
+                          alt={`Preview ${index}`}
+                          className="w-full h-24 object-cover rounded border"
+                         
+                        />
+                      ) : (
+                        <div className="w-full h-24 flex items-center justify-center bg-gray-100 text-xs text-gray-500 border rounded">
+                          Image missing
+                        </div>
+                      )}
+
+                    </>
+                  )}
+
                   {!disabled && (
                     <button
                       type="button"
@@ -118,8 +186,9 @@ const TextEditor = ({
                       ×
                     </button>
                   )}
+
                   <div className="text-xs text-gray-500 mt-1 truncate">
-                    {image.file ? 'New' : 'Existing'}
+                    {image.file ? 'New' : isLoading ? 'Loading...' : 'Existing'}
                   </div>
                 </div>
               );
@@ -127,7 +196,6 @@ const TextEditor = ({
           </div>
         </div>
       )}
-
 
       {/* Image Upload Button */}
       {!disabled && (

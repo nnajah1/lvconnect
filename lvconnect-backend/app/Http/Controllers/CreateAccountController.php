@@ -380,6 +380,7 @@ class CreateAccountController extends Controller
         $allowedAdminRoles = ['registrar', 'psas', 'scadmin', 'comms'];
         $roles = $request->input('roles');
 
+
         if (!is_array($roles)) {
             $roles = [$roles];
             $request->merge(['roles' => $roles]);
@@ -395,6 +396,11 @@ class CreateAccountController extends Controller
         }
 
         $admin->syncRoles($request->roles);
+        $firstRole = $request->roles[0] ?? $admin->getRoleNames()->first();
+        if ($firstRole) {
+            $admin->active_role = $firstRole;
+            $admin->save();
+        }
 
         return response()->json([
             'message' => 'Admin role updated successfully',
