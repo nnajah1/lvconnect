@@ -13,6 +13,7 @@ use App\Models\Grade;
 use App\Models\GradeTemplate;
 use App\Models\Schedule;
 use Illuminate\Support\Carbon;
+use App\Models\User;
 
 class DummyDataSyncController extends Controller
 {
@@ -31,6 +32,15 @@ class DummyDataSyncController extends Controller
             foreach ($data as $applicant) {
                 // Skip if first_name or last_name is missing
                 if (empty($applicant['first_name']) || empty($applicant['last_name'])) {
+                    continue;
+                }
+
+                // Find matching user by first_name and last_name only
+                $user = User::where('first_name', $applicant['first_name'])
+                    ->where('last_name', $applicant['last_name'])
+                    ->first();
+
+                if (!$user) {
                     continue;
                 }
 
@@ -63,6 +73,7 @@ class DummyDataSyncController extends Controller
                 // Now safe to insert/update
                 $student = StudentInformation::updateOrCreate(
                     [
+                        'user_id' => $user->id,
                         'first_name'  => $applicant['first_name'],
                         'last_name'   => $applicant['last_name'],
                     ],

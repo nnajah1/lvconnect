@@ -43,7 +43,7 @@ class DashboardController extends Controller
 
         // Visible and mandatory surveys
         $visibleSurveys = Survey::where('visibility_mode', 'optional')->count();
-        $mandatorySurveys = Survey::where('visibility_mode', 'mandatory')->count();
+        // $mandatorySurveys = Survey::where('visibility_mode', 'mandatory')->count();
 
         // Total survey answers submitted
         $totalAnswers = SurveyAnswer::count();
@@ -91,7 +91,7 @@ class DashboardController extends Controller
         $stats = [
             'current_enrolled_students' => $currentEnrolledCount,
             'visible_surveys' => $visibleSurveys,
-            'mandatory_surveys' => $mandatorySurveys,
+            // 'mandatory_surveys' => $mandatorySurveys,
             'total_answers_submitted' => $totalAnswers,
         ];
 
