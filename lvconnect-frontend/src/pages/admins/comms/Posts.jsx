@@ -118,8 +118,6 @@ const Posts = () => {
     setPostItem(item);
   };
 
-  console.log(postItem)
-
   const handleFbPost = async () => {
     setLoading(true)
     try {

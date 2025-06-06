@@ -6,26 +6,7 @@ import { Loader } from "@/components/dynamic/loader";
 import { ConfirmationModal, ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
 import { toast } from "react-toastify";
 import { useUserRole } from "@/utils/userRole";
-import { useSignedImages } from "@/hooks/imagehandlers";
 
-const parseImageUrls = (imageUrl) => {
-  try {
-    if (!imageUrl) return [];
-
-    const parsed = typeof imageUrl === "string" ? JSON.parse(imageUrl) : imageUrl;
-
-    const array = Array.isArray(parsed) ? parsed : [parsed];
-
-    return array
-      .map((url) => (typeof url === "string" ? url.trim() : null))
-      .filter((url) => !!url);
-  } catch {
-    // If it's not JSON-parsable, assume it's a single plain string
-    return typeof imageUrl === "string" && imageUrl.trim()
-      ? [imageUrl.trim()]
-      : [];
-  }
-};
 
 const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, modalHandlers }) => {
 
@@ -41,8 +22,8 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
       getPostById(postId)
         .then((data) => {
           setPost(data);
-          if (data?.image_url) {
-            const urls = parseImageUrls(data.image_url);
+          if (data?.image_urls) {
+            const urls = data.image_urls;
             const initialStates = {};
             urls.forEach((_, idx) => {
               initialStates[idx] = "loading";
@@ -54,7 +35,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
     }
   }, [isOpen, postId]);
 
-
+ 
   const handleImageLoad = (index) => {
     setImageLoadStates((prev) => ({ ...prev, [index]: "loaded" }));
   };
@@ -142,26 +123,31 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                 </div>
 
                 {/* Facebook-style Image Grid (Below Content) */}
-                {post.image_url && (() => {
-                  const images = useSignedImages(post.image_url);
-
-                  if (images.length === 0) return null;
-
+                {post.image_urls && (() => {
+                  const parsed = post.image_urls;
+                  const images = Array.isArray(parsed) ? parsed : [];
                   const imageCount = images.length;
+
+                  if (imageCount === 0) return null;
 
                   const getGridClass = () => {
                     switch (imageCount) {
-                      case 1: return "grid-cols-1";
-                      case 2: return "grid-cols-2";
+                      case 1:
+                        return "grid-cols-1";
+                      case 2:
+                        return "grid-cols-2";
                       case 3:
-                      case 4: return "grid-cols-2";
-                      default: return "grid-cols-3";
+                      case 4:
+                        return "grid-cols-2";
+                      default:
+                        return "grid-cols-3";
                     }
                   };
 
                   return (
                     <div className={`place-items-center grid gap-2 ${getGridClass()}`}>
-                      {images.map(({ url }, idx) => {
+                      {images.map((url, idx) => {
+                        const imageUrl = url;
                         const state = imageLoadStates[idx] || "loading";
                         const isPrimary = (imageCount === 3 && idx === 0) || imageCount === 1;
 
@@ -182,7 +168,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                             )}
 
                             <img
-                              src={state === "error" ? "/placeholder-image.png" : url}
+                              src={state === "error" ? "/placeholder-image.png" : imageUrl}
                               alt={`Post image ${idx + 1}`}
                               className={`w-full h-full object-cover transition-opacity duration-300 ${state === "loaded" ? "opacity-100" : "opacity-0"
                                 }`}
@@ -192,7 +178,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
 
                             {state === "loaded" && (
                               <a
-                                href={url}
+                                href={imageUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200"
@@ -218,6 +204,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                     </div>
                   );
                 })()}
+
               </div>
 
               <div className="flex justify-between">
