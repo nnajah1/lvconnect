@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\StudentsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\Models\Role;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\User;
@@ -110,18 +112,20 @@ class CreateAccountController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+        $firstName = ucwords(strtolower($request->first_name));
+        $lastName = ucwords(strtolower($request->last_name));
 
         // convert first and last name: only letters and lowercase
-        $firstName = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->first_name));
-        $lastName = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->last_name));
+        $firstNameCleam = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->first_name));
+        $lastNameClean = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->last_name));
 
         // Create base email
-        $email = $firstName . $lastName . '@student.laverdad.edu.ph';
+        $email = $firstNameCleam . $lastNameClean . '@student.laverdad.edu.ph';
 
         // Ensure email is unique
         $counter = 1;
         while (User::where('email', $email)->exists()) {
-            $email = $firstName . $lastName . $counter . '@student.laverdad.edu.ph';
+            $email = $firstNameCleam . $firstNameCleam . $counter . '@student.laverdad.edu.ph';
             $counter++;
         }
 
@@ -130,8 +134,8 @@ class CreateAccountController extends Controller
 
         // Create student user
         $student = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'email' => $email,
             'password' => Hash::make($randomPassword),
         ]);
@@ -217,6 +221,27 @@ class CreateAccountController extends Controller
         ], 201);
     }
 
+    public function importStudentsFromFile(Request $request)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user || !$user->hasRole('registrar')) {
+            return response()->json(['error' => 'Not authorized'], 403);
+        }
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,csv,txt|max:2048',
+        ]);
+
+        try {
+            Excel::import(new StudentsImport, $request->file('file'));
+            return response()->json(['message' => 'Student accounts imported successfully.'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Import failed', 'details' => $e->getMessage()], 500);
+        }
+    }
+
+
     /**
      * Deactivate User
      */
@@ -239,7 +264,7 @@ class CreateAccountController extends Controller
         }
 
         // Registrar admin can only deactivate students
-        if ($authUser->hasRole('registrar') && !$user->hasRole('student')) {
+        if ($authUser->hasActiveRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['error' => 'Registrar can only deactivate student accounts'], 403);
         }
 
@@ -272,7 +297,7 @@ class CreateAccountController extends Controller
         }
 
         // Registrar admin can only reactivate students
-        if ($authUser->hasRole('registrar') && !$user->hasRole('student')) {
+        if ($authUser->hasActiveRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['error' => 'Registrar can only reactivate student accounts'], 403);
         }
 
@@ -353,7 +378,7 @@ class CreateAccountController extends Controller
         }
 
         $allowedAdminRoles = ['registrar', 'psas', 'scadmin', 'comms'];
-          $roles = $request->input('roles');
+        $roles = $request->input('roles');
 
         if (!is_array($roles)) {
             $roles = [$roles];

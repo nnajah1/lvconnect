@@ -21,8 +21,8 @@ class User extends Authenticatable implements JWTSubject
      * @var list<string>
      */
 
-     use HasRoles;
-     protected $guard_name = 'api';
+    use HasRoles;
+    protected $guard_name = 'api';
 
     protected $fillable = [
         'first_name',
@@ -60,12 +60,20 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
         ];
     }
+    protected $appends = ['full_name'];
 
-    public function getJWTIdentifier() {
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    public function getJWTIdentifier()
+    {
         return $this->getKey();
     }
 
-    public function getJWTCustomClaims() {
+    public function getJWTCustomClaims()
+    {
         return [
             'roles' => $this->getRoleNames(),
             'permissions' => $this->getAllPermissions()->pluck('name')
@@ -91,8 +99,25 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(NotificationPreference::class);
     }
-    public function createdActivities()
+
+  
+    // for active role
+    public function hasActiveRole($roles, string $guard = null): bool
     {
-        return $this->hasMany(CalendarOfActivity::class, 'created_by');
+        if (!is_null($this->active_role)) {
+            if (is_string($roles)) {
+                return $this->active_role === $roles;
+            }
+
+            if (is_array($roles)) {
+                return in_array($this->active_role, $roles);
+            }
+
+            return false;
+        }
+
+        return parent::hasRole($roles, $guard);
     }
+
+
 }

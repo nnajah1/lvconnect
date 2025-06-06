@@ -27,6 +27,7 @@ const Forms = () => {
   const [activeTab, setActiveTab] = useState("form Template");
   const [globalFilter, setGlobalFilter] = useState("");
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
      useEffect(() => {
@@ -119,7 +120,7 @@ const Forms = () => {
           isOpen={!!formItem}
           closeModal={() => setFormItem(false)}
           formItem={formItem}
-          onDeleteModal={() => setIsSuccessModalOpen(true)}
+          onDeleteModal={() => setIsDeleteModalOpen(true)}
           onSuccessModal={() => setIsSuccessModalOpen(false)}
         />
       )}
@@ -145,6 +146,22 @@ const Forms = () => {
                 </button>
 
             </ConfirmationModal>
+
+              <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                closeModal={() => setIsDeleteModalOpen(false)}
+                title="The School Form is deleted"
+                description="The School Form has been successfully deleted."
+            >
+                <button
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    onClick={() => setIsDeleteModalOpen(false)}
+                >
+                    Manage School Forms
+                </button>
+
+            </ConfirmationModal>
+
 
 
     </div>

@@ -48,39 +48,24 @@ export const uploadImages = async (uploadForm) => {
   }
 };
 
-export const createPost = async (formData) => {
+export const createPost = async (payload) => {
   try {
-    const response = await api.post("/posts", formData, {headers: {
-        'Content-Type': 'multipart/form-data',
-      },});
+    const response = await api.post("/posts", payload); 
     return response.data;
   } catch (error) {
     throw error.response?.data || "Something went wrong!";
   }
 };
 
-export const updatePost = async (id, formData) => {
-  formData.append('_method', 'PUT');  
+export const updatePost = async (id, payload) => {
   try {
-    const response = await api.post(`/posts/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });  
+    const response = await api.put(`/posts/${id}`, payload);
     return response.data;
   } catch (error) {
     throw error.response?.data || "Something went wrong!";
   }
 };
 
-// export const publishPost = async (id, formData) => {
-//   try {
-//     const response = await api.post(`/posts/${id}/publish`, formData);
-//     return response.data;
-//   } catch (error) {
-//     throw error.response?.data || "Something went wrong!";
-//   }
-// };
 
 export const archivePost = (id) => api.post(`/posts/${id}/archive`);
 export const restorePost = (id) => api.post(`/posts/${id}/restore`);
@@ -107,14 +92,26 @@ export function switchRole(role) {
   return api.post("/switch-role", { role });
 }
 
+export const uploadToSupabase = async (files) => {
+  const formData = new FormData();
+  const fileArray = Array.isArray(files) ? files : [files];
 
-export const getSupabaseSignedUrl = async ({ filename, content_type }) => {
-  const response = await api.post("/upload", {
-    filename,
-    content_type,
+  fileArray.forEach((file) => {
+    formData.append("file", file);
   });
-  return response.data;
+
+  const response = await api.post("/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return Array.isArray(files)
+    ? response.data.uploaded.map(f => f.url)
+    : response.data.uploaded[0].url;
 };
+
+
 
 
 export default api;

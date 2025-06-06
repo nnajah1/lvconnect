@@ -3,7 +3,7 @@ import { IoArrowBack } from "react-icons/io5";
 import SwitchComponent from "@/components/dynamic/switch";
 import TooltipComponent from "@/components/dynamic/tooltip";
 import { BsFillInfoCircleFill } from "react-icons/bs";
-import api, { createPost, updatePost, publishPost, uploadImages } from "@/services/axios"; // Import API function
+import api, { createPost, updatePost, uploadToSupabase } from "@/services/axios"; // Import API function
 import TextEditor from "@/components/school_updates/textEditor"; // Quill Editor
 import { toast } from "react-toastify";
 import { ConfirmationModal, InfoModal } from "../dynamic/alertModal";
@@ -34,10 +34,10 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
       setIsNotified(existingPost.is_notified === 1);
       setIsUrgent(existingPost.is_urgent === 1);
       setPostId(existingPost.id || null);
-      
+
       // Convert existing images to preview format
       try {
-        const parsedImages = existingPost.image_url 
+        const parsedImages = existingPost.image_url
           ? JSON.parse(existingPost.image_url)
           : [];
         const imageArray = Array.isArray(parsedImages) ? parsedImages : [parsedImages];
@@ -62,37 +62,31 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
     return true;
   };
 
-  const prepareFormData = (action) => {
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("type", selectedType.toLowerCase());
-    formData.append("content", content);
-    formData.append("is_notified", isNotified ? "1" : "0");
-    formData.append("is_urgent", isUrgent ? "1" : "0");
+   const preparePostPayload = async (action, isEditMode = false) => {
+    const newImages = images.filter(img => img.file);
+    const existingImages = images
+      .filter(img => !img.file && img.url && isEditMode)
+      .map(img => img.url);
 
-    // Add new image files
-    images.forEach(image => {
-      if (image.file) {
-        formData.append("images[]", image.file);
-      }
-    });
-
-    // Add existing image URLs (for updates)
-    if (isEditMode) {
-      const existingImageUrls = images
-        .filter(image => image.url && !image.file)
-        .map(image => image.url);
-      
-      if (existingImageUrls.length > 0) {
-        formData.append("existing_images", JSON.stringify(existingImageUrls));
-      }
+    let uploadedUrls = [];
+    if (newImages.length > 0) {
+      const files = newImages.map(img => img.file);
+      uploadedUrls = await uploadToSupabase(files);
     }
 
-    const statusToSend = isUrgent ? "published" : action;
-    formData.append("status", statusToSend);
+    const imageUrls = [...existingImages, ...uploadedUrls];
 
-    return formData;
+    return {
+      title,
+      type: selectedType.toLowerCase(),
+      content,
+      is_notified: isNotified ? 1 : 0,
+      is_urgent: isUrgent ? 1 : 0,
+      images: imageUrls,
+      status: isUrgent ? "published" : action,
+    };
   };
+
 
   const handleSubmitPost = async (action) => {
     if (!validateForm()) return;
@@ -102,24 +96,24 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
     setError(null);
 
     try {
-      const formData = prepareFormData(action);
-      const response = isEditMode 
-        ? await updatePost(postId, formData)
-        : await createPost(formData);
+      const payload = await preparePostPayload(action);
+      const response = isEditMode
+        ? await updatePost(postId, payload)
+        : await createPost(payload);
 
       setPostId(response.id);
 
       if (closeModal) closeModal();
       if (onSuccess) onSuccess(action);
 
-      const successMessage = isUrgent 
-        ? "Urgent post published immediately!" 
+      const successMessage = isUrgent
+        ? "Urgent post published immediately!"
         : `Post ${isEditMode ? 'updated' : 'created'} successfully!`;
-      
+
       toast.success(successMessage);
     } catch (err) {
       console.error("Post error:", err);
-      const errorMessage = err.message || err.response?.data?.message || 
+      const errorMessage = err.message || err.response?.data?.message ||
         `Failed to ${isEditMode ? 'update' : 'create'} post!`;
       toast.error(`Failed to ${isEditMode ? 'update' : 'create'} post!`);
       setError(errorMessage);
@@ -132,7 +126,7 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
   const handleSubmit = async (e, action) => {
     e.preventDefault();
     await handleSubmitPost(action);
-      await loadUpdates();
+    await loadUpdates();
   };
 
   const canEdit = !isEditMode || !existingPost?.status || ['draft', 'revision', 'rejected'].includes(existingPost.status);
@@ -140,8 +134,8 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
   return (
     <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto bg-white rounded-lg shadow">
       <div className="flex justify-between items-center">
-        <button 
-          onClick={closeModal} 
+        <button
+          onClick={closeModal}
           className="text-xl text-gray-700 hover:text-gray-900 cursor-pointer"
         >
           <IoArrowBack />

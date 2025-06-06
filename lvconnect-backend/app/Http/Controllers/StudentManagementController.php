@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\StudentInformation;
@@ -272,7 +273,7 @@ class StudentManagementController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $ids = $request->input('ids'); 
+        $ids = $request->input('ids');
 
         foreach ($ids as $studentId) {
             $enrolleeRecord = EnrolleeRecord::where('student_information_id', $studentId)
@@ -290,7 +291,7 @@ class StudentManagementController extends Controller
         ]);
     }
 
-    public function archive($studentId)
+    public function archive(Request $request, $studentId)
     {
         $user = JWTAuth::authenticate();
 
@@ -304,8 +305,13 @@ class StudentManagementController extends Controller
             return response()->json(['message' => 'Enrollee record not found for this student.'], 404);
         }
 
+         $request->validate([
+            'admin_remarks' => 'required|string|max:1000',
+        ]);
+
         $enrolleeRecord->update([
-            'enrollment_status' => 'archived'
+            'enrollment_status' => 'archived',
+            'admin_remarks' => $request->input('admin_remarks')
         ]);
 
         return response()->json([
@@ -314,6 +320,40 @@ class StudentManagementController extends Controller
             'data' => $enrolleeRecord
         ]);
     }
+
+    public function showStudents()
+    {
+
+        $user = JWTAuth::authenticate();
+
+        if ($user->hasRole('registrar')) {
+            return StudentInformation::with('enrolleeRecord')
+                ->get();
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+
+    }
+
+    public function newStudents()
+    {
+        $user = JWTAuth::authenticate();
+        if ($user->hasRole('registrar')) {
+            return User::role('student')
+                ->whereDoesntHave('studentInformation')
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'full_name' => $user->full_name,
+                        'enrollment_status' => 'not_enrolled',
+                    ];
+                });
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
 
 
     /**

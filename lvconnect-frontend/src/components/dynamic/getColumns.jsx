@@ -73,9 +73,10 @@ export const getColumns = ({
   openModal,
   actions = {},
   actionConditions = {},
-  showSelectionColumn = false, // Accept showSelectionColumn flag
+  showSelectionColumn = false, 
+  showActionColumn =  true,
 }) => {
-  // Define the selection column, will be included only if showSelectionColumn is true
+  
   const selectionColumn = showSelectionColumn
     ? {
       id: "select",
@@ -98,7 +99,7 @@ export const getColumns = ({
       enableSorting: false,
       enableHiding: false,
     }
-    : null; // If showSelectionColumn is false, set to null to hide it
+    : null; 
 
   const baseColumns = Object.entries(schema)
     .filter(([_, config]) => config.display !== false)
@@ -166,12 +167,14 @@ export const getColumns = ({
         enableSorting: config.sortable || false,
         enableFiltering: config.filterable || false,
         enableGlobalFilter: true,
+        filterFn: config.filterFn || undefined,
         
       }
       
     })
 
-  const actionColumn = {
+  const actionColumn = showActionColumn ?
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
@@ -196,7 +199,7 @@ export const getColumns = ({
 
       return <div className="flex justify-center gap-2">{applicableActions}</div>
     },
-  }
+  } : null;
 
   // Return the columns, including the selection column if it's enabled
   return [selectionColumn, ...baseColumns, actionColumn].filter(Boolean)

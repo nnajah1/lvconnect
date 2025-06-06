@@ -110,6 +110,8 @@ Route::middleware('auth.jwt')->group(function () {
 
 
   Route::get('/enrollment', [EnrollmentController::class, 'index']);
+  Route::get('/new-students', [StudentManagementController::class, 'newStudents']);
+  Route::get('/student-lists', [StudentManagementController::class, 'showStudents']);
   Route::get('/enrollees', [EnrollmentController::class, 'adminView']);
   Route::get('/not-enrolled', [EnrollmentController::class, 'getStudentsWithoutEnrollment']);
   Route::get('/enrollees/enrolled', [EnrollmentController::class, 'showEnrolled']);
@@ -163,7 +165,9 @@ Route::middleware('auth.jwt')->group(function () {
   Route::put('/system-admin/reactivate-user/{id}', [CreateAccountController::class, 'reactivateUser']);
   Route::put('/system-admin/deactivate-user/{id}', [CreateAccountController::class, 'deactivateUser']);
 
-Route::post('/upload', [supabaseController::class, 'getSignedUrl']);
+  Route::post('/upload', [supabaseController::class, 'uploadFile']);
+  Route::post('/create-student-account', [CreateAccountController::class, 'createStudentAccount']);
+  Route::post('/import-students', [CreateAccountController::class, 'importStudentsFromFile']);
 
 });
 

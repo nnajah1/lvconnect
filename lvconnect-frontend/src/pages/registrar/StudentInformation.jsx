@@ -2,39 +2,59 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { smActionsConditions, smActions, registrarSchema } from "@/tableSchemas/studentManagement";
-import { archiveData, bulkArchiveEnrollment, getEnrolled, getEnrollees } from "@/services/enrollmentAPI";
+import { smActionsConditions, smActions, registrarSchema, newStudentSchema, archiveSchema } from "@/tableSchemas/studentManagement";
+import { archiveData, bulkArchiveEnrollment, getNewStudents, getStudents } from "@/services/enrollmentAPI";
 import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
 import { toast } from "react-toastify";
 import { useUserRole } from "@/utils/userRole";
+import CreateAccountModal from "@/components/enrollment/createAccount";
+import DynamicTabs from "@/components/dynamic/dynamicTabs";
 
 const StudentInformation = () => {
   const userRole = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
   const [enrollment, setEnrollment] = useState([]);
+  const [newStudent, setNewStudent] = useState([]);
+  const [activeTab, setActiveTab] = useState("active");
   const [isOpen, setIsOpen] = useState(false);
-  const [item, setItem] = useState(null);
+  const [editItem, setEditItem] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
   const [archiveItem, setArchiveItem] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
-
+  const [remarks, setRemarks] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadEnrollees = async () => {
+  const loadStudents = async () => {
     setIsLoading(true);
     try {
-      const allEnrollees = await getEnrolled();
-      setEnrollment(allEnrollees);
+      const allStudents = await getStudents();
+      setEnrollment(allStudents);
     } finally {
       setIsLoading(false);
     }
 
   };
   useEffect(() => {
-    loadEnrollees();
+    loadStudents();
   }, []);
+
+  const loadNewStudents = async () => {
+    setIsLoading(true);
+    try {
+      const allNewStudents = await getNewStudents();
+      setNewStudent(allNewStudents);
+    } finally {
+      setIsLoading(false);
+    }
+
+  };
+  useEffect(() => {
+    loadNewStudents();
+  }, []);
+
 
 
   const getBulkActions = () => {
@@ -59,46 +79,80 @@ const StudentInformation = () => {
   const handleArchive = async () => {
     const id = archiveItem?.enrollee_record?.[0]?.id;
     if (!id) {
-          toast.info("Student data not found.");
-          return;
-        }
+      toast.info("Student data not found.");
+      return;
+    }
     try {
-      await archiveData(id);
+      await archiveData(id, { admin_remarks: remarks });
       toast.success('Student data archived successfully');
       setArchiveItem(null);
-      await loadEnrollees();
+      await loadStudents();
     } catch (error) {
       console.error('Archive failed:', error);
       toast.error('Failed to archive student data');
     }
   };
 
-
-
-  const openModal = (item) => setItem(item);
+  const viewModal = (item) => setViewItem(item);
+  const openModal = (item) => setEditItem(item);
   const openArchiveModal = (item) => setArchiveItem(item);
 
+  const actionMap = smActions(viewModal, openModal, openArchiveModal)
+  const filteredData = useMemo(() => {
+    switch (activeTab) {
+      case "active":
+        return enrollment.filter(s => s.enrollee_record[0].enrollment_status !== "archived");
+      case "archive":
+        return enrollment.filter(s => s.enrollee_record[0].enrollment_status === "archived");
+      default:
+        return [];
+    }
+  }, [activeTab, enrollment]);
 
   const templateColumns = getColumns({
     userRole,
     schema: registrarSchema,
-    actions: smActions(openModal, openArchiveModal),
+    actions: actionMap,
     actionConditions: smActionsConditions,
     context: "formstemplate",
+    viewModal,
     openModal,
     openArchiveModal,
-    showSelectionColumn: true,
+    showSelectionColumn: activeTab === "active",
+  });
+
+  const newStudentColumns = getColumns({
+    userRole,
+    schema: newStudentSchema,
+    actions: false,
+    context: "formstemplate",
+    showActionColumn: false,
+  });
+  const archiveColumns = getColumns({
+    userRole,
+    schema: archiveSchema,
+    actions: actionMap,
+    actionConditions: smActionsConditions,
+    context: "formstemplate",
   });
 
   useEffect(() => {
-    if (item) {
-      navigate(`/registrar/student-information-management/${item.id}/edit`, {
+    if (editItem) {
+      navigate(`/registrar/student-information-management/${editItem.id}/edit`, {
         state: { from: location.pathname },
       });
     }
-  }, [item, navigate, location.pathname]);
+    if (viewItem) {
+      navigate(`/registrar/student-information-management/${viewItem.id}/view`, {
+        state: { from: location.pathname },
+      });
+    }
+  }, [editItem, viewItem, navigate, location.pathname]);
 
-  if (item) return null;
+
+  const [showSingleForm, setShowSingleForm] = useState(false);
+  const [showBatchForm, setShowBatchForm] = useState(false);
+
 
   return (
     <div className="container mx-auto p-4">
@@ -106,14 +160,62 @@ const StudentInformation = () => {
         <h1 className="text-2xl font-bold">Student Information Management</h1>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
+      <div className="flex itemd-center justify-end p-4 gap-2">
+        <button
+          onClick={() => setShowSingleForm(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+        >
+          Add Student
+        </button>
+        <button
+          onClick={() => setShowBatchForm(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+        >
+          Create Batch Account
+        </button>
 
-      <DataTable
-        columns={templateColumns}
-        data={enrollment}
-        {... { bulkActions: getBulkActions() }}
-        globalFilter={globalFilter}
-        isLoading={isLoading}
+      </div>
+
+      <DynamicTabs
+        tabs={[
+          { label: "Active Students", value: "active" },
+          { label: "Archived Students", value: "archive" },
+          { label: "New Accounts", value: "new_accounts" },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        className="mb-2"
       />
+
+      {activeTab === "new_accounts" ? (
+        <DataTable
+          columns={newStudentColumns}
+          data={newStudent}
+          bulkActions={getBulkActions("new_student")}
+          globalFilter={globalFilter}
+          isLoading={isLoading}
+          pagesize={10}
+        />
+      ) : activeTab === "archive" ? (
+        <DataTable
+          columns={archiveColumns}
+          data={filteredData}
+          globalFilter={globalFilter}
+          isLoading={isLoading}
+          pagesize={10}
+        />
+      ) : (
+        <DataTable
+          columns={templateColumns}
+          data={filteredData}
+          bulkActions={getBulkActions()}
+          globalFilter={globalFilter}
+          isLoading={isLoading}
+          pagesize={10}
+        />
+      )}
+
+
 
       {archiveItem && (
         <WarningModal
@@ -122,22 +224,56 @@ const StudentInformation = () => {
           title="Archive Data"
           description="Are you sure you want to archive this student data?"
         >
-          <button
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-            onClick={() => { setArchiveItem(null); }}
-          >
-            Cancel
-          </button>
+          <div className="flex w-full flex-col">
+            <div className="w-full">
+              <select
+                className="w-full px-3 py-2 border rounded mb-4"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                required
+              >
+                <option value="">Select admin remark</option>
+                <option value="Graduated">Graduated</option>
+                <option value="Did not maintain grade">Did not Maintain Grade</option>
+                <option value="Drop">Drop</option>
+                <option value="Transferred">Transferred</option>
+              </select>
+            </div>
 
-          <button
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleArchive}
-          >
-            Archive
-          </button>
+
+            <div className="flex justify-end">
+
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+                onClick={() => { setArchiveItem(null); setRemarks(""); }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={handleArchive}
+              >
+                Archive
+              </button>
+            </div>
+          </div>
         </WarningModal>
       )}
 
-
+      {(showSingleForm || showBatchForm) && (
+        <CreateAccountModal
+          isOpen={showSingleForm || showBatchForm}
+          closeModal={() => {
+            setShowSingleForm(false);
+            setShowBatchForm(false);
+          }}
+          showSingleForm={showSingleForm}
+          showBatchForm={showBatchForm}
+          setShowSingleForm={setShowSingleForm}
+          setShowBatchForm={setShowBatchForm}
+          loadNewStudents={loadNewStudents}
+        />
+      )}
 
     </div>
   );

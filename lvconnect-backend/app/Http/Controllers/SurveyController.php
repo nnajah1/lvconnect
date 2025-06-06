@@ -27,7 +27,7 @@ class SurveyController extends Controller
         $surveys = collect(); // Start with an empty collection
 
         // Check if the user has the 'student' role
-        if ($user->hasRole('student')) {
+        if ($user->hasActiveRole('student')) {
             $student = $user->studentInformation;
 
             if (!$student) {
@@ -51,7 +51,7 @@ class SurveyController extends Controller
         }
 
         // Check if the user has the 'psas' role
-        if ($user->hasRole('psas')) {
+        if ($user->hasActiveRole('psas')) {
             $psasSurveys = Survey::with('questions')->get();
 
             $surveys = $surveys->merge($psasSurveys);
@@ -72,7 +72,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasActiveRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -124,7 +124,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole(['student', 'psas'])) {
+        if (!$user->hasActiveRole(['student', 'psas'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -132,7 +132,7 @@ class SurveyController extends Controller
         $studentInformationId = $user->studentInformation->id;
 
         // If user is psas, allow fetching any student's response
-        if ($user->hasRole('psas') && request()->has('student_id')) {
+        if ($user->hasActiveRole('psas') && request()->has('student_id')) {
             $studentInformationId = request()->input('student_id');
         }
 
@@ -184,7 +184,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasActiveRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -240,7 +240,7 @@ class SurveyController extends Controller
         $user = JWTAuth::authenticate();
         $survey = Survey::with('questions')->findOrFail($id);
 
-        if ($user->hasRole('student') && !$user->hasRole('psas')) {
+        if ($user->hasActiveRole('student') && !$user->hasActiveRole('psas')) {
             if (in_array($survey->visibility_mode, ['hidden'])) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
@@ -256,7 +256,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasActiveRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -320,7 +320,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasActiveRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -415,7 +415,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('student')) {
+        if (!$user->hasActiveRole('student')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -554,7 +554,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('student')) {
+        if (!$user->hasActiveRole('student')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         $studentInformationId = $user->studentInformation->id;
@@ -594,7 +594,7 @@ class SurveyController extends Controller
         $user = JWTAuth::authenticate();
         $survey = Survey::findOrFail($id);
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasActiveRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

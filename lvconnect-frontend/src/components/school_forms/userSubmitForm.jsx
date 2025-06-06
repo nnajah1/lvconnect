@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { getFormById, submitForm, updateDraftForm } from '@/services/school-formAPI';
 import { useForms } from '@/context/FormsContext';
 import { Button } from '../ui/button';
-import api, { getSupabaseSignedUrl } from '@/services/axios';
+import { uploadToSupabase } from '@/services/axios';
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -327,65 +327,57 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
 
   const { content = '', fields = [], title, description } = form;
 
-  const handleImageUpload = async (file) => {
-    if (!file) return null;
+  const handleImageUpload = async (files) => {
+    if (!files) return null;
 
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
     const maxSize = 2 * 1024 * 1024;
 
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPEG or PNG files are allowed.");
-      return null;
-    }
+    const fileArray = Array.isArray(files) ? files : [files];
 
-    if (file.size > maxSize) {
-      toast.error("File size must not exceed 2MB.");
-      return null;
-    }
+    const uploads = await Promise.all(
+      fileArray.map((file) => {
+        return new Promise((resolve, reject) => {
+          if (!allowedTypes.includes(file.type)) {
+            toast.error(`Invalid file type: ${file.name}`);
+            return reject(new Error("Invalid file type"));
+          }
 
-    const image = new Image();
-    image.src = URL.createObjectURL(file);
+          if (file.size > maxSize) {
+            toast.error(`File too large: ${file.name}`);
+            return reject(new Error("File too large"));
+          }
 
-    return new Promise((resolve, reject) => {
-      image.onload = async () => {
-        URL.revokeObjectURL(image.src);
+          const image = new Image();
+          image.src = URL.createObjectURL(file);
 
-        if (image.width !== 600 || image.height !== 600) {
-          toast.error("Image must be exactly 600x600 pixels.");
-          reject(new Error("Invalid image dimensions"));
-          return;
-        }
+          image.onload = async () => {
+            URL.revokeObjectURL(image.src);
 
-        try {
-          const filename = `2x2/${Date.now()}-${file.name}`;
-          const { signedURL, path } = await getSupabaseSignedUrl({
-            filename,
-            content_type: file.type,
-          });
+            if (image.width !== 600 || image.height !== 600) {
+              toast.error(`Image must be 600x600px: ${file.name}`);
+              return reject(new Error("Invalid image dimensions"));
+            }
 
-          await fetch(signedURL, {
-            method: "PUT",
-            headers: {
-              "Content-Type": file.type,
-            },
-            body: file,
-          });
+            try {
+              const publicUrl = await uploadToSupabase(file);
+              resolve(publicUrl);
+            } catch (error) {
+              toast.error(`Upload failed: ${file.name}`);
+              reject(error);
+            }
+          };
 
-          const publicUrl = `${import.meta.env.VITE_SUPABASE}/storage/v1/object/public/${path}`;
-          resolve(publicUrl);
-        } catch (error) {
-          console.error(error);
-          toast.error("Image upload failed.");
-          reject(error);
-        }
-      };
+          image.onerror = () => {
+            URL.revokeObjectURL(image.src);
+            toast.error(`Invalid image: ${file.name}`);
+            reject(new Error("Invalid image"));
+          };
+        });
+      })
+    );
 
-      image.onerror = () => {
-        URL.revokeObjectURL(image.src);
-        toast.error("Invalid image file.");
-        reject(new Error("Invalid image file"));
-      };
-    });
+    return Array.isArray(files) ? uploads : uploads[0];
   };
 
   const validateFormData = (data, fields, status) => {

@@ -329,7 +329,7 @@ const Enrollment = () => {
           { label: "All", value: "all" },
           { label: "Enrolled", value: "enrolled" },
           { label: "Pending", value: "pending" },
-          { label: "Not Elligible", value: "rejected" },
+          { label: "Temporary Enrolled", value: "rejected" },
           { label: "Not Enrolled", value: "not_enrolled" },
         ]}
         activeTab={activeTab}
@@ -359,8 +359,8 @@ const Enrollment = () => {
         <ConfirmationModal
           isOpen={!!acceptItem}
           closeModal={() => setAcceptItem(null)}
-          title="Accept Enrollment"
-          description="Are you sure you want to accept this enrollment?"
+          title="Approve Enrollment"
+          description="Are you sure you want to approve this enrollment?"
         >
           <button
             className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
@@ -371,7 +371,7 @@ const Enrollment = () => {
           <button
             className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onClick={handleApprove}
           >
-            Accept
+            Approve
           </button>
         </ConfirmationModal>
       )}
@@ -379,19 +379,20 @@ const Enrollment = () => {
         <WarningModal
           isOpen={!!rejectItem}
           closeModal={() => { setRejectItem(null); setRemarks(""); }}
-          title="Reject Enrollment"
-          description="Are you sure you want to reject this enrollment?"
+          title="Temporary Enrolled Enrollment"
+          description="Are you sure you want to mark this enrollment temporary enrolled?"
         >
           <div className="flex w-full flex-col">
             <div className="w-full">
-              <input
-                type="text"
-                placeholder="Enter admin remarks"
+              <select
                 className="w-full px-3 py-2 border rounded mb-4"
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 required
-              />
+              >
+                <option value="">Select admin remark</option>
+                <option value="Incomplete Requirements">Incomplete Requirements</option>
+              </select>
             </div>
 
             <div className="flex justify-end">
@@ -404,9 +405,9 @@ const Enrollment = () => {
               </button>
 
               <button
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleReject}
+                className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onClick={handleReject}
               >
-                Reject
+                Mark as Temporary Enrolled
               </button>
             </div>
           </div>

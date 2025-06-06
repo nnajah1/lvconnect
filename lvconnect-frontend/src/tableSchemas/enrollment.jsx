@@ -5,7 +5,7 @@ export const registrarSchema = {
   full_name: {
     header: "Name",
     display: true,
-    filterable: true, 
+    filterable: true,
   },
   student_id_number: { header: "ID", display: true, },
   program: { header: "Course", display: true },
@@ -20,7 +20,18 @@ export const registrarSchema = {
         4: "4th Year",
       };
       return year ? yearMap[year] || `${year}th Year` : "-";
-    }
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const year = row.original?.enrollee_record?.[0]?.year_level;
+      const yearMap = {
+        1: "1st Year",
+        2: "2nd Year",
+        3: "3rd Year",
+        4: "4th Year",
+      };
+      const label = year ? yearMap[year] || `${year}th Year` : "-";
+      return label.toLowerCase().includes(filterValue.toLowerCase());
+    },
 
   },
   status: {
@@ -33,10 +44,14 @@ export const registrarSchema = {
         not_enrolled: <span style={{ color: "gray" }}>Not Enrolled</span>,
         enrolled: <span style={{ color: "green" }}>Enrolled</span>,
         pending: <span style={{ color: "orange" }}>Pending</span>,
-        rejected: <span style={{ color: "red" }}>Not Elligible</span>
+        rejected: <span style={{ color: "blue" }}>Temporary Enrolled</span>
       };
       return map[status] || "-";
-    }
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const status = row.original?.enrollee_record?.[0]?.enrollment_status;
+      return status?.toLowerCase().includes(filterValue.toLowerCase());
+    },
 
   },
 };
@@ -108,10 +123,10 @@ export const actionConditions = {
 
 export const registrarNotEnrolledSchema = {
 
-    name: {
+  name: {
     header: "Name",
     display: true,
-    filterable: true, 
+    filterable: true,
   },
   student_id: { header: "ID", display: true, },
   // program: { header: "Course", display: true },
@@ -132,26 +147,26 @@ export const registrarNotEnrolledSchema = {
     header: "Status",
     sortable: false,
     display: true,
-     customCell: (value, original) => {
-    const formattedStatus = value
-      .replace(/_/g, ' ')                      // Replace underscores with spaces
-      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize each word
+    customCell: (value, original) => {
+      const formattedStatus = value
+        .replace(/_/g, ' ')                      // Replace underscores with spaces
+        .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize each word
 
-    return formattedStatus;
-  }
+      return formattedStatus;
+    }
 
   },
 };
 
-export const enrollActions = ( openDirectModal) => ({
+export const enrollActions = (openDirectModal) => ({
 
   enroll: {
-    icon: (item) => 
-          <div className="flex items-center justify-center gap-1.5">
-            <Pencil className="h-4 w-4 text-white" />
-            <span className="hidden sm:inline text-white font-medium">Direct Enroll</span>
-          </div>,
-  
+    icon: (item) =>
+      <div className="flex items-center justify-center gap-1.5">
+        <Pencil className="h-4 w-4 text-white" />
+        <span className="hidden sm:inline text-white font-medium">Direct Enroll</span>
+      </div>,
+
     fn: (id, item) => openDirectModal(item),
     variant: (item) => "default",
     className: "hover:bg-blue-300 bg-blue-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"

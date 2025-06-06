@@ -5,6 +5,17 @@ export const getEnrollment = async () => {
   return response.data;
 };
 
+export const getNewStudents = async () => {
+  const response = await api.get("/new-students");
+  return response.data;
+};
+
+
+export const getStudents = async () => {
+  const response = await api.get("/student-lists");
+  return response.data;
+};
+
 export const getEnrollees = async ({ academic_year_id, semester }) => {
   const response = await api.get("/enrollees", {
     params: { academic_year_id, semester }
@@ -104,3 +115,14 @@ export const updateSoa = (currentTemplateId, payload) => {
 };
 
 
+export const createOneAccount = (singleAccount) => {
+  return api.post('/create-student-account', singleAccount);
+};
+
+export const createBatchAccount = (formData) => {
+  return api.post('/import-students', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+};

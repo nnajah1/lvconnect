@@ -69,11 +69,11 @@ export const actions = (handleViewPost, handlePublish, handleEdit, handleDelete,
 // Sample action conditions
 export const actionConditions = {
     view: () => true,
-    edit: (item, userRole) => userRole === "comms" && item.status === "draft" && item.status === "rejected" && item.status === "revision",
+    edit: (item, userRole) => userRole === "comms" && (item.status === "draft" || item.status === "rejected" || item.status === "revision"),
     delete: (item, userRole) => userRole === "comms" && item.status === "archived",
     publish: (item, userRole) => userRole === "comms" && item.status === "approved",
     archive: (item, userRole) => userRole === "comms" && item.status === "published",
-    postFb: (item, userRole) => userRole === "comms" && item.status === "published" && item.status !== "published & synced",
+    postFb: (item, userRole) => userRole === "comms" && (item.status === "published" && item.status !== "published & synced"),
     approve: (item, userRole) =>
         userRole === "scadmin" && (item.status === "pending" || item.status === "revision"),
     reject: (item, userRole) =>

@@ -29,24 +29,17 @@ class SchoolUpdateController extends Controller
 
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('student')) {
-            return SchoolUpdate::where('status', SchoolUpdate::STATUS_PUBLISHED)->get();
-        }
-
-        if ($user->hasRole('comms')) {
+        if ($user->hasActiveRole('comms')) {
             return SchoolUpdate::where('created_by', $user->id)
                 ->where('status', '!=', 'archived')
                 ->get();
         }
+        if ($user->hasActiveRole('student')) {
+            return SchoolUpdate::where('status', SchoolUpdate::STATUS_PUBLISHED)->get();
+        }
 
-        if ($user->hasRole('scadmin')) {
-            return SchoolUpdate::whereIn('status', [
-                SchoolUpdate::STATUS_PENDING,
-                SchoolUpdate::STATUS_REJECTED,
-                SchoolUpdate::STATUS_PUBLISHED,
-                SchoolUpdate::STATUS_SYNCED,
-                SchoolUpdate::STATUS_APPROVED
-            ])->get();
+        if ($user->hasActiveRole('scadmin')) {
+            return SchoolUpdate::where('status', '!=', SchoolUpdate::STATUS_DRAFT)->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -57,31 +50,35 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        $schoolUpdate = null;
+        // Handle 'comms' role
+        if ($user->hasActiveRole('comms')) {
+            $schoolUpdate = SchoolUpdate::where('id', $id)->with('author')->first();
 
-        if ($user->hasRole('comms')) {
-            $schoolUpdate = SchoolUpdate::all();
+            if (!$schoolUpdate) {
+                return response()->json(['message' => 'Post not found'], 404);
+            }
+
+            return response()->json($schoolUpdate);
         }
 
-        if ($user->hasRole('scadmin')) {
+        // Handle 'scadmin' role
+        if ($user->hasActiveRole('scadmin')) {
             $schoolUpdate = SchoolUpdate::where('id', $id)
-                ->whereIn('status', [
-                    SchoolUpdate::STATUS_PENDING,
-                    SchoolUpdate::STATUS_REJECTED,
-                    SchoolUpdate::STATUS_PUBLISHED,
-                    SchoolUpdate::STATUS_SYNCED,
-                    SchoolUpdate::STATUS_APPROVED
-                ])
-                ->with('author') 
+                ->where('status', '!=', SchoolUpdate::STATUS_DRAFT)
+                ->with('author')
                 ->first();
+
+            if (!$schoolUpdate) {
+                return response()->json(['message' => 'Post not found'], 404);
+            }
+
+            return response()->json($schoolUpdate);
         }
 
-        if (!$schoolUpdate) {
-            return response()->json(['message' => 'Post not found'], 404);
-        }
-
-        return response()->json($schoolUpdate);
+        // Fallback for unauthorized roles
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
+
 
 
 
@@ -94,7 +91,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasActiveRole('comms')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -102,59 +99,30 @@ class SchoolUpdateController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'type' => 'required|in:announcement,event',
-            'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_paths' => 'nullable|array',
+            'image_paths.*' => 'string',
             'is_notified' => 'sometimes|boolean',
             'is_urgent' => 'sometimes|boolean',
             'status' => 'required|in:draft,pending,published',
         ]);
 
         try {
-            $imageUrls = [];
-            $content = $request->content;
 
-            // Upload images first
-            if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $image) {
-                    $path = $image->store('SchoolUpdates', 'public');
-                    $imageUrls[] = Storage::url($path);
-                }
-            }
+            $content = Purifier::clean($request->content);
 
-            // Clean content and replace base64 images with actual URLs
-            $content = Purifier::clean($content);
-
-            // Find all base64 images in content
-            preg_match_all('/<img[^>]+src=["\']data:image\/[^"\']+;base64,[^"\']+["\'][^>]*>/i', $content, $matches);
-
-            if (!empty($matches[0]) && !empty($imageUrls)) {
-                // Replace base64 images with uploaded URLs
-                foreach ($matches[0] as $index => $base64ImageTag) {
-                    if (isset($imageUrls[$index])) {
-                        // Extract any additional attributes from the original img tag
-                        preg_match('/class=["\']([^"\']*)["\']/', $base64ImageTag, $classMatch);
-                        $classAttr = !empty($classMatch[1]) ? ' class="' . $classMatch[1] . '"' : '';
-
-                        $newImageTag = '<img src="' . $imageUrls[$index] . '"' . $classAttr . ' />';
-                        $content = str_replace($base64ImageTag, $newImageTag, $content);
-                    }
-                }
-            }
-
-            $status = $request->status;
 
             $schoolUpdateData = [
                 'title' => $request->title,
                 'content' => $content,
                 'type' => $request->type,
-                'image_url' => !empty($imageUrls) ? json_encode($imageUrls) : null,
+                'image_url' => $request->image_paths ? json_encode($request->image_paths) : null,
                 'created_by' => $user->id,
-                'status' => $status,
+                'status' => $request->status,
                 'is_notified' => $request->boolean('is_notified'),
                 'is_urgent' => $request->boolean('is_urgent'),
             ];
 
-            if ($status === SchoolUpdate::STATUS_PUBLISHED) {
+            if ($request->status === SchoolUpdate::STATUS_PUBLISHED) {
                 $schoolUpdateData['published_at'] = now();
             }
 
@@ -193,7 +161,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole(['comms'])) {
+        if (!$user->hasActiveRole(['comms'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -287,7 +255,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasActiveRole('comms')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -313,7 +281,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasActiveRole('comms')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -335,7 +303,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasActiveRole('comms')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -353,7 +321,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasActiveRole('comms')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -376,7 +344,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('scadmin')) {
+        if (!$user->hasActiveRole('scadmin')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -409,13 +377,13 @@ class SchoolUpdateController extends Controller
      */
     public function reject(Request $request, SchoolUpdate $schoolupdate)
     {
-         $user = JWTAuth::authenticate();
+        $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('scadmin')) {
+        if (!$user->hasActiveRole('scadmin')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-         $request->validate([
+        $request->validate([
             'revision_remarks' => 'required|string|max:1000',
         ]);
         try {
@@ -442,7 +410,7 @@ class SchoolUpdateController extends Controller
 
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('scadmin')) {
+        if (!$user->hasActiveRole('scadmin')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -473,7 +441,7 @@ class SchoolUpdateController extends Controller
 
         $post = SchoolUpdate::findOrFail($id);
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasActiveRole('comms')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -502,7 +470,7 @@ class SchoolUpdateController extends Controller
      */
     // public function publish(SchoolUpdate $schoolupdate, Request $request)
     // {
-    //     if (!auth()->user()->hasRole('comms')) {
+    //     if (!auth()->user()->hasActiveRole('comms')) {
     //         return response()->json(['error' => 'Unauthorized'], 403);
     //     }
 
@@ -662,11 +630,11 @@ class SchoolUpdateController extends Controller
     public function destroy(string $id)
     {
         $user = JWTAuth::authenticate();
-        $post = SchoolUpdate::findOrFail($id);
-
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasActiveRole('comms')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+
+        $post = SchoolUpdate::findOrFail($id);
 
         $post->delete();
 
