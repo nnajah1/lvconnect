@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
         $students = [
             ['first_name' => 'Daniel',    'last_name' => 'Casimiro',    'email' => 'daniel.casimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Leander Dylan',    'last_name' => 'Broñola',  'email' => 'leanderdylan.bronola@student.laverdad.edu.ph'],
-            ['first_name' => 'Mac Robert',    'last_name' => 'Sandaval',  'email' => 'macrobert.savandal@student.laverdad.edu.ph'],
+            ['first_name' => 'Marwin',    'last_name' => 'Mandocdoc',  'email' => 'marwin.mandocdoc@student.laverdad.edu.ph'],
             ['first_name' => 'Lorein',   'last_name' => 'Manluctao',  'email' => 'lorein.manluctao@student.laverdad.edu.ph'],
             ['first_name' => 'Diana',   'last_name' => 'Teves',  'email' => 'diana.teves@student.laverdad.edu.ph'],
             ['first_name' => 'Ydrey Ann',   'last_name' => 'Ramirez',    'email' => 'ydreyann.ramirez@student.laverdad.edu.ph'],
