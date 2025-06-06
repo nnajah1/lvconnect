@@ -106,12 +106,19 @@ export const uploadToSupabase = async (files) => {
     },
   });
 
-  return Array.isArray(files)
-    ? response.data.uploaded.map(f => f.url)
-    : response.data.uploaded[0].url;
+  return response.data.paths;
 };
 
-
+export const getSignedUrl = async (path) => {
+  try {
+    if (!path) return null;
+    const res = await api.post('/generate-signed-url', { path });
+    return res.data.signed_url;
+  } catch (error) {
+    console.error('Failed to generate signed URL:', error);
+    return null;
+  }
+};
 
 
 export default api;

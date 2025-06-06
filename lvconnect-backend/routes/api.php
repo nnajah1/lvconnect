@@ -169,6 +169,8 @@ Route::middleware('auth.jwt')->group(function () {
   Route::put('/system-admin/deactivate-user/{id}', [CreateAccountController::class, 'deactivateUser']);
 
   Route::post('/upload', [supabaseController::class, 'uploadFile']);
+  Route::post('/generate-signed-url', [SupabaseController::class, 'generateSignedUrls']);
+
   Route::post('/create-student-account', [CreateAccountController::class, 'createStudentAccount']);
   Route::post('/import-students', [CreateAccountController::class, 'importStudentsFromFile']);
 
