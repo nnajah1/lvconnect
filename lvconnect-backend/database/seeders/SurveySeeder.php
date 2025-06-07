@@ -5,7 +5,10 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Survey;
 use App\Models\SurveyQuestion;
+use App\Models\SurveyResponse;
+use App\Models\SurveyAnswer;
 use App\Models\User;
+use App\Models\StudentInformation;
 use Illuminate\Support\Arr;
 use Faker\Factory as Faker;
 
@@ -15,10 +18,11 @@ class SurveySeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Get all PSAS user IDs
         $psasUserIds = User::role('psas')->pluck('id');
-        if ($psasUserIds->isEmpty()) {
-            $this->command->warn('No PSAS users found. Skipping SurveySeeder.');
+        $studentIds = StudentInformation::pluck('id');
+
+        if ($psasUserIds->isEmpty() || $studentIds->isEmpty()) {
+            $this->command->warn('Missing PSAS users or student information. Skipping SurveySeeder.');
             return;
         }
 
@@ -86,6 +90,7 @@ class SurveySeeder extends Seeder
             ]);
 
             $questions = $questionsPerSurvey[$index];
+            $questionModels = [];
 
             foreach ($questions as $qIndex => $questionText) {
                 $type = $qIndex === count($questions) - 1
@@ -98,19 +103,55 @@ class SurveySeeder extends Seeder
 
                 $data = ['choices' => $choices];
 
-                SurveyQuestion::create([
+                $question = SurveyQuestion::create([
                     'survey_id' => $survey->id,
                     'survey_question_type' => $type,
                     'question' => $questionText,
-                    'survey_question_data' => $data, 
+                    'survey_question_data' => $data,
                     'order' => $qIndex + 1,
                     'is_required' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                $questionModels[] = $question;
+            }
+
+            $respondingStudents = $studentIds->random(min(10, count($studentIds)));
+
+            foreach ($respondingStudents as $studentId) {
+                $submittedAt = $faker->dateTimeBetween('-10 days', 'now');
+                $response = SurveyResponse::create([
+                    'survey_id' => $survey->id,
+                    'student_information_id' => $studentId,
+                    'submitted_at' => $submittedAt,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                foreach ($questionModels as $question) {
+                    $type = $question->survey_question_type;
+                    $choices = $question->survey_question_data['choices'] ?? [];
+
+                    $answer = match ($type) {
+                        'Short answer' => $faker->sentence(),
+                        'Multiple choice', 'Dropdown' => Arr::random($choices),
+                        'Checkboxes' => implode(', ', $faker->randomElements($choices, rand(1, min(3, count($choices))))),
+                        default => 'N/A',
+                    };
+
+                    SurveyAnswer::create([
+                        'survey_response_id' => $response->id,
+                        'survey_question_id' => $question->id,
+                        'answer' => $answer,
+                        'img_url' => $faker->boolean(10) ? 'uploads/evidence_' . $faker->uuid . '.jpg' : null,
+                        'taken_at' => $faker->optional()->dateTimeBetween($submittedAt, 'now'),
+                        'created_at' => now(),
+                    ]);
+                }
             }
         }
 
-        $this->command->info('5 surveys seeded with JSON-formatted question data.');
+        $this->command->info('Surveys, questions, responses, and answers seeded successfully.');
     }
 }
