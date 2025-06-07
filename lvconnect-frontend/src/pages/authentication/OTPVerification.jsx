@@ -137,65 +137,70 @@ const OTPVerification = () => {
     };
 
     return (
-        <div className="relative w-full h-screen flex items-center justify-center">
-            <img src={illustration} alt="Background" className="absolute w-full h-full blur-[2px] object-cover" />
+        <div className="relative w-full min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <img
+        src={illustration || "/placeholder.svg"}
+        alt="Background"
+        className="absolute inset-0 w-full h-full blur-[2px] object-cover"
+      />
 
-            <div className="relative bg-white/70 backdrop-blur-sm rounded-lg shadow-lg w-[580px] h-[450px] flex flex-col justify-center items-center">
-                <div className="flex flex-col items-center gap-2">
-                    <div className="flex justify-center items-center mb-2">
-                        <LVConnect />
-                    </div>
+      <div className="relative bg-white/70 backdrop-blur-sm rounded-lg shadow-lg w-full max-w-[320px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[580px] min-h-[400px] sm:min-h-[420px] md:min-h-[450px] flex flex-col justify-center items-center p-4 sm:p-6 md:p-8">
+        <div className="flex flex-col items-center gap-2 sm:gap-3 md:gap-4 w-full">
+          <div className="flex justify-center items-center mb-2 sm:mb-3 md:mb-4">
+            <LVConnect />
+          </div>
 
-                    <h2 className="text-lg font-semibold mb-2">Authenticate your account</h2>
-                    <p className="text-sm text-gray-600 mb-4 text-center font-semibold">
-                        Please enter the One-Time Password (OTP) sent to the <br /> email address you provided.
-                    </p>
+          <h2 className="text-base sm:text-lg md:text-xl font-semibold mb-2 sm:mb-3 text-center">
+            Authenticate your account
+          </h2>
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-3 sm:mb-4 md:mb-6 text-center font-semibold px-2">
+            Please enter the One-Time Password (OTP) sent to the <br className="hidden sm:block" />
+            <span className="sm:hidden"> </span>email address you provided.
+          </p>
 
-                    {/* {error && <p style={{ color: "red" }}>{error}</p>} */}
+          {/* {error && <p style={{ color: "red" }}>{error}</p>} */}
 
-                    <div className="flex justify-center space-x-2 mb-2">
-                        <InputOTP
-                            maxLength={6}
-                            value={otp}
-                            onChange={handleOtpChange}
-                            className="mb-4"
-                        >
-                            <InputOTPGroup>
-                                {[...Array(6)].map((_, index) => (
-                                    <InputOTPSlot
-                                        key={index}
-                                        index={index}
-                                        className="text-center bg-white "
+          <div className="flex justify-center space-x-1 sm:space-x-2 mb-3 sm:mb-4 w-full">
+            <InputOTP maxLength={6} value={otp} onChange={handleOtpChange} className="mb-2 sm:mb-3 md:mb-4">
+              <InputOTPGroup className="gap-1 sm:gap-1">
+                {[...Array(6)].map((_, index) => (
+                  <InputOTPSlot
+                    key={index}
+                    index={index}
+                    className="w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 text-sm sm:text-base md:text-lg bg-white/80"
+                  />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
 
-                                    />
-                                ))}
-                            </InputOTPGroup>
-                        </InputOTP>
-                    </div>
+          <div className="text-xs sm:text-sm md:text-base text-gray-600 w-full flex justify-center sm:justify-end mb-3 sm:mb-4 px-2 sm:pr-4">
+            {isResendDisabled ? (
+              <span className="text-center sm:text-right">
+                Resend OTP in <span className="text-red-500 font-semibold">{formatTime(timer)}</span>
+              </span>
+            ) : isLoading ? (
+              <span className="text-blue-500 font-semibold">Sending...</span>
+            ) : (
+              <button
+                onClick={handleResendOTP}
+                disabled={isResendDisabled || isLoading}
+                className="text-blue-500 font-semibold hover:underline"
+              >
+                Resend OTP
+              </button>
+            )}
+          </div>
 
-                    <div className="text-sm text-gray-600 w-full flex justify-end mb-2 pr-4">
-                        {isResendDisabled ? (
-                            <span>
-                                Resend OTP in <span className="text-red-500 font-semibold">{formatTime(timer)}</span>
-                            </span>
-                        ) : isResendLoading ? (
-                            <span className="text-blue-500 font-semibold">Sending...</span>
-                        ) : (
-                            <button
-                                onClick={handleResendOTP}
-                                disabled={isResendDisabled || isResendLoading}
-                                className="text-blue-500 font-semibold hover:underline"
-                            >
-                                Resend OTP
-                            </button>
-                        )}
-                    </div>
-
-
-                    <Button onClick={handleVerifyOTP} className=" w-[90%] mt-2" disabled={isVerifyLoading}>{isVerifyLoading ? "verifying" : "Verify"}</Button>
-                </div>
-            </div>
+          <Button
+            onClick={handleVerifyOTP}
+            className="w-full sm:w-[90%] mt-2 sm:mt-3 md:mt-4 h-10 sm:h-11 md:h-12 text-sm sm:text-base"
+          >
+            Verify
+          </Button>
         </div>
+      </div>
+    </div>
     );
 
 };

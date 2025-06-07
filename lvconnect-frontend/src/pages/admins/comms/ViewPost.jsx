@@ -7,6 +7,7 @@ import { ConfirmationModal, ErrorModal, InfoModal, WarningModal } from "@/compon
 import { toast } from "react-toastify";
 import { useUserRole } from "@/utils/userRole";
 
+
 const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, modalHandlers }) => {
 
   const [post, setPost] = useState(null);
@@ -21,8 +22,8 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
       getPostById(postId)
         .then((data) => {
           setPost(data);
-          if (data?.image_url) {
-            const urls = parseImageUrls(data.image_url);
+          if (data?.image_urls) {
+            const urls = data.image_urls;
             const initialStates = {};
             urls.forEach((_, idx) => {
               initialStates[idx] = "loading";
@@ -34,15 +35,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
     }
   }, [isOpen, postId]);
 
-  const parseImageUrls = (imageUrl) => {
-    try {
-      const urls = typeof imageUrl === "string" ? JSON.parse(imageUrl) : imageUrl;
-      return Array.isArray(urls) ? urls.filter((url) => url) : [urls].filter((url) => url);
-    } catch {
-      return imageUrl ? [imageUrl] : [];
-    }
-  };
-
+ 
   const handleImageLoad = (index) => {
     setImageLoadStates((prev) => ({ ...prev, [index]: "loaded" }));
   };
@@ -130,9 +123,12 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                 </div>
 
                 {/* Facebook-style Image Grid (Below Content) */}
-                {post.image_url && (() => {
-                  const images = parseImageUrls(post.image_url);
+                {post.image_urls && (() => {
+                  const parsed = post.image_urls;
+                  const images = Array.isArray(parsed) ? parsed : [];
                   const imageCount = images.length;
+
+                  if (imageCount === 0) return null;
 
                   const getGridClass = () => {
                     switch (imageCount) {
@@ -151,7 +147,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                   return (
                     <div className={`place-items-center grid gap-2 ${getGridClass()}`}>
                       {images.map((url, idx) => {
-                        const imageUrl = `${import.meta.env.VITE_BASE_URL}${url}`;
+                        const imageUrl = url;
                         const state = imageLoadStates[idx] || "loading";
                         const isPrimary = (imageCount === 3 && idx === 0) || imageCount === 1;
 
@@ -176,8 +172,6 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                               alt={`Post image ${idx + 1}`}
                               className={`w-full h-full object-cover transition-opacity duration-300 ${state === "loaded" ? "opacity-100" : "opacity-0"
                                 }`}
-
-                              // crossOrigin="anonymous"
                               onLoad={() => handleImageLoad(idx)}
                               onError={() => handleImageError(idx)}
                             />
@@ -210,6 +204,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                     </div>
                   );
                 })()}
+
               </div>
 
               <div className="flex justify-between">
@@ -320,7 +315,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
         </DynamicModal>
       )}
 
-      
+
       {restoreItem && (
         <InfoModal
           isOpen={!!restoreItem}
@@ -345,7 +340,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
       )}
     </>
   );
-};  
+};
 
 
 export default ViewPostModal;

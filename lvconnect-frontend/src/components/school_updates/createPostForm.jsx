@@ -3,7 +3,7 @@ import { IoArrowBack } from "react-icons/io5";
 import SwitchComponent from "@/components/dynamic/switch";
 import TooltipComponent from "@/components/dynamic/tooltip";
 import { BsFillInfoCircleFill } from "react-icons/bs";
-import api, { createPost, updatePost, uploadToSupabase } from "@/services/axios"; // Import API function
+import api, { createPost, getSignedUrl, updatePost, uploadToSupabase } from "@/services/axios"; // Import API function
 import TextEditor from "@/components/school_updates/textEditor"; // Quill Editor
 import { toast } from "react-toastify";
 import { ConfirmationModal, InfoModal } from "../dynamic/alertModal";
@@ -37,9 +37,12 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
 
       // Convert existing images to preview format
       try {
-        const parsedImages = existingPost.image_url
-          ? JSON.parse(existingPost.image_url)
-          : [];
+        let parsedImages = [];
+        if (existingPost.image_url) {
+          parsedImages = typeof existingPost.image_url === 'string'
+            ? JSON.parse(existingPost.image_url)
+            : existingPost.image_url;
+        }
         const imageArray = Array.isArray(parsedImages) ? parsedImages : [parsedImages];
         setImages(imageArray.filter(url => url).map(url => ({ url })));
       } catch {
@@ -62,11 +65,11 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
     return true;
   };
 
-   const preparePostPayload = async (action, isEditMode = false) => {
+  const preparePostPayload = async (action, isEditMode = false) => {
     const newImages = images.filter(img => img.file);
     const existingImages = images
       .filter(img => !img.file && img.url && isEditMode)
-      .map(img => img.url);
+      .map((img) => img.path || img.url);
 
     let uploadedUrls = [];
     if (newImages.length > 0) {
@@ -82,7 +85,7 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
       content,
       is_notified: isNotified ? 1 : 0,
       is_urgent: isUrgent ? 1 : 0,
-      images: imageUrls,
+      image_paths: imageUrls,
       status: isUrgent ? "published" : action,
     };
   };
