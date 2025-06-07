@@ -88,7 +88,7 @@ class UserSeeder extends Seeder
             $user->assignRole($studentRole);
         }
 
-        $this->command->info('47 student users seeded with "student" role and avatars.');
+        $this->command->info('50 student users seeded with "student" role and avatars.');
     }
 
     protected function faker()

@@ -35,7 +35,7 @@ class FormSubmissionDataSeeder extends Seeder
                     'form_submission_id' => $submission->id,
                     'form_field_id' => $field->id,
                     'field_name' => $field->field_data['name'] ?? 'Unknown Field',
-                    'answer_data' => is_string($answer) ? json_encode($answer) : json_encode((string) $answer),
+                    'answer_data' => (string) $answer, 
                     'is_verified' => $faker->boolean(70),
                     'created_at' => now(),
                     'updated_at' => now(),
