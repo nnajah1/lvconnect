@@ -52,7 +52,7 @@ class SchoolUpdateController extends Controller
 
         // Handle 'comms' role
         if ($user->hasActiveRole('comms')) {
-            $schoolUpdate = SchoolUpdate::where('id', $id)->with('author')->first();
+            $schoolUpdate = SchoolUpdate::where('id', $id)->first();
 
             if (!$schoolUpdate) {
                 return response()->json(['message' => 'Post not found'], 404);
@@ -115,7 +115,7 @@ class SchoolUpdateController extends Controller
                 'title' => $request->title,
                 'content' => $content,
                 'type' => $request->type,
-                'image_url' => $request->image_paths ? json_encode($request->image_paths) : null,
+                'image_url' => $request->image_paths ?? [],
                 'created_by' => $user->id,
                 'status' => $request->status,
                 'is_notified' => $request->boolean('is_notified'),
@@ -173,7 +173,7 @@ class SchoolUpdateController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'type' => 'required|in:announcement,event',
-            'image_paths' => 'nullable|array', // Supabase object paths
+            'image_paths' => 'nullable|array',
             'image_paths.*' => 'string',
             'is_notified' => 'sometimes|boolean',
             'is_urgent' => 'sometimes|boolean',
@@ -190,14 +190,14 @@ class SchoolUpdateController extends Controller
                 'title' => $request->title,
                 'content' => $content,
                 'type' => $request->type,
-                'image_url' => $request->image_paths ? json_encode($request->image_paths) : null, // store only paths
+                'image_url' => $request->image_paths ?? [],
                 'is_notified' => $request->boolean('is_notified'),
                 'is_urgent' => $isUrgent,
                 'status' => $finalStatus,
                 'published_at' => $finalStatus === SchoolUpdate::STATUS_PUBLISHED ? now() : $schoolupdate->published_at,
             ]);
 
-             // Notify students if published and notified
+            // Notify students if published and notified
             // if ($finalStatus === SchoolUpdate::STATUS_PUBLISHED && $schoolupdate->is_notified) {
             //     $comms = new \App\Services\StudentCommService();
             //     $comms->notify(new \App\Notifications\PostNotification($schoolupdate));
@@ -535,15 +535,39 @@ class SchoolUpdateController extends Controller
             $fbVersion = 'v18.0';
             $pageId = env('FACEBOOK_PAGE_ID');
             $accessToken = env('FACEBOOK_ACCESS_TOKEN');
+            $imageUrl = $schoolupdate->image_url;
 
-            if (!empty($request->image_url)) {
+            if (!empty($imageUrl)) {
+
+                $attachedMedia = [];
+
+                foreach ($imageUrl as $path) {
+                    $signedUrl = generateSignedUrl($path);
+
+                    $photoResponse = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/photos", [
+                        'access_token' => $accessToken,
+                        'url' => $signedUrl,
+                        'published' => false,
+                    ]);
+
+                    if ($photoResponse->successful()) {
+                        $mediaId = $photoResponse->json('id');
+                        $attachedMedia[] = ['media_fbid' => $mediaId];
+                    } else {
+                        return response()->json(['error' => $photoResponse->json()], 500);
+                    }
+                }
+
                 $postData = [
                     'access_token' => $accessToken,
-                    'url' => $request->image_url[0],
                     'caption' => strip_tags($request->content),
                 ];
+                
+                if (count($attachedMedia)) {
+                    $feedData['attached_media'] = $attachedMedia;
+                }
 
-                $postUrl = "https://graph.facebook.com/{$fbVersion}/{$pageId}/photos";
+                $postUrl = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $feedData);
             } else {
                 $postData = [
                     'access_token' => $accessToken,

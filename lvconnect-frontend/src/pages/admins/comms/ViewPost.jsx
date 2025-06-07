@@ -35,7 +35,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
     }
   }, [isOpen, postId]);
 
- 
+
   const handleImageLoad = (index) => {
     setImageLoadStates((prev) => ({ ...prev, [index]: "loaded" }));
   };
@@ -108,16 +108,16 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
           className="w-[60rem]! max-h-[70vh]! rounded-lg overflow-hidden"
         >
           {post ? (
-            <div className="flex flex-col space-y-4 p-4 overflow-y-auto w-full h-full justify-around bg-white rounded-lg mt-4">
-              <div className="min-h-[30vh]">
-
+            <div className="flex flex-col space-y-4 p-4 overflow-y-auto w-full h-full justify-around rounded-lg">
+            
                 <h1 className="text-sm text-gray-500 capitalize">{post.type}</h1>
+              <div className="min-h-[30vh] bg-white m-4 p-10 rounded-md">
                 <div>
                   <h2 className="text-2xl font-bold text-center text-gray-900">{post.title}</h2>
 
                   {/* Post Content */}
                   <div
-                    className="mt-4 text-gray-800 text-center whitespace-pre-line"
+                    className="m-4 text-gray-800 text-center whitespace-pre-line"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
                   />
                 </div>
@@ -154,7 +154,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                         return (
                           <div
                             key={idx}
-                            className={`relative group overflow-hidden rounded-lg ${isPrimary ? "col-span-2 row-span-2" : ""}`}
+                            className={`relative group overflow-hidden shadow-lg rounded-lg ${isPrimary ? "col-span-2 row-span-2" : ""}`}
                             style={{
                               aspectRatio: isPrimary ? "3 / 2" : "1 / 1",
                               maxHeight: "400px",
@@ -181,7 +181,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                                 href={imageUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200"
+                                className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-all duration-200"
                               >
                                 <svg
                                   className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity"
@@ -197,6 +197,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                                   />
                                 </svg>
                               </a>
+
                             )}
                           </div>
                         );

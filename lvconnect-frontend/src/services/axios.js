@@ -97,7 +97,7 @@ export const uploadToSupabase = async (files) => {
   const fileArray = Array.isArray(files) ? files : [files];
 
   fileArray.forEach((file) => {
-    formData.append("file", file);
+    formData.append("file[]", file);
   });
 
   const response = await api.post("/upload", formData, {
