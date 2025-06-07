@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
             $table->string('term');
             $table->string('academic_year');
+            $table->enum('remarks', ['passed', 'not_passed']);
             $table->decimal('grade',4,2);
             $table->timestamps();
         });

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('school_year');
             $table->decimal('target_GWA', 4,2);
             $table->decimal('actual_GWA', 4,2);
+            $table->enum('status', ['passed', 'not_passed']);
             $table->timestamps();
         });
     }

@@ -146,7 +146,8 @@ class DummyDataSyncController extends Controller
                                 'student_information_id' => $student->id,
                             ],
                             [
-                                'program_id' => $program->id
+                                'program_id' => $program->id,
+                                'year_level' => 1,
                             ]
                         );
                     }
@@ -161,7 +162,10 @@ class DummyDataSyncController extends Controller
 
                         $course = Course::firstOrCreate(
                             ['course' => $gradeData['course']],
-                            ['unit' => $gradeData['unit'] ?? 0]
+                            [
+                                'unit' => $gradeData['unit'] ?? 0,
+                                'course_code' => $gradeData['course_code'] ?? null,
+                            ]
                         );
 
                         Grade::updateOrCreate(
@@ -173,6 +177,7 @@ class DummyDataSyncController extends Controller
                             ],
                             [
                                 'grade' => $gradeData['grade'],
+                                'remarks' => $gradeData['remarks'] ?? null, 
                             ]
                         );
                     }
@@ -191,6 +196,7 @@ class DummyDataSyncController extends Controller
                         [
                             'target_GWA' => $template['target_GWA'] ?? null,
                             'actual_GWA' => $template['actual_GWA'] ?? null,
+                            'status' => $template['status'] ?? null,  
                         ]
                     );
                 }
