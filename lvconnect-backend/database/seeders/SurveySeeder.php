@@ -11,6 +11,8 @@ use App\Models\StudentInformation;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Faker\Factory as Faker;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class SurveySeeder extends Seeder
 {
@@ -18,7 +20,6 @@ class SurveySeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Get all PSAS user IDs and students
         $psasUserIds = User::role('psas')->pluck('id');
         $students = StudentInformation::all();
 
@@ -73,12 +74,7 @@ class SurveySeeder extends Seeder
             ],
         ];
 
-        $questionTypes = [
-            'Short answer',
-            'Multiple choice',
-            'Checkboxes',
-            'Dropdown',
-        ];
+        $questionTypes = ['Short answer', 'Multiple choice', 'Checkboxes', 'Dropdown'];
 
         foreach ($surveyTitles as $index => $title) {
             $survey = Survey::create([
@@ -91,7 +87,7 @@ class SurveySeeder extends Seeder
             ]);
 
             $questions = $questionsPerSurvey[$index];
-            $questionIds = [];
+            $questionRecords = [];
 
             foreach ($questions as $qIndex => $questionText) {
                 $type = $qIndex === count($questions) - 1
@@ -104,7 +100,7 @@ class SurveySeeder extends Seeder
 
                 $data = ['choices' => $choices];
 
-                $question = SurveyQuestion::create([
+                $questionRecords[] = SurveyQuestion::create([
                     'survey_id' => $survey->id,
                     'survey_question_type' => $type,
                     'question' => $questionText,
@@ -114,48 +110,45 @@ class SurveySeeder extends Seeder
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-
-                $questionIds[] = $question->id;
             }
 
             foreach ($students as $student) {
-                $isCompleted = $faker->boolean(60);
+                $completed = $faker->boolean(60);
+                $completedAt = $completed ? $faker->dateTimeBetween('-5 days', 'now') : null;
 
-                $survey->students()->attach($student->id, [
-                    'completed_at' => $isCompleted ? now()->subDays(rand(1, 5)) : null,
+                DB::table('survey_student')->insert([
+                    'survey_id' => $survey->id,
+                    'student_information_id' => $student->id,
+                    'completed_at' => $completedAt,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
 
-                if ($isCompleted) {
-                    $submittedAt = now()->subDays(rand(1, 5));
-
+                if ($completedAt) {
                     $response = SurveyResponse::create([
                         'survey_id' => $survey->id,
                         'student_information_id' => $student->id,
-                        'submitted_at' => $submittedAt,
+                        'submitted_at' => $completedAt,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
 
-                    foreach ($questionIds as $qid) {
-                        $question = SurveyQuestion::find($qid);
+                    foreach ($questionRecords as $question) {
                         $type = $question->survey_question_type;
-                        $choices = $question->survey_question_data['choices'] ?? [];
 
                         $answer = match ($type) {
                             'Short answer' => $faker->sentence(),
-                            'Multiple choice', 'Dropdown' => Arr::random($choices),
-                            'Checkboxes' => implode(', ', $faker->randomElements($choices, rand(1, count($choices)))),
+                            'Multiple choice', 'Dropdown' => Arr::random($question->survey_question_data['choices'] ?? ['Yes', 'No']),
+                            'Checkboxes' => implode(', ', $faker->randomElements($question->survey_question_data['choices'] ?? ['Option 1', 'Option 2'], rand(1, 2))),
                             default => 'N/A',
                         };
 
                         SurveyAnswer::create([
                             'survey_response_id' => $response->id,
-                            'survey_question_id' => $qid,
+                            'survey_question_id' => $question->id,
                             'answer' => $answer,
                             'img_url' => null,
-                            'taken_at' => $submittedAt,
+                            'taken_at' => $completedAt,
                             'created_at' => now(),
                         ]);
                     }
@@ -163,6 +156,6 @@ class SurveySeeder extends Seeder
             }
         }
 
-        $this->command->info('Surveys seeded successfully.');
+        $this->command->info('Surveys, questions, assignments, responses, and answers seeded successfully.');
     }
 }
