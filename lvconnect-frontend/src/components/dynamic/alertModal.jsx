@@ -6,14 +6,16 @@ const AlertTypes = {
   SUCCESS: "success",
   ERROR: "error",
   WARNING: "warning",
-  INFO: "info"
+  INFO: "info",
+  DATA: "data"
 };
 
 const AlertIcons = {
   [AlertTypes.SUCCESS]: CheckCircle,
   [AlertTypes.ERROR]: AlertCircle,
   [AlertTypes.WARNING]: AlertTriangle,
-  [AlertTypes.INFO]: Info
+  [AlertTypes.INFO]: Info,
+  [AlertTypes.DATA]: Info
 };
 
 const AlertColors = {
@@ -40,6 +42,12 @@ const AlertColors = {
     border: "border-blue-200",
     icon: "text-blue-500",
     title: "text-blue-700"
+  },
+   [AlertTypes.DATA]: {
+    bg: "bg-violet-50",
+    border: "border-violet-200",
+    icon: "text-violet-500",
+    title: "text-violet-700"
   }
 };
 
@@ -117,6 +125,10 @@ export const WarningModal = (props) => {
 
 export const InfoModal = (props) => {
   return <DynamicAlertDialog type={AlertTypes.INFO} {...props} />;
+};
+
+export const DataModal = (props) => {
+  return <DynamicAlertDialog type={AlertTypes.DATA} {...props} />;
 };
 
 export const DeleteModal = ({ 
