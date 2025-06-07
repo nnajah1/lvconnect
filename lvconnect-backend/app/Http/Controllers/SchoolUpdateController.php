@@ -535,13 +535,15 @@ class SchoolUpdateController extends Controller
             $fbVersion = 'v18.0';
             $pageId = env('FACEBOOK_PAGE_ID');
             $accessToken = env('FACEBOOK_ACCESS_TOKEN');
-            $imageUrl = $schoolupdate->image_url;
+            $imageUrls = is_array($schoolupdate->image_url)
+                ? $schoolupdate->image_url
+                : json_decode($schoolupdate->image_url, true) ?? [];
 
-            if (!empty($imageUrl)) {
+            if (!empty($imageUrls)) {
 
                 $attachedMedia = [];
 
-                foreach ($imageUrl as $path) {
+                foreach ($imageUrls as $path) {
                     $signedUrl = generateSignedUrl($path);
 
                     $photoResponse = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/photos", [
@@ -560,14 +562,12 @@ class SchoolUpdateController extends Controller
 
                 $postData = [
                     'access_token' => $accessToken,
-                    'caption' => strip_tags($request->content),
+                    'message' => strip_tags($request->content),
+                    'attached_media' => $attachedMedia,
                 ];
-                
-                if (count($attachedMedia)) {
-                    $feedData['attached_media'] = $attachedMedia;
-                }
 
-                $postUrl = Http::post("https://graph.facebook.com/{$fbVersion}/{$pageId}/feed", $feedData);
+
+                 $postUrl = "https://graph.facebook.com/{$fbVersion}/{$pageId}/feed";
             } else {
                 $postData = [
                     'access_token' => $accessToken,
