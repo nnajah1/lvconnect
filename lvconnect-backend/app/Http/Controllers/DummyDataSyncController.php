@@ -238,7 +238,17 @@ class DummyDataSyncController extends Controller
                                 'end_time' => $scheduleData['end_time'],
                                 'room' => $scheduleData['room'],
                             ],
-                            []
+                            [  
+                                'program_id' => $program->id,
+                                'course_id' => $course->id,
+                                'term' => $scheduleData['term'],
+                                'year_level' => $scheduleData['year_level'],
+                                'section' => $scheduleData['section'],
+                                'day' => $scheduleData['day'],
+                                'start_time' => $scheduleData['start_time'],
+                                'end_time' => $scheduleData['end_time'],
+                                'room' => $scheduleData['room'],
+                            ]
                         );
                     }
                 }
