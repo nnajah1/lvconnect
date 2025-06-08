@@ -170,7 +170,11 @@ export const newStudentSchema = {
         enrolled: <span style={{ color: "green" }}>Enrolled</span>,
       };
       return map[status];
-    }
-
+    },
+     filterFn: (row, columnId, filterValue) => {
+      const status = row.original?.enrollment_status;
+      return status?.toLowerCase().includes(filterValue.toLowerCase());
+    },
   },
+
 };
