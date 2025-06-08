@@ -167,7 +167,7 @@ export const getColumns = ({
         enableSorting: config.sortable || false,
         enableFiltering: config.filterable || false,
         enableGlobalFilter: true,
-        ...(config.filterFn && { filterFn: config.filterFn })
+        // ...(config.filterFn && { filterFn: config.filterFn })
         
       }
       
