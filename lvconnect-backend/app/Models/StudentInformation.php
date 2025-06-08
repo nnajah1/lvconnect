@@ -40,7 +40,7 @@ class StudentInformation extends Model
     protected $casts = [
         'birth_date' => 'date',
     ];
-    protected $appends = ['full_name', 'program_id', 'program', 'year_level'];
+    protected $appends = ['full_name', 'program_id', 'program', 'year_level', 'avatar'];
 
     public function getFullNameAttribute()
     {
@@ -62,6 +62,10 @@ class StudentInformation extends Model
         return $this->enrolleeRecord->first()?->year_level;
     }
 
+     public function getAvatarAttribute()
+    {
+        return $this->user->first()?->avatar;
+    }
 
     public function studentFamilyInfo()
     {
@@ -77,6 +81,8 @@ class StudentInformation extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+
 
     public function surveys()
     {

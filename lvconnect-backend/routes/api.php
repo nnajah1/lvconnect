@@ -7,6 +7,7 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\SchoolFormsController;
 use App\Http\Controllers\SOAController;
+use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentManagementController;
 use App\Http\Controllers\supabaseController;
 use App\Http\Controllers\SurveyController;
@@ -173,6 +174,9 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::post('/create-student-account', [CreateAccountController::class, 'createStudentAccount']);
   Route::post('/import-students', [CreateAccountController::class, 'importStudentsFromFile']);
+
+  
+  Route::get('/class-schedule', [StudentController::class, 'viewSchedules']);
 
 });
 

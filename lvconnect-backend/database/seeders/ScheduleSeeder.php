@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Program;
 use Illuminate\Database\Seeder;
 use App\Models\Schedule;
 use App\Models\Course;
@@ -11,7 +12,7 @@ class ScheduleSeeder extends Seeder
 {
     public function run(): void
     {
-        $programs = ['BSIS', 'BSA', 'BAB', 'BSAIS', 'BSSW', 'ACT'];
+        $programs = Program::all();
         $courses = Course::all();
 
         if ($courses->count() < 5) {
@@ -24,7 +25,7 @@ class ScheduleSeeder extends Seeder
 
             foreach ($randomCourses as $index => $course) {
                 Schedule::create([
-                    'program' => $program,
+                    'program_id' => $program->id,
                     'course_id' => $course->id,
                     'term' => '1st Term',
                     'year_level' => '1st Year',

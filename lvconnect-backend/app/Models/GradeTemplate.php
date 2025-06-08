@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class GradeTemplate extends Model
 {
     protected $fillable = [
-        'applicant_registration_id',
+        'student_information_id',
         'term',
         'school_year',
         'target_GWA',

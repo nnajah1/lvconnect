@@ -279,14 +279,14 @@ const Enrollment = () => {
 
     try {
       await rejectEnrollment(id, { admin_remarks: remarks });
-      toast.success("Enrollment rejected!");
+      toast.success("Enrollment mark as temporary enrolled!");
       setRejectItem(null)
       setRemarks("");
       await loadEnrollment();
 
     } catch (error) {
       console.error(error);
-      toast.error("Failed to reject enrollment.");
+      toast.error("Failed to mark enrollment as temporary enrolled.");
     }
   };
 

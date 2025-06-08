@@ -731,13 +731,16 @@ class EnrollmentController extends Controller
             ->get();
 
         $csvData = '';
-        $headers = ['ID', 'First Name', 'Last Name', 'Status']; // updated headers
+        $headers = ['Student ID', 'First Name', 'Last Name', 'Program', 'Year Level', 'Status', 'Enrolled At']; 
         $csvData .= implode(',', $headers) . "\n";
 
         foreach ($data as $record) {
             $firstName = $record->studentInfo?->first_name ?? 'N/A';
             $lastName = $record->studentInfo?->last_name ?? 'N/A';
-            $csvData .= "{$record->id},{$firstName},{$lastName},{$record->enrollment_status}\n";
+            $year = $record->studentInfo?->year_level ?? 'N/A';
+            $program = $record->studentInfo?->program ?? 'N/A';
+            $studentId = $record->studentInfo?->student_id_number ?? 'N/A';
+            $csvData .= "{$studentId},{$firstName},{$lastName},{$program},{$year},{$record->enrollment_status},{$record->submission_date}\n";
         }
 
 

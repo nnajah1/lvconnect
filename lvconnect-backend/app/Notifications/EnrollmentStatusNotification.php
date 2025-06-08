@@ -62,8 +62,8 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
 
             case 'rejected':
                 return (new MailMessage)
-                    ->subject("Enrollment Application Rejected")
-                    ->line("We regret to inform you that your enrollment application for Academic Year {$this->academicYear->school_year} has been rejected.")
+                    ->subject("Enrollment Application: Temporary Enrolled")
+                    ->line("Your enrollment application has been marked as temporary enrolled for Academic Year {$this->academicYear->school_year}.")
                     ->line('Please check your student portal for more details or contact the registrar for assistance.');
 
             case 'not_enrolled':
@@ -75,7 +75,7 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
             case 'remind_rejected':
                 return (new MailMessage)
                     ->subject("Enrollment Application Reminder")
-                    ->line("Reminder! Please reprocess your enrollment application for Academic Year {$this->academicYear->school_year}.")
+                    ->line("Reminder! Kindly submit all your incomplete requirements for Academic Year {$this->academicYear->school_year}.")
                     ->line('Please check your student portal for more details or contact the registrar for assistance.');
 
             default:

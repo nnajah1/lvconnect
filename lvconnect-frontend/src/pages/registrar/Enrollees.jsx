@@ -98,6 +98,7 @@ const Enrollees = ({ mode, editType }) => {
       try {
         const data = await getEnrollee(studentId);
         setStudentData(data);
+        setProfileImage(data.avatar)
       } finally {
         setIsLoading(false);
       }
@@ -214,7 +215,7 @@ const Enrollees = ({ mode, editType }) => {
   return (
     <div className="flex flex-col items-start w-full min-h-screen">
 
-      <div className="w-full p-2 sticky top-0 bg-muted">
+      <div className="w-full p-2 sticky -top-5 bg-muted">
 
         <ActionButtons
           isEditing={isEditing}

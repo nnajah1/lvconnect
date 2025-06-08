@@ -33,4 +33,8 @@ class Schedule extends Model
     {
         return $this->belongsTo(Program::class);
     }
+
+      public function enrollmentSchedule() {
+        return $this->belongsTo(EnrollmentSchedule::class);
+    }
 }

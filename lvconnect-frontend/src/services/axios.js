@@ -120,5 +120,13 @@ export const getSignedUrl = async (path) => {
   }
 };
 
+export const getClassSchedule = async () => {
+  try {
+    const response = await api.get("/class-schedule");
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || "Something went wrong!";
+  }
+};
 
 export default api;

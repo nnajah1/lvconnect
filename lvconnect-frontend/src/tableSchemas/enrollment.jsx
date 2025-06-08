@@ -9,7 +9,7 @@ export const registrarSchema = {
     filterable: true,
   },
   student_id_number: { header: "ID", display: true, },
-  program: { header: "Course", display: true },
+  program: { header: "Program", display: true, filterable:true },
   year: {
     header: "Year", display: true, sortable: true,
     customCell: (value, original) => {
@@ -67,7 +67,7 @@ export const actions = (openModal, openAcceptModal, openRejectModal, openDirectM
   },
   accept: {
     icon: (item) => {
-      if (item.enrollee_record?.[0]?.enrollment_status === "pending" && tab === "pending" || tab === "all") {
+      if (item.enrollee_record?.[0]?.enrollment_status === "pending" && tab === "pending" || tab === "all" || tab === "rejected") {
         return (
           <div className="flex items-center justify-center gap-1.5">
             <Check className="h-4 w-4 text-white" />

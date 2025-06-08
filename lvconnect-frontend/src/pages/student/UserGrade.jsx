@@ -11,11 +11,11 @@ const Grades = () => {
     schoolYear: '2024–2025',
     semester: 'First Semester',
     program: 'BS Information Systems',
-    yearLevel: '4th Year',
+    yearLevel: '1st Year',
     student: {
-      name: 'Pegarit, Alona Joy P.',
-      number: '21-00174APP',
-      scholarship: 'Institutional (Full Scholar)',
+      name: 'Bacon, Chris P,',
+      number: '21-00123BCP',
+      scholarship: 'Institutional',
     },
     grades: [
       { code: 'GE 8', title: 'Ethics', units: 3, grade: '1.25', remarks: 'PASSED' },
