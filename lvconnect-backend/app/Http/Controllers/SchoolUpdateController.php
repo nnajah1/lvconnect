@@ -39,9 +39,16 @@ class SchoolUpdateController extends Controller
         }
 
         if ($user->hasActiveRole('scadmin')) {
-            return SchoolUpdate::where('status', '!=', SchoolUpdate::STATUS_DRAFT)->get();
+            return SchoolUpdate::whereIn('status', [
+                SchoolUpdate::STATUS_PENDING,
+                SchoolUpdate::STATUS_REJECTED,
+                SchoolUpdate::STATUS_PUBLISHED,
+                SchoolUpdate::STATUS_SYNCED,
+                SchoolUpdate::STATUS_APPROVED,
+                SchoolUpdate::STATUS_REVISION
+            ])->get();
         }
-
+        
         return response()->json(['message' => 'Unauthorized'], 403);
 
     }
@@ -567,7 +574,7 @@ class SchoolUpdateController extends Controller
                 ];
 
 
-                 $postUrl = "https://graph.facebook.com/{$fbVersion}/{$pageId}/feed";
+                $postUrl = "https://graph.facebook.com/{$fbVersion}/{$pageId}/feed";
             } else {
                 $postData = [
                     'access_token' => $accessToken,

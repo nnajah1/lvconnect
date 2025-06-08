@@ -45,9 +45,27 @@ class SchoolUpdate extends Model
 
     protected $appends = ['image_urls'];
 
-   public function getImageUrlsAttribute()
+    public function getImageUrlsAttribute(): array
 {
-    return array_map('generateSignedUrl', $this->image_url ?? []);
+    $paths = [];
+
+    switch (true) {
+        case is_array($this->image_url):
+            $paths = $this->image_url;
+            break;
+
+        case is_string($this->image_url):
+            $decoded = json_decode($this->image_url, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $paths = $decoded;
+            }
+            break;
+    }
+
+    return array_map(
+        fn (string $path) => generateSignedUrl($path),
+        $paths
+    );
 }
 
 
