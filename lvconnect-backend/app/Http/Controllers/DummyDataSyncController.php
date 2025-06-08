@@ -89,6 +89,7 @@ class DummyDataSyncController extends Controller
                         'lrn' => $applicant['lrn_num'],
                         'fb_link' => $fbLink,
                         'government_subsidy' => $governmentSubsidy,
+                        'scholarship_status' => 'Full',
                         'last_school_attended' => $applicant['previous_school_name'],
                         'previous_school_address' => $applicant['previous_school_address'],
                         'school_type' => $applicant['type_of_school'],
