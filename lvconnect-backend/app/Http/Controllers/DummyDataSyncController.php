@@ -94,6 +94,7 @@ class DummyDataSyncController extends Controller
                         'previous_school_address' => $applicant['previous_school_address'],
                         'school_type' => $applicant['type_of_school'],
                         'academic_awards' => $applicant['academic_awards_achievements'],
+                        'floor/unit/building_no'=> 'Unit 101',
                         'house_no/street' => $applicant['street'],
                         'barangay' => $applicant['barangay'],
                         'city_municipality' => $applicant['city'],
