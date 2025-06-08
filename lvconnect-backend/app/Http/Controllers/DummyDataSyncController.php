@@ -78,6 +78,7 @@ class DummyDataSyncController extends Controller
                         'last_name'   => $applicant['last_name'],
                     ],
                     [
+                        'student_id_number' => 'STU' . now()->format('Ymd') . rand(100, 999),
                         'middle_name' => $applicant['middle_name'],
                         'civil_status' => $civilStatus,
                         'gender'       => $gender,
@@ -153,53 +154,62 @@ class DummyDataSyncController extends Controller
                     }
                 }
 
-                // // Sync Courses and Grades
-                // if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
-                //     foreach ($applicant['grades'] as $gradeData) {
-                //         if (empty($gradeData['course']) || !isset($gradeData['grade'])) {
-                //             continue;
-                //         }
+                // Sync Courses and Grades
+                if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
+                    foreach ($applicant['grades'] as $gradeData) {
+                        if (
+                            empty($gradeData['course']) ||
+                            !isset($gradeData['grade']) ||
+                            empty($gradeData['term']) ||
+                            empty($gradeData['academic_year'])
+                        ) {
+                            continue;
+                        }
 
-                //         $course = Course::firstOrCreate(
-                //             ['course' => $gradeData['course']],
-                //             [
-                //                 'unit' => $gradeData['unit'] ?? 0,
-                //                 'course_code' => $gradeData['course_code'] ?? null,
-                //             ]
-                //         );
+                        $course = Course::firstOrCreate(
+                            ['course' => $gradeData['course']],
+                            [
+                                'unit' => $gradeData['unit'] ?? 0,
+                                'course_code' => $gradeData['course_code'] ?? null,
+                            ]
+                        );
 
-                //         Grade::updateOrCreate(
-                //             [
-                //                 'student_information_id' => $student->id,
-                //                 'course_id' => $course->id,
-                //                 'term' => $gradeData['term'],
-                //                 'academic_year' => $gradeData['academic_year'],
-                //             ],
-                //             [
-                //                 'grade' => $gradeData['grade'],
-                //                 'remarks' => $gradeData['remarks'] ?? null, 
-                //             ]
-                //         );
-                //     }
-                // }
+                        if (!$course || !isset($course->id)) {
+                            continue;
+                        }
 
-                // // Sync GradeTemplate
-                // if (!empty($applicant['grade_template'])) {
-                //     $template = $applicant['grade_template'];
+                        Grade::updateOrCreate(
+                            [
+                                'student_information_id' => $student->id,
+                                'course_id' => $course->id,
+                                'term' => (string) $gradeData['term'],
+                                'academic_year' => (string) $gradeData['academic_year'],
+                            ],
+                            [
+                                'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
+                                'remarks' => $gradeData['remarks'] ?? null,
+                            ]
+                        );
+                    }
+                }
 
-                //     GradeTemplate::updateOrCreate(
-                //         [
-                //             'student_information_id' => $student->id,
-                //             'term' => $template['term'] ?? null,
-                //             'school_year' => $template['school_year'] ?? null,
-                //         ],
-                //         [
-                //             'target_GWA' => $template['target_GWA'] ?? null,
-                //             'actual_GWA' => $template['actual_GWA'] ?? null,
-                //             'status' => $template['status'] ?? null,  
-                //         ]
-                //     );
-                // }
+                // Sync GradeTemplate
+                if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
+                    $template = $applicant['grade_template'];
+
+                    GradeTemplate::updateOrCreate(
+                        [
+                            'student_information_id' => $student->id,
+                            'term' => $template['term'] ?? null,
+                            'school_year' => $template['school_year'] ?? null,
+                        ],
+                        [
+                            'target_GWA' => isset($template['target_GWA']) ? (float) $template['target_GWA'] : null,
+                            'actual_GWA' => isset($template['actual_GWA']) ? (float) $template['actual_GWA'] : null,
+                            'status' => $template['status'] ?? null,
+                        ]
+                    );
+                }
 
                 // Sync Schedules
                 if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
