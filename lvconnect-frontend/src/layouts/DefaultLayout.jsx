@@ -50,7 +50,7 @@ export default function DefaultLayout() {
         />
 
         <main
-          className={`mx-auto overflow-auto p-20 px-4 pb-4 transition-all duration-300 md:px-6 md:pb-6 ${isSidebarExpanded ? "w-[80vw] lg:ml-64" : "w-[95vw] lg:ml-20"
+          className={`mx-auto overflow-auto p-20 px-4 pb-4 transition-all scrollbar-hide duration-300 md:px-6 md:pb-6 ${isSidebarExpanded ? "w-[80vw] lg:ml-64" : "w-[95vw] lg:ml-20"
             }`}
         >
           <Outlet />

@@ -7,7 +7,7 @@ import { actionConditions, actions, surveySchema } from "@/tableSchemas/survey";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateSurveyModal from "./CreateSurvey";
 import EditSurveyModal from "./EditSurvey";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ConfirmationModal } from "@/components/dynamic/alertModal";
 import SearchBar from "@/components/dynamic/searchBar";
 import { toast } from "react-toastify";
@@ -26,6 +26,7 @@ const Surveys = () => {
   const [globalFilter, setGlobalFilter] = useState("");
 
   const navigate = useNavigate();
+const location = useLocation();
 
   const openModal = (item) => {
     setFormItem(item);

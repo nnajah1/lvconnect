@@ -47,7 +47,7 @@ export default function FormField({
             name={name}
             value={value}
             onChange={onChange}
-            className="form-select"
+            className="form-select bg-white"
             required
           >
             <option value="">Select {label}</option>

@@ -52,7 +52,9 @@ class SurveyController extends Controller
 
         // Check if the user has the 'psas' role
         if ($user->hasActiveRole('psas')) {
-            $psasSurveys = Survey::with('questions')->get();
+            $psasSurveys = Survey::with('questions')
+                ->orderBy('updated_at', 'desc')
+                ->get();
 
             $surveys = $surveys->merge($psasSurveys);
         }
@@ -81,17 +83,29 @@ class SurveyController extends Controller
             'answers.question'
         ])
             ->where('survey_id', $surveyId)
-            ->whereHas('student.surveys', function ($query) use ($surveyId) {
-                $query->where('survey_id', $surveyId)
+            ->whereHas('student.surveys', function ($q) use ($surveyId) {
+                $q->where('survey_id', $surveyId)
                     ->whereNotNull('survey_student.completed_at');
             })
+            ->orderBy('submitted_at', 'desc')
             ->get();
 
         if ($responses->isEmpty()) {
             return response()->json(['message' => 'No completed responses found'], 404);
         }
 
-        return response()->json($responses);
+        $formatted = $responses->map(function ($response) {
+            return [
+                'id' => $response->student->id,
+                'name' => $response->student->full_name,
+                'course' => $response->student->program,
+                'year' => $response->student->year_level,
+                'submitted_at' => $response->submitted_at,
+
+            ];
+        });
+
+        return response()->json($formatted);
     }
 
 
@@ -163,7 +177,7 @@ class SurveyController extends Controller
             return [
                 'survey_question_id' => $answer->survey_question_id,
                 'answer' => $answer->answer,
-                'img_url' => $answer->img_url,
+                'img_url' => generateSignedUrl($answer->img_url),
                 'taken_at' => $answer->taken_at,
                 'created_at' => $answer->created_at,
             ];

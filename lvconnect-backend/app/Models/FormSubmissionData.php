@@ -22,7 +22,7 @@ class FormSubmissionData extends Model
         'is_verified' => 'boolean',
     ];
 
-    protected $appends = ['form_field_data'];
+    protected $appends = ['form_field_data', 'image_urls'];
 
 
     /**
@@ -44,6 +44,18 @@ class FormSubmissionData extends Model
     public function getFormFieldDataAttribute()
     {
         return $this->formField?->field_data;
+    }
+    public function getImageUrlsAttribute(): array
+    {
+        if (is_array($this->answer_data)) {
+            return array_map(
+                fn(string $path) => generateSignedUrl($path),
+                $this->answer_data
+                
+            );
+        }
+
+        return [];
     }
 
 }

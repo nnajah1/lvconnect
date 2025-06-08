@@ -116,16 +116,16 @@ class CreateAccountController extends Controller
         $lastName = ucwords(strtolower($request->last_name));
 
         // convert first and last name: only letters and lowercase
-        $firstNameCleam = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->first_name));
+        $firstNameClean = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->first_name));
         $lastNameClean = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->last_name));
 
         // Create base email
-        $email = $firstNameCleam . $lastNameClean . '@student.laverdad.edu.ph';
+        $email = $firstNameClean . $lastNameClean . '@student.laverdad.edu.ph';
 
         // Ensure email is unique
         $counter = 1;
         while (User::where('email', $email)->exists()) {
-            $email = $firstNameCleam . $firstNameCleam . $counter . '@student.laverdad.edu.ph';
+            $email = $firstNameClean . $lastNameClean . $counter . '@student.laverdad.edu.ph';
             $counter++;
         }
 

@@ -36,7 +36,7 @@ const UserCreateFormModal = ({ isOpen, closeModal, formItem, setIsSuccessModalOp
                     description="Fill out the form below to update a school form."
                     showTitle={false}
                     showDescription={false}
-                    className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                    className="max-w-[60rem]! max-h-[85vh]! bg-[#EAF2FD]! overflow-auto!">
 
                     <StudentEditForm closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
 

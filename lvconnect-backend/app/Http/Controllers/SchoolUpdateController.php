@@ -32,6 +32,7 @@ class SchoolUpdateController extends Controller
         if ($user->hasActiveRole('comms')) {
             return SchoolUpdate::where('created_by', $user->id)
                 ->where('status', '!=', 'archived')
+                ->orderBy('updated_at', 'desc')
                 ->get();
         }
         if ($user->hasActiveRole('student')) {
@@ -46,7 +47,9 @@ class SchoolUpdateController extends Controller
                 SchoolUpdate::STATUS_SYNCED,
                 SchoolUpdate::STATUS_APPROVED,
                 SchoolUpdate::STATUS_REVISION
-            ])->get();
+            ])
+                ->orderBy('updated_at', 'desc')
+                ->get();
         }
         
         return response()->json(['message' => 'Unauthorized'], 403);

@@ -1,7 +1,7 @@
 import { Eye, Pencil, Trash, Trash2, UserRoundCheck, UserRoundX } from "lucide-react";
 
 export const roleSchema = {
-    id: { header: "#", display: true },
+    // id: { header: "#", display: true },
     name: { header: "Name", display: true, filterable: true, },
     email: {
         header: "Email",

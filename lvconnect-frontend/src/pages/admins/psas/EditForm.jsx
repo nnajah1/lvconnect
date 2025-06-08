@@ -40,7 +40,7 @@ const EditFormModal = ({ isOpen, closeModal, formItem, onDeleteModal, onSuccessM
                     description="Fill out the form below to update a school form."
                     showTitle={false}
                     showDescription={false}
-                    className="max-w-[90vw]! max-h-[40rem]! bg-[#EAF2FD]! overflow-auto!">
+                    className="max-w-[90vw]! max-h-[85vh]! bg-[#EAF2FD]! overflow-auto!">
 
                     <EditForm closeModal={closeModal}  onDelete={handleDelete} onSuccess={handleSuccess} formId={formItem.id} />
 

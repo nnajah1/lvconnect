@@ -322,7 +322,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
       <form onSubmit={handleSubmit(handleCreateForm)} className="space-y-4">
         <div className="flex items-center justify-between">
 
-          <h2 className="text-xl font-semibold mb-4">Create a Form</h2>
+          <h2 className="text-xl font-semibold mb-4">{mode === 'edit' ? 'Edit Form' : 'Create Form'}</h2>
           <Controller
             name="is_visible"
             control={control}

@@ -1,7 +1,7 @@
 import { Eye, Pencil } from "lucide-react";
 
 export const surveySchema = {
-    id: { header: "#", display: true },
+    // id: { header: "#", display: true },
     title: { header: "Surveys", display: true },
     visibility_mode: {
         header: "Status",
@@ -11,13 +11,13 @@ export const surveySchema = {
             const map = {
                 hidden: "Hidden",
                 optional: "Visible",
-                mandatory: "Mandatory",
+                mandatory: "Visible",
             };
             return map[value] || "Unknown";
         },
 
     },
-    created_at: { header: "Date Created", display: true, format: "date" },
+    created_at: { header: "Date Created", display: true, format: "date", sortable:true },
 };
 
 export const actions = (openModal, openResponseModal) => ({

@@ -1,7 +1,7 @@
 import { Eye, Pencil } from "lucide-react";
 
 export const schoolFormTemplateSchema = {
-    id: { header: "#", display: true },
+    // id: { header: "#", display: true },
     title: { header: "Form", display: true },
     is_visible: {
         header: "Status",

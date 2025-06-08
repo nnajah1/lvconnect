@@ -1,7 +1,7 @@
 import { Eye, Pencil } from "lucide-react";
 
 export const surveyTemplateSchema = {
-    id: { header: "#", display: true},
+    // id: { header: "#", display: true},
     title: { header: "Surveys", display: true},
     created_at: { header: "Date Created", display: true, format: "date", sortable: true, },
 };

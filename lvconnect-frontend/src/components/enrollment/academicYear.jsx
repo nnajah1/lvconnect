@@ -270,6 +270,8 @@ const AcademicYear = ({
             setLoading(false);
         }
     };
+    const today = new Date().toISOString().split("T")[0];
+
 
     // if(loading) {
     //     return <Loader4 />
@@ -322,6 +324,7 @@ const AcademicYear = ({
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
                                     className="border border-gray-300 rounded px-3 py-2 w-30 m-auto"
+                                    min={today}
                                 />
                             </div>
 
@@ -333,6 +336,7 @@ const AcademicYear = ({
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
                                     className="border border-gray-300 rounded px-3 py-2 w-30 m-auto"
+                                    min={startDate || today}
                                 />
                             </div>
 

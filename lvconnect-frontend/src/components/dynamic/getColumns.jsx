@@ -176,7 +176,7 @@ export const getColumns = ({
   const actionColumn = showActionColumn ?
   {
     id: "actions",
-    header: "Actions",
+    header: "Action",
     cell: ({ row }) => {
       const item = row.original
 

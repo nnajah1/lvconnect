@@ -44,7 +44,7 @@ const DynamicModal = ({
                   min-w-[50vw]
                   min-h-[20vh]
                   max-w-full 
-                  max-h-[90vh] 
+                  max-h-[85vh] 
                   overflow-y-auto 
                   ${className}
                   

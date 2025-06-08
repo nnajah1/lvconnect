@@ -37,7 +37,7 @@ const CreateFormModal = ({ isOpen, closeModal }) => {
                     description="Fill out the form below to create a new school form."
                     showTitle={false}
                     showDescription={false}
-                    className="max-w-[90vw]! max-h-[40rem]! bg-[#EAF2FD]! overflow-auto!">
+                    className="max-w-[90vw]! max-h-[85vh]! bg-[#EAF2FD]! overflow-auto!">
 
                     <FormBuilder closeModal={closeModal} onSuccess={handleSuccess} />
 

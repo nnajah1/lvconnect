@@ -33,6 +33,7 @@ class SchoolFormsController extends Controller
 
         if ($user->hasActiveRole('psas')) {
             return FormType::with('formFields')
+                ->orderBy('updated_at', 'desc')
                 ->get();
         }
 
@@ -177,7 +178,7 @@ class SchoolFormsController extends Controller
                 $type = $field->field_data['type'] ?? 'text';
                 $isRequired = $field->is_required && $status !== 'draft';
 
-                $rules[$fieldKey] = [$isRequired ? 'required' : 'nullable', $type === '2x2_image' ? 'url' : 'string'];
+                $rules[$fieldKey] = [$isRequired ? 'required' : 'nullable', $type === '2x2_image' ? 'array' : 'string'];
             }
 
             $validator = Validator::make($request->all(), $rules);

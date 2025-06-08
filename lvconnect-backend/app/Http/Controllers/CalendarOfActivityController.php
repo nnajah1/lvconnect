@@ -15,11 +15,11 @@ class CalendarOfActivityController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('student')) {
+        if ($user->hasActiveRole('student')) {
             return CalendarOfActivity::select('event_title', 'description', 'start_date', 'end_date', 'color')->get();
         }
 
-        if ($user->hasRole('comms')) {
+        if ($user->hasActiveRole('comms')) {
             return CalendarOfActivity::all();
         }
 
@@ -72,7 +72,7 @@ class CalendarOfActivityController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $activity = CalendarOfActivity::select('event_title', 'description', 'start_date', 'end_date')->find($id);
+        $activity = CalendarOfActivity::select('id','event_title', 'description', 'start_date', 'end_date')->find($id);
 
         if (!$activity) {
             return response()->json(['message' => 'Activity not found'], 404);

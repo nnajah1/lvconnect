@@ -2,7 +2,7 @@ import { Eye, Pencil } from "lucide-react";
 
 //Summary Data
 export const schoolFormTemplateSchema = {
-    id: { header: "#", display: true },
+    // id: { header: "#", display: true },
     title: { header: "Form", display: true },
     is_visible: {
         header: "Status",
@@ -31,11 +31,39 @@ export const formActionConditions = {
 
 //Responses Data
 export const surveySubmittedSchema = {
-    id: { header: "#", display: true },
-    survey_id: { header: "Name", display: true },
-    submitted_by_name: { header: "Course", display: true },
-    status: { header: "Year", display: true },
-    created_at: { header: "Date Responded", display: true, format: "date" },
+    // id: { header: "#", display: true },
+    name: {
+        header: "Name",
+        display: true,
+        filterable: true,
+    },
+    course: { header: "Program", display: true },
+    year: {
+        header: "Year", display: true, sortable: true,
+        customCell: (value, original) => {
+            const year = original?.year;
+            const yearMap = {
+                1: "1st Year",
+                2: "2nd Year",
+                3: "3rd Year",
+                4: "4th Year",
+            };
+            return year ? yearMap[year] || `${year}th Year` : "-";
+        },
+        filterFn: (row, columnId, filterValue) => {
+            const year = row.original?.enrollee_record?.[0]?.year_level;
+            const yearMap = {
+                1: "1st Year",
+                2: "2nd Year",
+                3: "3rd Year",
+                4: "4th Year",
+            };
+            const label = year ? yearMap[year] || `${year}th Year` : "-";
+            return label.toLowerCase().includes(filterValue.toLowerCase());
+        },
+
+    },
+    submitted_at: { header: "Date Responded", display: true, format: "date" },
 };
 
 export const surveySubmitActions = (openSubmittedModal) => ({

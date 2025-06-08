@@ -1,4 +1,5 @@
 import { Check, Eye, Pencil, X } from "lucide-react";
+import { PiExclamationMark } from "react-icons/pi";
 
 export const registrarSchema = {
 
@@ -44,7 +45,7 @@ export const registrarSchema = {
         not_enrolled: <span style={{ color: "gray" }}>Not Enrolled</span>,
         enrolled: <span style={{ color: "green" }}>Enrolled</span>,
         pending: <span style={{ color: "orange" }}>Pending</span>,
-        rejected: <span style={{ color: "blue" }}>Temporary Enrolled</span>
+        rejected: <span style={{ color: "#8B8000" }}>Temporary Enrolled</span>
       };
       return map[status] || "-";
     },
@@ -84,14 +85,14 @@ export const actions = (openModal, openAcceptModal, openRejectModal, openDirectM
       if (item.enrollee_record?.[0]?.enrollment_status === "pending" && tab === "pending" || tab === "all") {
         return (
           <div className="flex items-center justify-center gap-1.5 ">
-            <X className="h-4 w-4 text-white" />
+            <PiExclamationMark className="h-4 w-4 text-white" />
           </div>
         )
       }
     },
     fn: (id, item) => openRejectModal(item),
     variant: (item) => "default",
-    className: "hover:bg-red-300 bg-red-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+    className: "hover:bg-yellow-300 bg-yellow-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
   enroll: {
     icon: (item) => {
@@ -115,7 +116,7 @@ export const actions = (openModal, openAcceptModal, openRejectModal, openDirectM
 
 export const actionConditions = {
   view: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status !== 'not_enrolled',
-  accept: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'pending',
+  accept: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'pending' || item.enrollee_record?.[0]?.enrollment_status === 'rejected',
   reject: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'pending',
   enroll: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'not_enrolled',
 };

@@ -11,7 +11,7 @@ import { Loader } from "@/components/dynamic/loader";
 import { checkSubmission, getSurveyById, getSurveyResponse, getSurveyResponses, submitSurveyResponse } from '@/services/surveyAPI';
 import { toast } from 'react-toastify';
 import WebcamCapture from './captureCamera';
-import api from '@/services/axios';
+import api, { uploadToSupabase } from '@/services/axios';
 import { ConfirmationModal, InfoModal } from "../dynamic/alertModal"
 
 const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
@@ -151,18 +151,18 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
     setConfirmingSubmit(true);
 
     setIsSubmitting(true);
+
     try {
       const uploadedAnswers = await Promise.all(
         answers.map(async (ans) => {
           if (ans.image_base64) {
             const blob = await (await fetch(ans.image_base64)).blob();
-            const formData = new FormData();
-            formData.append("image", blob, `photo_${Date.now()}.jpg`);
+            const file = new File([blob], `photo_${Date.now()}.jpg`, { type: blob.type });
 
-            const res = await api.post("/upload-photo", formData);
+            const [uploadedPath] = await uploadToSupabase([file]);
             return {
               ...ans,
-              img_url: res.data.url,
+              img_url: uploadedPath,
               taken_at: ans.taken_at,
             };
           }

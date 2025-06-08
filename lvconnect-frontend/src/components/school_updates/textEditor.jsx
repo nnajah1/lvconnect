@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { getSignedUrl } from "@/services/axios";
+import { X } from "lucide-react";
+import { toast } from "react-toastify";
 
 
 const TextEditor = ({
@@ -85,11 +87,19 @@ const TextEditor = ({
     loadSignedUrls();
   }, [images]);
 
+  const MAX_IMAGES = 5;
   const handleImageUpload = (e) => {
     if (disabled) return;
 
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+
+  //   const totalImages = images.length + files.length;
+  // if (totalImages > MAX_IMAGES) {
+  //   toast.error(`You can only upload up to ${MAX_IMAGES} images.`);
+  //   e.target.value = '';
+  //   return;
+  // }
 
     const newImages = files.map(file => ({
       file,
@@ -183,7 +193,7 @@ const TextEditor = ({
                       onClick={() => removeImage(index)}
                       className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      ×
+                      <X />
                     </button>
                   )}
 

@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { smActionsConditions, smActions, registrarSchema, newStudentSchema, archiveSchema } from "@/tableSchemas/studentManagement";
-import { archiveData, bulkArchiveEnrollment, getNewStudents, getStudents } from "@/services/enrollmentAPI";
-import { ConfirmationModal, WarningModal } from "@/components/dynamic/alertModal";
+import { archiveData, bulkArchiveEnrollment, getNewStudents, getStudents, syncAccounts } from "@/services/enrollmentAPI";
+import { ConfirmationModal, DataModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
 import { toast } from "react-toastify";
@@ -26,6 +26,11 @@ const StudentInformation = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [remarks, setRemarks] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
+  const [showSingleForm, setShowSingleForm] = useState(false);
+  const [showBatchForm, setShowBatchForm] = useState(false);
+  const [syncAccount, setSyncAccount] = useState(false);
+
 
   const loadStudents = async () => {
     setIsLoading(true);
@@ -149,11 +154,25 @@ const StudentInformation = () => {
     }
   }, [editItem, viewItem, navigate, location.pathname]);
 
+  const handleSyncAccount = async () => {
+    // const id = newStudent;
+    if (!newStudent) {
+      toast.info("No new accounts found.");
+      return;
+    }
 
-  const [showSingleForm, setShowSingleForm] = useState(false);
-  const [showBatchForm, setShowBatchForm] = useState(false);
+    try {
+      await syncAccounts();
+      toast.success("New accounts sync successfully!");
+      setSyncAccount(false);
+      await loadNewStudents();
 
-
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to sync new accounts");
+    }
+  };
+  
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
@@ -173,7 +192,14 @@ const StudentInformation = () => {
         >
           Create Batch Account
         </button>
-
+        {newStudent && activeTab === "new_accounts" && (
+          <button
+            onClick={() => setSyncAccount(true)}
+            className="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700 cursor-pointer"
+          >
+            Sync New Accounts
+          </button>
+        )}
       </div>
 
       <DynamicTabs
@@ -214,8 +240,6 @@ const StudentInformation = () => {
           pagesize={10}
         />
       )}
-
-
 
       {archiveItem && (
         <WarningModal
@@ -273,6 +297,28 @@ const StudentInformation = () => {
           setShowBatchForm={setShowBatchForm}
           loadNewStudents={loadNewStudents}
         />
+      )}
+
+
+      {syncAccount && (
+        <DataModal
+          isOpen={syncAccount}
+          closeModal={() => setSyncAccount(false)}
+          title="Sync New Accounts"
+          description="Are you sure you want to sync new accounts?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+            onClick={() => setSyncAccount(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-violet-500 text-white rounded hover:bg-violet-600" onClick={handleSyncAccount}
+          >
+            Sync New Accounts
+          </button>
+        </DataModal>
       )}
 
     </div>

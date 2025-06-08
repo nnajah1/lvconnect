@@ -68,7 +68,7 @@ const ShowSubmission = ({ formId, userRole, closeModal }) => {
 
   const { title, description, created_at, status, data } = form;
   
-  // console.log(form.reviewed_by_name)
+  // console.log(form.reviewed_by)
   return (
     <div className="w-[50vw] p-4 space-y-4">
       {isEditing ? (
@@ -100,6 +100,7 @@ const ShowSubmission = ({ formId, userRole, closeModal }) => {
               )}
 
               {status === 'approved' && <FormPdfGenerator submissionId={formId} content={form.content} data={form.data} title={form.title} description={form.description} reviewedBy={form.reviewed_by} loading={loading}/>}
+
             </div>
           </div>
           <div id="form-content" className="mt-8 max-w-4xl mx-auto">
@@ -115,11 +116,10 @@ const ShowSubmission = ({ formId, userRole, closeModal }) => {
               {data.map((field, index) => {
                 const fieldType = field.form_field_data?.type;
                 const rawAnswer = field.answer_data || '';
-                const baseURL = import.meta.env.VITE_BASE_URL;
                 let answer = '[Not answered]';
 
                 if (fieldType === '2x2_image' && rawAnswer) {
-                  const imageURL = rawAnswer.startsWith('http') ? rawAnswer : `${baseURL}${rawAnswer}`;
+                  const imageURL = data[0]?.image_urls?.[0];
                   answer = (
                     <div className="flex justify-start">
                       <img
@@ -130,10 +130,10 @@ const ShowSubmission = ({ formId, userRole, closeModal }) => {
                       />
                     </div>
                   );
+                  
                 } else if (rawAnswer) {
                   answer = rawAnswer;
                 }
-
                 return (
                   <div
                     key={index}

@@ -491,7 +491,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         const failedUploads = uploadResults.filter(result => !result.success);
         if (failedUploads.length > 0) {
           failedUploads.forEach(result => {
-            toast.error(`Image upload failed for "${result.fieldName}".`);
+            console.log(`Image upload failed for "${result.fieldName}".`);
           });
           return;
         }

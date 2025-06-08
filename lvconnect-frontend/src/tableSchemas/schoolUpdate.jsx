@@ -3,12 +3,20 @@ import { FaFacebook } from "react-icons/fa6";
 import { MdPublish } from "react-icons/md";
 
 export const schoolUpdateSchema = {
-    id: { header: "#", display: true },
+    // id: { header: "#", display: true},
     title: {
         header: "Updates", display: true,
         customCell: (value) => {
             // const plainText = value.replace(/<\/?[^>]+(>|$)/g, "");
-            return value.split(" ").slice(0, 3).join(" ");
+            if (!value) return "";
+
+            const words = value.split(" ");
+
+            if (words.length >= 3) {
+                return words.slice(0, 3).join(" ") + "...";
+            }
+
+            return value;
         }
     },
     status: { header: "Status", display: true },

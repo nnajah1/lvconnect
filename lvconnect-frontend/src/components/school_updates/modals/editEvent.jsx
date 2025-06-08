@@ -23,11 +23,11 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
 
     setColor(event.color || '');
   }, [event]);
-
+  console.log(event)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title.trim() || !description.trim() || !startDate || !endDate || !selectedColor) {
+    if (!title.trim() || !description.trim() || !startDate || !endDate || !color) {
       toast.error("All fields are required.");
       return;
     }
