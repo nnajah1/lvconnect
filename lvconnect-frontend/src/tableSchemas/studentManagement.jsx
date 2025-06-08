@@ -160,21 +160,16 @@ export const newStudentSchema = {
     header: "Name",
     display: true,
   },
-  enrollment_status: {
-    header: "Status",
-    display: true,
-    customCell: (value, original) => {
-      const status = original?.enrollment_status;
-      const map = {
-        not_enrolled: <span style={{ color: "gray" }}>Not Enrolled</span>,
-        enrolled: <span style={{ color: "green" }}>Enrolled</span>,
-      };
-      return map[status];
-    },
-     filterFn: (row, columnId, filterValue) => {
-      const status = row.original?.enrollment_status;
-      return status?.toLowerCase().includes(filterValue.toLowerCase());
-    },
-  },
-
+  // enrollment_status: {
+  //   header: "Status",
+  //   display: true,
+  //   customCell: (value, original) => {
+  //     const status = original?.enrollment_status;
+  //     const map = {
+  //       not_enrolled: <span style={{ color: "gray" }}>Not Enrolled</span>,
+  //       enrolled: <span style={{ color: "green" }}>Enrolled</span>,
+  //     };
+  //     return map[status];
+  //   }
+  // },
 };
