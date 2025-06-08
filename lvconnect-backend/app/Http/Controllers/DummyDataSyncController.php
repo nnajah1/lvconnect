@@ -213,8 +213,7 @@ class DummyDataSyncController extends Controller
                             empty($scheduleData['section']) ||
                             empty($scheduleData['day']) ||
                             empty($scheduleData['start_time']) ||
-                            empty($scheduleData['end_time']) ||
-                            empty($scheduleData['room'])
+                            empty($scheduleData['end_time'])
                         ) {
                             continue;
                         }
@@ -236,18 +235,9 @@ class DummyDataSyncController extends Controller
                                 'day' => $scheduleData['day'],
                                 'start_time' => $scheduleData['start_time'],
                                 'end_time' => $scheduleData['end_time'],
-                                'room' => $scheduleData['room'],
                             ],
-                            [  
-                                'program_id' => $program->id,
-                                'course_id' => $course->id,
-                                'term' => $scheduleData['term'],
-                                'year_level' => $scheduleData['year_level'],
-                                'section' => $scheduleData['section'],
-                                'day' => $scheduleData['day'],
-                                'start_time' => $scheduleData['start_time'],
-                                'end_time' => $scheduleData['end_time'],
-                                'room' => $scheduleData['room'],
+                            [
+                                'room' => $scheduleData['room'] ?? null,
                             ]
                         );
                     }
