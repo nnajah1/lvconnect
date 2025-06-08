@@ -46,12 +46,41 @@ class StudentInformationSeeder extends Seeder
                     'previous_school_address' => $faker->address,
                     'school_type' => $faker->randomElement(['Public', 'Private']),
                     'academic_awards' => $faker->randomElement(['With Honors', 'With High Honors', 'None']),
-                    'floor/unit/building_no' => $faker->buildingNumber,
-                    'house_no/street' => $faker->streetAddress,
-                    'barangay' => $faker->streetName,
-                    'city_municipality' => $faker->city,
-                    'province' => $faker->state,
-                    'zip_code' => $faker->numberBetween(1000, 9999),
+                    'floor/unit/building_no' => $faker->randomElement([
+                        'Unit 101', '2nd Floor', 'Room 305', 'Bldg. A', 'Penthouse',
+                        'Ground Floor', 'Unit 5B', 'Suite 202', '3rd Floor', 'Unit 12-C'
+                    ]),
+
+                    'house_no/street' => $faker->buildingNumber . ' ' . $faker->randomElement([
+                        'Rizal St.', 'Bonifacio Ave.', 'Quezon Blvd.', 'Mabini St.',
+                        'Roxas Ave.', 'Del Pilar St.', 'Aurora Blvd.', 'Katipunan Ave.',
+                        'Magsaysay Blvd.', 'San Juan St.', 'Ninoy Aquino Ave.'
+                    ]),
+
+                    'barangay' => $faker->randomElement([
+                        'Barangay Dolores', 'Barangay Sto. Rosario', 'Barangay San Agustin', 'Barangay San Pablo',
+                        'Barangay San Jose', 'Barangay Lourdes', 'Barangay San Vicente',
+                        'Barangay Kamuning', 'Barangay Commonwealth', 'Barangay Poblacion',
+                        'Barangay Malanday', 'Barangay Balibago', 'Barangay Lahug', 'Barangay Talomo'
+                    ]),
+
+                    'city_municipality' => $faker->randomElement([
+                        'San Fernando', 'Angeles City', 'Tarlac City', 'Malolos', 'Balanga', 'Cabanatuan', 'Olongapo',
+                        'Quezon City', 'Manila', 'Cebu City', 'Davao City', 'Baguio City', 'Calumpit',
+                        'Makati City', 'Pasig City', 'Iloilo City', 'Zamboanga City', 'Antipolo'
+                    ]),
+
+                    'province' => $faker->randomElement([
+                        'Pampanga', 'Tarlac', 'Bulacan', 'Bataan', 'Nueva Ecija', 'Zambales', 'Aurora',
+                        'Metro Manila', 'Cebu', 'Davao del Sur', 'Benguet', 'Laguna',
+                        'Batangas', 'Palawan', 'Misamis Oriental', 'Cavite'
+                    ]),
+
+                    'zip_code' => $faker->randomElement([
+                        '2000', '2300', '3000', '3100', '2400', '2200', '3003',
+                        '2100', '1000', '1101', '6000', '8000', '2600', '1605', '4026', '7200', '5000'
+                    ]),
+
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]

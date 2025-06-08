@@ -15,6 +15,7 @@ class UserRoleSeeder extends Seeder
         $itExpertRoles = ['registrar', 'student', 'psas', 'comms', 'scadmin', 'superadmin'];
 
         $itExperts = [
+            ['first_name' => 'Sharene', 'last_name' => 'Labung', 'email' => 'sharenelabung@laverdad.edu.ph'],
             ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'azhellecasimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Kayla', 'last_name' => 'Acosta', 'email' => 'kaylaacosta@student.laverdad.edu.ph'],
             ['first_name' => 'Jannah', 'last_name' => 'Dela Rosa', 'email' => 'jannahdelarosa@student.laverdad.edu.ph'],
@@ -162,7 +163,6 @@ class UserRoleSeeder extends Seeder
         $scadminRole = Role::firstOrCreate(['name' => 'scadmin', 'guard_name' => 'api']);
 
         $scadminUsers = [
-            ['first_name' => 'Sharene', 'last_name' => 'Labung', 'email' => 'sharenelabung@laverdad.edu.ph'],
             ['first_name' => 'Alfie Mae', 'last_name' => 'Macababbad', 'email' => 'alfiemae.macababbad@laverdad.edu.ph'],
         ];
 
