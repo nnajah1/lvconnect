@@ -246,11 +246,9 @@ class DummyDataSyncController extends Controller
 
             return response()->json(['message' => 'Applicants synced successfully.']);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'error'   => 'Sync failed',
-                'details' => $e->getMessage()
-            ], 500);
+        } catch (\Throwable $e) {
+            \Log::error('Sync error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'Failed to sync new account', 'error' => $e->getMessage()], 500);
         }
     }
 }
