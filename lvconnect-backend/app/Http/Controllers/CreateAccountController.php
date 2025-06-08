@@ -31,7 +31,7 @@ class CreateAccountController extends Controller
     {
         $authenticatedUser = JWTAuth::authenticate();
 
-        if (!$authenticatedUser || !$authenticatedUser->hasRole('superadmin')) {
+        if (!$authenticatedUser || !$authenticatedUser->hasActiveRole('superadmin')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
@@ -363,7 +363,7 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (!$authUser || !$authUser->hasRole('superadmin')) {
+        if (!$authUser || !$authUser->hasActiveRole('superadmin')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 

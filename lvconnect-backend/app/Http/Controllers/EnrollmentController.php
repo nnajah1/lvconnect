@@ -731,7 +731,7 @@ class EnrollmentController extends Controller
             ->get();
 
         $csvData = '';
-        $headers = ['Student ID', 'First Name', 'Last Name', 'Program', 'Year Level', 'Status', 'Enrolled At']; 
+        $headers = ['Student ID', 'First Name', 'Last Name', 'Program', 'Year Level', 'Enrolled At']; 
         $csvData .= implode(',', $headers) . "\n";
 
         foreach ($data as $record) {
@@ -740,9 +740,8 @@ class EnrollmentController extends Controller
             $year = $record->studentInfo?->year_level ?? 'N/A';
             $program = $record->studentInfo?->program ?? 'N/A';
             $studentId = $record->studentInfo?->student_id_number ?? 'N/A';
-            $csvData .= "{$studentId},{$firstName},{$lastName},{$program},{$year},{$record->enrollment_status},{$record->submission_date}\n";
+            $csvData .= "{$studentId},{$firstName},{$lastName},{$program},{$year},{$record->submission_date}\n";
         }
-
 
         return Response::make($csvData, 200, [
             'Content-Type' => 'text/csv',

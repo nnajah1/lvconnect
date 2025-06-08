@@ -346,7 +346,6 @@ class StudentManagementController extends Controller
                     return [
                         'id' => $user->id,
                         'full_name' => $user->full_name,
-                        'enrollment_status' => 'not_enrolled',
                     ];
                 });
         }
