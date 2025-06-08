@@ -166,30 +166,48 @@ class DummyDataSyncController extends Controller
                             continue;
                         }
 
-                        $course = Course::firstOrCreate(
-                            ['course' => $gradeData['course']],
-                            [
-                                'unit' => $gradeData['unit'] ?? 0,
-                                'course_code' => $gradeData['course_code'] ?? null,
-                            ]
-                        );
+                        try {
+                            \Log::debug('Sync grade data', [
+                                'course' => $gradeData['course'],
+                                'unit' => $gradeData['unit'] ?? 'missing',
+                                'course_code' => $gradeData['course_code'] ?? 'missing',
+                                'grade' => $gradeData['grade'],
+                                'term' => $gradeData['term'],
+                                'academic_year' => $gradeData['academic_year'],
+                            ]);
 
-                        if (!$course || !isset($course->id)) {
+                            $course = Course::firstOrCreate(
+                                ['course' => $gradeData['course']],
+                                [
+                                    'unit' => isset($gradeData['unit']) && is_numeric($gradeData['unit']) ? $gradeData['unit'] : 0,
+                                    'course_code' => $gradeData['course_code'] ?? null,
+                                ]
+                            );
+
+                            if (!$course || !isset($course->id)) {
+                                continue;
+                            }
+
+                            Grade::updateOrCreate(
+                                [
+                                    'student_information_id' => $student->id,
+                                    'course_id' => $course->id,
+                                    'term' => (string) $gradeData['term'],
+                                    'academic_year' => (string) $gradeData['academic_year'],
+                                ],
+                                [
+                                    'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
+                                    'remarks' => $gradeData['remarks'] ?? null,
+                                ]
+                            );
+                        } catch (\Throwable $e) {
+                            \Log::error('Error syncing grade:', [
+                                'message' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString(),
+                                'gradeData' => $gradeData,
+                            ]);
                             continue;
                         }
-
-                        Grade::updateOrCreate(
-                            [
-                                'student_information_id' => $student->id,
-                                'course_id' => $course->id,
-                                'term' => (string) $gradeData['term'],
-                                'academic_year' => (string) $gradeData['academic_year'],
-                            ],
-                            [
-                                'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
-                                'remarks' => $gradeData['remarks'] ?? null,
-                            ]
-                        );
                     }
                 }
 
@@ -197,18 +215,26 @@ class DummyDataSyncController extends Controller
                 if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
                     $template = $applicant['grade_template'];
 
-                    GradeTemplate::updateOrCreate(
-                        [
-                            'student_information_id' => $student->id,
-                            'term' => $template['term'] ?? null,
-                            'school_year' => $template['school_year'] ?? null,
-                        ],
-                        [
-                            'target_GWA' => isset($template['target_GWA']) ? (float) $template['target_GWA'] : null,
-                            'actual_GWA' => isset($template['actual_GWA']) ? (float) $template['actual_GWA'] : null,
-                            'status' => $template['status'] ?? null,
-                        ]
-                    );
+                    try {
+                        GradeTemplate::updateOrCreate(
+                            [
+                                'student_information_id' => $student->id,
+                                'term' => $template['term'] ?? null,
+                                'school_year' => $template['school_year'] ?? null,
+                            ],
+                            [
+                                'target_GWA' => isset($template['target_GWA']) && is_numeric($template['target_GWA']) ? (float) $template['target_GWA'] : null,
+                                'actual_GWA' => isset($template['actual_GWA']) && is_numeric($template['actual_GWA']) ? (float) $template['actual_GWA'] : null,
+                                'status' => $template['status'] ?? null,
+                            ]
+                        );
+                    } catch (\Throwable $e) {
+                        \Log::error('Error syncing grade template:', [
+                            'message' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                            'template' => $template,
+                        ]);
+                    }
                 }
 
                 // Sync Schedules
