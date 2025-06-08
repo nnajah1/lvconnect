@@ -237,7 +237,8 @@ class DummyDataSyncController extends Controller
                                 'start_time' => $scheduleData['start_time'],
                                 'end_time' => $scheduleData['end_time'],
                                 'room' => $scheduleData['room'],
-                            ]
+                            ],
+                            []
                         );
                     }
                 }
@@ -248,7 +249,7 @@ class DummyDataSyncController extends Controller
 
         } catch (\Throwable $e) {
             \Log::error('Sync error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['message' => 'Failed to sync new account', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Sync failed.', 'error' => $e->getMessage()], 500);
         }
     }
 }
