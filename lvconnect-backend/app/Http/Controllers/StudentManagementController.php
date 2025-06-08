@@ -328,7 +328,6 @@ class StudentManagementController extends Controller
 
         if ($user->hasRole('registrar')) {
             return StudentInformation::with('enrolleeRecord')
-                ->orderBy('updated_at', 'desc')
                 ->get();
         }
 
