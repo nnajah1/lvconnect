@@ -139,23 +139,6 @@ class DummyDataSyncController extends Controller
                     );
                 }
 
-                // Sync only program_id in enrollee_records
-                if (!empty($applicant['grade_level_course_to_be_taken'])) {
-                    $program = Program::where('program_name', $applicant['grade_level_course_to_be_taken'])->first();
-
-                    if ($program) {
-                        EnrolleeRecord::updateOrCreate(
-                            [
-                                'student_information_id' => $student->id,
-                            ],
-                            [
-                                'program_id' => $program->id,
-                                'year_level' => 1,
-                            ]
-                        );
-                    }
-                }
-
                 // Sync Courses and Grades
                 if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
                     foreach ($applicant['grades'] as $gradeData) {
