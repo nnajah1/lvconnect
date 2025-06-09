@@ -14,7 +14,6 @@ class Schedule extends Model
         'course_id',
         'term',
         'year_level',
-        'student_type',
         'section',
         'day',
         'start_time',
