@@ -21,7 +21,7 @@ class NotificationPreferenceSeeder extends Seeder
                 ['user_id' => $student->id],
                 [
                     'email' => true,
-                    'in_app' => false,
+                    'in_app' => true,
                 ]
             );
         }

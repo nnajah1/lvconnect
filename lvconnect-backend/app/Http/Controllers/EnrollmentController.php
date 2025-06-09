@@ -641,10 +641,11 @@ class EnrollmentController extends Controller
             }
         }
 
+        // Deactivate other schedules in the same academic year
         EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
             ->update(['is_active' => false]);
 
-
+        // Open or update this schedule
         $schedule = EnrollmentSchedule::updateOrCreate(
             [
                 'academic_year_id' => $data['academic_year_id'],
@@ -657,11 +658,38 @@ class EnrollmentController extends Controller
             ]
         );
 
-        Notification::send(User::role('student')->get(), new EnrollmentNotification(
-            AcademicYear::find($data['academic_year_id']),
-            $data['semester'],
-            true
-        ));
+        // Collect IDs of all students
+        $allStudentIds = StudentInformation::pluck('id');
+
+        // Students enrolled in this schedule
+        $enrolledInThis = DB::table('enrollee_records')
+            ->where('academic_year_id', $data['academic_year_id'])
+            ->where('semester', $data['semester'])
+            ->pluck('student_information_id');
+
+        // Students enrolled in any other schedule
+        $enrolledInOther = DB::table('enrollee_records')
+            ->where('academic_year_id', '!=', $data['academic_year_id'])
+            ->pluck('student_information_id');
+
+        // Students not enrolled in this or any other schedule
+        $studentsToNotify = StudentInformation::whereIn('id', $allStudentIds)
+            ->whereNotIn('id', $enrolledInThis)
+            ->get()
+            ->filter(function ($student) use ($enrolledInOther) {
+                return !$enrolledInOther->contains($student->id);
+            });
+
+        // Notify users linked to these students
+        $userIds = $studentsToNotify->pluck('user_id')->filter()->unique();
+
+        $users = User::whereIn('id', $userIds)
+            ->with('notificationPreference')
+            ->get();
+
+        foreach ($users as $user) {
+            $user->notify(new EnrollmentNotification($year, $data['semester'], true));
+        }
 
         return response()->json(['data' => $schedule, 'message' => 'Schedule opened.']);
     }
@@ -686,11 +714,40 @@ class EnrollmentController extends Controller
             'end_date' => now(),
         ]);
 
-        Notification::send(User::role('student')->get(), new EnrollmentNotification(
-            AcademicYear::find($data['academic_year_id']),
-            $data['semester'],
-            false
-        ));
+        $year = AcademicYear::find($data['academic_year_id']);
+
+        // Get all student IDs
+        $allStudentIds = StudentInformation::pluck('id');
+
+        // Students enrolled in this schedule
+        $enrolledInThis = DB::table('enrollee_records')
+            ->where('academic_year_id', $data['academic_year_id'])
+            ->where('semester', $data['semester'])
+            ->pluck('student_information_id');
+
+        // Students enrolled in other schedules
+        $enrolledInOther = DB::table('enrollee_records')
+            ->where('academic_year_id', '!=', $data['academic_year_id'])
+            ->pluck('student_information_id');
+
+        // Students not enrolled in this or any other schedule
+        $studentsToNotify = StudentInformation::whereIn('id', $allStudentIds)
+            ->whereNotIn('id', $enrolledInThis)
+            ->get()
+            ->filter(function ($student) use ($enrolledInOther) {
+                return !$enrolledInOther->contains($student->id);
+            });
+
+        // Notify users who are linked to the filtered students
+        $userIds = $studentsToNotify->pluck('user_id')->filter()->unique();
+
+        $users = User::whereIn('id', $userIds)
+            ->with('notificationPreference')
+            ->get();
+
+        foreach ($users as $user) {
+            $user->notify(new EnrollmentNotification($year, $data['semester'], false));
+        }
 
         return response()->json(['data' => $schedule, 'message' => 'Schedule closed.']);
     }
