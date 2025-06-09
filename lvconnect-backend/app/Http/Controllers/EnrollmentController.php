@@ -160,27 +160,24 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'No schedules found for the given academic year and semester.'], 404);
             }
 
-            // Students enrolled or pending in this schedule
-            $studentsEnrolledInThisSchedule = EnrolleeRecord::whereIn('enrollment_schedule_id', $filteredSchedules)
-                ->whereIn('enrollment_status', ['enrolled', 'pending'])
-                ->whereIn('student_information_id', $studentInformationIds)
+            // Students who have any enrollee record (any schedule, any status)
+            $studentsWithAnyEnrolleeRecord = EnrolleeRecord::whereIn('student_information_id', $studentInformationIds)
                 ->pluck('student_information_id')
                 ->unique();
 
-            // Students enrolled or pending in other schedules
-            $studentsEnrolledInOtherSchedules = EnrolleeRecord::whereNotIn('enrollment_schedule_id', $filteredSchedules)
-                ->whereIn('enrollment_status', ['enrolled', 'pending'])
+            // Students who have an enrollee record for this academic year and semester (status not archived)
+            $studentsWithEnrolleeRecord = EnrolleeRecord::whereIn('enrollment_schedule_id', $filteredSchedules)
                 ->whereIn('student_information_id', $studentInformationIds)
+                ->where('enrollment_status', '!=', 'archived')
                 ->pluck('student_information_id')
                 ->unique();
 
-            // Students with no enrollment in this or other schedules
+            // Students with no enrollee record for this academic year and semester
+            // AND do not have any enrollee record at all
             $studentsNotEnrolled = StudentInformation::whereIn('id', $studentInformationIds)
-                ->whereNotIn('id', $studentsEnrolledInThisSchedule)
+                ->whereNotIn('id', $studentsWithEnrolleeRecord)
+                ->whereNotIn('id', $studentsWithAnyEnrolleeRecord)
                 ->get()
-                ->filter(function ($student) use ($studentsEnrolledInOtherSchedules) {
-                    return !$studentsEnrolledInOtherSchedules->contains($student->id);
-                })
                 ->map(function ($student) {
                     return [
                         'id' => $student->id,
@@ -452,16 +449,25 @@ class EnrollmentController extends Controller
                 return response()->json(['message' => 'Student information not found for the selected user.'], 404);
             }
 
+            // Get the latest schedule (even if closed)
+            $latestSchedule = EnrollmentSchedule::orderByDesc('created_at')->first();
+
+            if (!$latestSchedule) {
+                return response()->json(['message' => 'No enrollment schedule found.'], 422);
+            }
+
+            // Only allow enrollment if not already enrolled in this program, year level, and latest schedule
             $alreadyEnrolled = EnrolleeRecord::where('student_information_id', $studentInfo->id)
                 ->where('program_id', $validated['program_id'])
                 ->where('year_level', $validated['year_level'])
+                ->where('enrollment_schedule_id', $latestSchedule->id)
                 ->exists();
 
             if ($alreadyEnrolled) {
-                return response()->json(['message' => 'Student is already enrolled for the selected program and year level.'], 409);
+                return response()->json(['message' => 'Student is already enrolled for the selected program, year level, and schedule.'], 409);
             }
 
-            DB::transaction(function () use ($validated, $studentInfo) {
+            DB::transaction(function () use ($validated, $studentInfo, $latestSchedule) {
                 // Update StudentInformation
                 $studentInfo->update([
                     'floor/unit/building_no' => $validated['address']['building_no'] ?? $studentInfo['floor/unit/building_no'],
@@ -509,33 +515,27 @@ class EnrollmentController extends Controller
                     );
                 }
 
-
-                $currentSchedule = EnrollmentSchedule::where('is_active', true)->first();
-
-                if (!$currentSchedule) {
-                    return response()->json(['message' => 'No active enrollment schedule found'], 422);
-                }
-
-                // Create enrollee record
-                EnrolleeRecord::create([
-                    'enrollment_schedule_id' => $currentSchedule->id,
-                    'student_information_id' => $studentInfo->id,
-                    'program_id' => $validated['program_id'],
-                    'year_level' => $validated['year_level'],
-                    'privacy_policy' => $validated['privacy_policy'],
-                    'enrollment_status' => 'enrolled',
-                    'admin_remarks' => $validated['admin_remarks'] ?? '',
-                    'submission_date' => now(),
-                ]);
+                // Create enrollee record for the latest schedule
+                EnrolleeRecord::updateOrCreate(
+                    [
+                        'enrollment_schedule_id' => $latestSchedule->id,
+                        'student_information_id' => $studentInfo->id,
+                        'program_id' => $validated['program_id'],
+                        'year_level' => $validated['year_level'],
+                    ],
+                    [
+                        'privacy_policy' => $validated['privacy_policy'],
+                        'enrollment_status' => 'enrolled',
+                        'admin_remarks' => $validated['admin_remarks'] ?? '',
+                        'submission_date' => now(),
+                    ]
+                );
 
                 // Academic year from latest enrollment schedule
-                $academicYear = EnrollmentSchedule::with('academicYear')
-                    ->latest()
-                    ->first()
-                        ?->academicYear;
+                $academicYear = $latestSchedule->academicYear;
 
                 if ($academicYear) {
-                    $studentUser = User::find($validated['user_id']);
+                   $studentUser = User::findOrFail($validated['user_id']);
                     if ($studentUser) {
                         $studentUser->notify(new EnrollmentStatusNotification('enrolled', $academicYear));
                     }
@@ -628,24 +628,31 @@ class EnrollmentController extends Controller
 
         $year = AcademicYear::find($data['academic_year_id']);
         if (!$year || !$year->is_active) {
-            return response()->json(['message' => 'You can only open a schedule for an active academic year.'], 422);
+            return response()->json([
+                'message' => 'You can only open a schedule for an active academic year.'
+            ], 422);
         }
 
+        // Check 1st semester requirement for opening 2nd semester
         if ($data['semester'] === 'second_semester') {
-            $firstExists = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
+            $firstExistsAndActive = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
                 ->where('semester', 'first_semester')
+                ->where('is_active', true)
                 ->exists();
 
-            if (!$firstExists) {
-                return response()->json(['message' => '1st semester must be created before 2nd.'], 422);
+            if (!$firstExistsAndActive) {
+                return response()->json([
+                    'message' => '1st semester must be created before 2nd Semester.'
+                ], 422);
             }
         }
 
-        // Deactivate other schedules in the same academic year
+        // Now safe to deactivate existing schedules for this academic year
         EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
+            ->where('is_active', true)
             ->update(['is_active' => false]);
 
-        // Open or update this schedule
+        // Create or update the current semester's schedule
         $schedule = EnrollmentSchedule::updateOrCreate(
             [
                 'academic_year_id' => $data['academic_year_id'],
@@ -658,40 +665,26 @@ class EnrollmentController extends Controller
             ]
         );
 
-        // Collect IDs of all students
-        $allStudentIds = StudentInformation::pluck('id');
-
-        // Students enrolled in this schedule
-        $enrolledInThis = DB::table('enrollee_records')
-            ->where('academic_year_id', $data['academic_year_id'])
-            ->where('semester', $data['semester'])
-            ->pluck('student_information_id');
-
-        // Students enrolled in any other schedule
-        $enrolledInOther = DB::table('enrollee_records')
-            ->where('academic_year_id', '!=', $data['academic_year_id'])
-            ->pluck('student_information_id');
-
-        // Students not enrolled in this or any other schedule
-        $studentsToNotify = StudentInformation::whereIn('id', $allStudentIds)
-            ->whereNotIn('id', $enrolledInThis)
-            ->get()
-            ->filter(function ($student) use ($enrolledInOther) {
-                return !$enrolledInOther->contains($student->id);
+        // Notify students who are not yet enrolled
+        $studentsToNotify = StudentInformation::whereDoesntHave('enrolleeRecord', function ($query) use ($data) {
+            $query->whereHas('enrollmentSchedule', function ($q) use ($data) {
+                $q->where('academic_year_id', $data['academic_year_id'])
+                    ->where('semester', $data['semester']);
             });
+        })->get();
 
-        // Notify users linked to these students
         $userIds = $studentsToNotify->pluck('user_id')->filter()->unique();
 
-        $users = User::whereIn('id', $userIds)
-            ->with('notificationPreference')
-            ->get();
+        User::whereIn('id', $userIds)->chunk(50, function ($users) use ($year, $data) {
+            foreach ($users as $user) {
+                $user->notify(new EnrollmentNotification($year, $data['semester'], true));
+            }
+        });
 
-        foreach ($users as $user) {
-            $user->notify(new EnrollmentNotification($year, $data['semester'], true));
-        }
-
-        return response()->json(['data' => $schedule, 'message' => 'Schedule opened.']);
+        return response()->json([
+            'message' => "Schedule for academic year {$year->name} and semester {$data['semester']} opened successfully.",
+            'data' => $schedule,
+        ]);
     }
 
     public function closeSchedule(Request $request)
@@ -700,6 +693,11 @@ class EnrollmentController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'semester' => 'required|in:first_semester,second_semester',
         ]);
+
+        $year = AcademicYear::find($data['academic_year_id']);
+        if (!$year) {
+            return response()->json(['message' => 'Academic year not found.'], 404);
+        }
 
         $schedule = EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])
             ->where('semester', $data['semester'])
@@ -714,42 +712,26 @@ class EnrollmentController extends Controller
             'end_date' => now(),
         ]);
 
-        $year = AcademicYear::find($data['academic_year_id']);
-
-        // Get all student IDs
-        $allStudentIds = StudentInformation::pluck('id');
-
-        // Students enrolled in this schedule
-        $enrolledInThis = DB::table('enrollee_records')
-            ->where('academic_year_id', $data['academic_year_id'])
-            ->where('semester', $data['semester'])
-            ->pluck('student_information_id');
-
-        // Students enrolled in other schedules
-        $enrolledInOther = DB::table('enrollee_records')
-            ->where('academic_year_id', '!=', $data['academic_year_id'])
-            ->pluck('student_information_id');
-
-        // Students not enrolled in this or any other schedule
-        $studentsToNotify = StudentInformation::whereIn('id', $allStudentIds)
-            ->whereNotIn('id', $enrolledInThis)
-            ->get()
-            ->filter(function ($student) use ($enrolledInOther) {
-                return !$enrolledInOther->contains($student->id);
+        // Notify students who are not yet enrolled in this schedule
+        $studentsToNotify = StudentInformation::whereDoesntHave('enrolleeRecord', function ($query) use ($data) {
+            $query->whereHas('enrollmentSchedule', function ($q) use ($data) {
+                $q->where('academic_year_id', $data['academic_year_id'])
+                    ->where('semester', $data['semester']);
             });
+        })->get();
 
-        // Notify users who are linked to the filtered students
         $userIds = $studentsToNotify->pluck('user_id')->filter()->unique();
 
-        $users = User::whereIn('id', $userIds)
-            ->with('notificationPreference')
-            ->get();
+        User::whereIn('id', $userIds)->chunk(50, function ($users) use ($year, $data) {
+            foreach ($users as $user) {
+                $user->notify(new EnrollmentNotification($year, $data['semester'], false));
+            }
+        });
 
-        foreach ($users as $user) {
-            $user->notify(new EnrollmentNotification($year, $data['semester'], false));
-        }
-
-        return response()->json(['data' => $schedule, 'message' => 'Schedule closed.']);
+        return response()->json([
+            'data' => $schedule,
+            'message' => 'Schedule closed.',
+        ]);
     }
 
     public function getActiveEnrollmentSchedule()
@@ -792,7 +774,7 @@ class EnrollmentController extends Controller
             ->get();
 
         $csvData = '';
-        $headers = ['Student ID', 'First Name', 'Last Name', 'Program', 'Year Level', 'Enrolled At']; 
+        $headers = ['Student ID', 'First Name', 'Last Name', 'Program', 'Year Level', 'Enrolled At'];
         $csvData .= implode(',', $headers) . "\n";
 
         foreach ($data as $record) {
