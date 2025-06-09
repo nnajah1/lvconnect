@@ -183,10 +183,21 @@ class DummyDataSyncController extends Controller
                 ->get(env('DUMMY_API_URL') . '/api/gradesSchedule');
 
             if ($response->failed()) {
+                \Log::error('Failed to fetch data from Dummy System', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
                 return response()->json(['error' => 'Failed to fetch data from Dummy System'], 500);
             }
 
             $data = $response->json();
+
+            // Debug: Log the raw response data
+            \Log::info('Dummy gradesSchedule API response', ['data' => $data]);
+
+            if (empty($data) || !is_array($data)) {
+                return response()->json(['error' => 'No data received from Dummy System', 'raw' => $data], 500);
+            }
 
             foreach ($data as $applicant) {
                 // Skip if first_name or last_name is missing
@@ -222,7 +233,7 @@ class DummyDataSyncController extends Controller
                         }
 
                         // Find the existing course by name
-                        $course = Course::where('course', $gradeData['course'])->first();
+                        $course = Course::where('course', $gradeData['course'] ?? null)->first();
 
                         if (!$course) {
                             continue;
@@ -232,18 +243,18 @@ class DummyDataSyncController extends Controller
                             [
                                 'student_information_id' => $student->id,
                                 'course_id' => $course->id,
-                                'term' => (string) $gradeData['term'],
-                                'academic_year' => (string) $gradeData['academic_year'],
+                                'term' => isset($gradeData['term']) ? (string) $gradeData['term'] : null,
+                                'academic_year' => isset($gradeData['academic_year']) ? (string) $gradeData['academic_year'] : null,
                             ],
                             [
-                                'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
+                                'grade' => isset($gradeData['grade']) && is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
                                 'remarks' => $gradeData['remarks'] ?? null,
                             ]
                         );
                     }
                 }
 
-                 // Sync GradeTemplate
+                // Sync GradeTemplate
                 if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
                     $template = $applicant['grade_template'];
 
@@ -285,8 +296,8 @@ class DummyDataSyncController extends Controller
                             continue;
                         }
 
-                        $program = Program::where('program_name', $scheduleData['program'])->first();
-                        $course = Course::where('course', $scheduleData['course'])->first();
+                        $program = Program::where('program_name', $scheduleData['program'] ?? null)->first();
+                        $course = Course::where('course', $scheduleData['course'] ?? null)->first();
 
                         if (!$program || !$course) {
                             continue;
@@ -296,12 +307,12 @@ class DummyDataSyncController extends Controller
                             [
                                 'program_id' => $program->id,
                                 'course_id' => $course->id,
-                                'term' => $scheduleData['term'],
-                                'year_level' => $scheduleData['year_level'],
-                                'section' => $scheduleData['section'],
-                                'day' => $scheduleData['day'],
-                                'start_time' => $scheduleData['start_time'],
-                                'end_time' => $scheduleData['end_time'],
+                                'term' => $scheduleData['term'] ?? null,
+                                'year_level' => $scheduleData['year_level'] ?? null,
+                                'section' => $scheduleData['section'] ?? null,
+                                'day' => $scheduleData['day'] ?? null,
+                                'start_time' => $scheduleData['start_time'] ?? null,
+                                'end_time' => $scheduleData['end_time'] ?? null,
                             ],
                             [
                                 'room' => $scheduleData['room'] ?? null,
