@@ -106,14 +106,20 @@ const StudentInformation = () => {
   const filteredData = useMemo(() => {
     switch (activeTab) {
       case "active":
-        return enrollment.filter(s => s.enrollee_record[0].enrollment_status !== "archived");
+        return enrollment.filter(
+          s => s.enrollee_record?.[0]?.enrollment_status !== "archived"
+        );
+
       case "archive":
-        return enrollment.filter(s => s.enrollee_record[0].enrollment_status === "archived");
+        return enrollment.filter(
+          s => s.enrollee_record?.[0]?.enrollment_status === "archived"
+        );
       default:
         return [];
     }
   }, [activeTab, enrollment]);
 
+  console.log(enrollment)
   const templateColumns = getColumns({
     userRole,
     schema: registrarSchema,
@@ -123,7 +129,7 @@ const StudentInformation = () => {
     viewModal,
     openModal,
     openArchiveModal,
-    showSelectionColumn: activeTab === "active",
+    // showSelectionColumn: activeTab === "active",
   });
 
   const newStudentColumns = getColumns({
@@ -172,7 +178,7 @@ const StudentInformation = () => {
       toast.error("Failed to sync new accounts");
     }
   };
-  
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">

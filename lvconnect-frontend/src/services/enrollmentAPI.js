@@ -83,7 +83,7 @@ export const bulkRemindRejectedEnrollment = (ids, enrollment_schedule_id) =>
   api.post('/enrollment/bulk-remind-rejected', { ids, enrollment_schedule_id });
 
 export const bulkArchiveEnrollment = (ids) => {
-  return axios.post('/enrollees/bulk-archive', { ids });
+  return api.post('/enrollees/bulk-archive', { ids });
 };
 
 export const getEnrollmentSchedule = ({ academic_year_id, semester }) =>
