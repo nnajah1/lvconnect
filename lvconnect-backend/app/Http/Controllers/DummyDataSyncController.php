@@ -167,7 +167,33 @@ class DummyDataSyncController extends Controller
                     }
                 }
 
-                // Sync Grades Only
+                //Sync Courses
+                if (!empty($applicant['courses']) && is_array($applicant['courses'])) {
+                    foreach ($applicant['courses'] as $courseData) {
+                        if (empty($courseData['course'])) {
+                            continue;
+                        }
+
+                        try {
+                            Course::firstOrCreate(
+                                ['course' => $courseData['course']],
+                                [
+                                    'unit' => isset($courseData['unit']) && is_numeric($courseData['unit']) ? $courseData['unit'] : 0,
+                                    'course_code' => $courseData['course_code'] ?? null,
+                                ]
+                            );
+                        } catch (\Throwable $e) {
+                            \Log::error('Error syncing course:', [
+                                'message' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString(),
+                                'courseData' => $courseData,
+                            ]);
+                            continue;
+                        }
+                    }
+                }
+                
+                // Sync Grades
                 if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
                     foreach ($applicant['grades'] as $gradeData) {
                         if (
@@ -180,11 +206,19 @@ class DummyDataSyncController extends Controller
                         }
 
                         try {
-                            // Find course by name
+                            \Log::debug('Sync grade data', [
+                                'course' => $gradeData['course'],
+                                'grade' => $gradeData['grade'],
+                                'term' => $gradeData['term'],
+                                'academic_year' => $gradeData['academic_year'],
+                            ]);
+
+                            // Find the existing course by name
                             $course = Course::where('course', $gradeData['course'])->first();
 
+                            // Skip if course does not exist
                             if (!$course) {
-                                \Log::warning('Course not found, skipping grade sync', ['course' => $gradeData['course']]);
+                                \Log::warning('Course not found for grade sync', ['course' => $gradeData['course']]);
                                 continue;
                             }
 
@@ -200,13 +234,6 @@ class DummyDataSyncController extends Controller
                                     'remarks' => $gradeData['remarks'] ?? null,
                                 ]
                             );
-
-                            \Log::info('Grade synced', [
-                                'student_id' => $student->id,
-                                'course_id' => $course->id,
-                                'term' => $gradeData['term'],
-                                'academic_year' => $gradeData['academic_year'],
-                            ]);
                         } catch (\Throwable $e) {
                             \Log::error('Error syncing grade:', [
                                 'message' => $e->getMessage(),
