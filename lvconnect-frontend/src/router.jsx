@@ -42,7 +42,7 @@ import ErrorPage from "./layouts/error";
 
 const router = createBrowserRouter([
     { path: '/', element: <Navigate to="/login" />, 
-        errorElement: <ErrorPage />,
+        // errorElement: <ErrorPage />,
     },
 
     { path: '/google-auth-success', element: <OAuthCallback /> },
