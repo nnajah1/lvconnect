@@ -32,7 +32,7 @@ class EnrolleeRecordSeeder extends Seeder
                 'enrollment_schedule_id' => $schedules->random()->id,
                 'year_level' => $faker->numberBetween(1, 4),
                 'privacy_policy' => true,
-                'enrollment_status' => Arr::random(['pending', 'enrolled', 'rejected', 'archived']),
+                'enrollment_status' => 'enrolled',
                 'admin_remarks' => Arr::random(['Did not Maintain Grades', 'Graduated', 'Drop', 'Transferred']) ?? 'No remarks',
                 'submission_date' => $faker->dateTimeBetween('-1 year', 'now'),
                 'created_at' => now(),
