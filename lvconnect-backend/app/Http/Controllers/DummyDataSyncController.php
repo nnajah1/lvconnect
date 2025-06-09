@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use App\Models\StudentFamilyInformation;
 use App\Models\Program;
 use App\Models\EnrolleeRecord;
+use App\Models\EnrollmentSchedule;
 use App\Models\Course;
 use App\Models\Grade;
 use App\Models\GradeTemplate;
@@ -137,6 +138,33 @@ class DummyDataSyncController extends Controller
                             'guardian_relationship' => $applicant['guardian']['legal_guardian_relationship'],
                         ]
                     );
+                }
+
+                if (!empty($applicant['grade_level_course_to_be_taken'])) {
+                    $program = Program::where('program_name', $applicant['grade_level_course_to_be_taken'])->first();
+
+                    if ($program) {
+                        $activeSchedule = EnrollmentSchedule::where('is_active', true)->first();
+
+                        if ($activeSchedule) {
+                            EnrolleeRecord::updateOrCreate(
+                                [
+                                    'student_information_id' => $student->id,
+                                ],
+                                [
+                                    'program_id' => $program->id,
+                                    'enrollment_schedule_id' => $activeSchedule->id,
+                                    'year_level' => 1,
+                                    'privacy_policy' => true,
+                                    'enrollment_status' => 'enrolled',
+                                    'admin_remarks' => 'Synced from Dummy System',
+                                    'submission_date' => now(),
+                                ]
+                            );
+                        } else {
+                            \Log::warning('No active enrollment schedule found for syncing.');
+                        }
+                    }
                 }
 
                 // Sync Courses and Grades
