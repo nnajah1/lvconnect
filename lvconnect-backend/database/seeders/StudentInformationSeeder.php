@@ -52,33 +52,44 @@ class StudentInformationSeeder extends Seeder
                     ]),
 
                     'house_no/street' => $faker->buildingNumber . ' ' . $faker->randomElement([
-                        'Rizal St.', 'Bonifacio Ave.', 'Quezon Blvd.', 'Mabini St.',
-                        'Roxas Ave.', 'Del Pilar St.', 'Aurora Blvd.', 'Katipunan Ave.',
-                        'Magsaysay Blvd.', 'San Juan St.', 'Ninoy Aquino Ave.'
+                        'Rizal St.', 'Mabini St.', 'Bonifacio Ave.', 'Del Pilar St.', 'Aurora Blvd.',
+                        'Magsaysay Blvd.', 'Quirino Highway', 'Katipunan Ave.', 'San Juan St.',
+                        'Quezon Blvd.', 'Roxas Ave.', 'Ninoy Aquino Ave.', 'España Blvd.', 'Taft Ave.',
+                        'Aguinaldo Highway', 'J.P. Rizal St.', 'Don Juico Ave.', 'MacArthur Highway',
+                        'Shaw Blvd.', 'Ortigas Ave.', 'Daang Hari Road', 'V. Luna Road', 'Recto Ave.',
+                        'Makati Ave.', 'Legarda St.', 'Sampaguita St.'
                     ]),
 
                     'barangay' => $faker->randomElement([
-                        'Barangay Dolores', 'Barangay Sto. Rosario', 'Barangay San Agustin', 'Barangay San Pablo',
-                        'Barangay San Jose', 'Barangay Lourdes', 'Barangay San Vicente',
-                        'Barangay Kamuning', 'Barangay Commonwealth', 'Barangay Poblacion',
-                        'Barangay Malanday', 'Barangay Balibago', 'Barangay Lahug', 'Barangay Talomo'
+                        'Barangay Dolores', 'Barangay Sto. Rosario', 'Barangay Malabanias', 'Barangay San Agustin',
+                        'Barangay San Jose', 'Barangay Poblacion', 'Barangay Balibago', 'Barangay Kalikid',
+                        'Barangay Lourdes', 'Barangay Mabini', 'Barangay San Pablo', 'Barangay San Vicente',
+                        'Barangay Kamuning', 'Barangay Commonwealth', 'Barangay Lahug', 'Barangay Talomo',
+                        'Barangay Tatalon', 'Barangay Bagong Silangan', 'Barangay Calumpang', 'Barangay Sto. Niño',
+                        'Barangay Addition Hills', 'Barangay Moonwalk', 'Barangay Banilad', 'Barangay Quirino 2-A',
+                        'Barangay Holy Spirit', 'Barangay Tumana', 'Barangay Bagumbayan'
                     ]),
 
                     'city_municipality' => $faker->randomElement([
-                        'San Fernando', 'Angeles City', 'Tarlac City', 'Malolos', 'Balanga', 'Cabanatuan', 'Olongapo',
-                        'Quezon City', 'Manila', 'Cebu City', 'Davao City', 'Baguio City', 'Calumpit',
-                        'Makati City', 'Pasig City', 'Iloilo City', 'Zamboanga City', 'Antipolo'
+                        'San Fernando', 'Angeles City', 'Tarlac City', 'Malolos', 'Balanga',
+                        'Cabanatuan', 'Olongapo', 'Quezon City', 'Manila', 'Makati City',
+                        'Pasig City', 'Iloilo City', 'Zamboanga City', 'Antipolo', 'Taguig City',
+                        'Parañaque City', 'San Jose del Monte', 'Cavite City', 'Mandaluyong',
+                        'Marikina', 'Lipa City', 'Cebu City', 'Davao City', 'Baguio City', 'Calumpit'
                     ]),
 
                     'province' => $faker->randomElement([
                         'Pampanga', 'Tarlac', 'Bulacan', 'Bataan', 'Nueva Ecija', 'Zambales', 'Aurora',
-                        'Metro Manila', 'Cebu', 'Davao del Sur', 'Benguet', 'Laguna',
-                        'Batangas', 'Palawan', 'Misamis Oriental', 'Cavite'
+                        'Metro Manila', 'Cebu', 'Davao del Sur', 'Benguet', 'Laguna', 'Batangas',
+                        'Palawan', 'Misamis Oriental', 'Cavite', 'Rizal', 'Negros Occidental',
+                        'South Cotabato', 'Ilocos Norte', 'Isabela', 'Sorsogon', 'Leyte',
+                        'Agusan del Norte', 'Capiz'
                     ]),
 
                     'zip_code' => $faker->randomElement([
-                        '2000', '2300', '3000', '3100', '2400', '2200', '3003',
-                        '2100', '1000', '1101', '6000', '8000', '2600', '1605', '4026', '7200', '5000'
+                        '2000', '2021', '2300', '3000', '3100', '2100', '2200', '1008', '1014', '1200',
+                        '1101', '6000', '8000', '2600', '1605', '4026', '7200', '5000', '1800',
+                        '1700', '4100', '4217', '4400', '9600', '6100', '3500'
                     ]),
 
                     'created_at' => now(),
