@@ -168,32 +168,43 @@ class DummyDataSyncController extends Controller
                 }
 
                 // Sync Grades
+                \Log::info('Checking applicant grades:', [
+                    'has_grades_key' => array_key_exists('grades', $applicant),
+                    'grades_type' => gettype($applicant['grades'] ?? null),
+                    'grades_count' => is_array($applicant['grades'] ?? null) ? count($applicant['grades']) : 0,
+                ]);
+
                 if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
-                    foreach ($applicant['grades'] as $gradeData) {
+                    foreach ($applicant['grades'] as $index => $gradeData) {
+                        \Log::debug("Grade entry raw data at index {$index}:", $gradeData);
+
                         if (
                             empty($gradeData['course']) ||
                             !isset($gradeData['grade']) ||
                             empty($gradeData['term']) ||
                             empty($gradeData['academic_year'])
                         ) {
+                            \Log::warning("Skipping grade at index {$index} due to missing data", $gradeData);
                             continue;
                         }
 
                         try {
-                            \Log::debug('Sync grade data', [
+                            \Log::info("Processing grade at index {$index}", [
+                                'student_id' => $student->id,
                                 'course' => $gradeData['course'],
-                                'grade' => $gradeData['grade'],
                                 'term' => $gradeData['term'],
                                 'academic_year' => $gradeData['academic_year'],
+                                'grade' => $gradeData['grade'],
                             ]);
 
                             $course = Course::where('course', $gradeData['course'])->first();
+
                             if (!$course) {
-                                \Log::warning('Course not found for grade sync', ['course' => $gradeData['course']]);
+                                \Log::warning("Course not found: {$gradeData['course']} (skipping)");
                                 continue;
                             }
 
-                            Grade::updateOrCreate(
+                            $grade = Grade::updateOrCreate(
                                 [
                                     'student_information_id' => $student->id,
                                     'course_id' => $course->id,
@@ -201,19 +212,23 @@ class DummyDataSyncController extends Controller
                                     'academic_year' => (string) $gradeData['academic_year'],
                                 ],
                                 [
-                                    'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
+                                    'grade' => is_numeric($gradeData['grade']) ? (float) $gradeData['grade'] : null,
                                     'remarks' => $gradeData['remarks'] ?? null,
                                 ]
                             );
+
+                            \Log::info("Grade synced", ['grade_id' => $grade->id]);
                         } catch (\Throwable $e) {
-                            \Log::error('Error syncing grade:', [
+                            \Log::error('Error syncing grade', [
                                 'message' => $e->getMessage(),
-                                'trace' => $e->getTraceAsString(),
                                 'gradeData' => $gradeData,
+                                'trace' => $e->getTraceAsString(),
                             ]);
                             continue;
                         }
                     }
+                } else {
+                    \Log::info('No grades to sync or grades is not an array.', ['grades' => $applicant['grades'] ?? null]);
                 }
 
                 // Sync GradeTemplate (assuming single object)
