@@ -128,6 +128,10 @@ export const createBatchAccount = (formData) => {
 };
 
 
+export const syncAccounts = () => {
+  return api.post('/sync-dummy-data');
+};
+
 export const syncGradesSchedules = () => {
   return api.post('/sync-grades-schedules');
 };
