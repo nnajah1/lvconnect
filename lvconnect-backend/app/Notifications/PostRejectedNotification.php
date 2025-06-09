@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use App\Models\SchoolUpdate;
 
-class PostApprovedNotification extends Notification implements ShouldQueue
+class PostRejectedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -54,9 +54,9 @@ class PostApprovedNotification extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Post Approved: ' . $this->post->title)
+            ->subject('Post Rejected: ' . $this->post->title)
             ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('Your post titled "' . $this->post->title . '" has been approved by the school admin.')
+            ->line('Your post titled "' . $this->post->title . '" has been rejected by the school admin.')
             ->action('View Post', env('VITE_APP_URL') . 'comms-admin/posts')
             ->line('Thank you for your contribution!');
     }

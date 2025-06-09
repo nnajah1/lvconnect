@@ -28,25 +28,27 @@ class UrgentPostNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        $preferences = $notifiable->notificationPreference;
+        // $preferences = $notifiable->notificationPreference;
 
-        // Fallback to email if no preferences are set
-        if (!$preferences) {
-            return ['mail'];
-        }
+        // // Fallback to email if no preferences are set
+        // if (!$preferences) {
+        //     return ['mail'];
+        // }
 
-        $channels = [];
+        // $channels = [];
 
-        if ($preferences->in_app) {
-            $channels[] = 'database';
-            $channels[] = 'broadcast';
-        }
+        // if ($preferences->in_app) {
+        //     $channels[] = 'database';
+        //     $channels[] = 'broadcast';
+        // }
 
-        if ($preferences->email) {
-            $channels[] = 'mail';
-        }
+        // if ($preferences->email) {
+        //     $channels[] = 'mail';
+        // }
 
-        return $channels;
+        // return $channels;
+        
+         return ['database','mail'];
     }
 
     /**
@@ -55,10 +57,10 @@ class UrgentPostNotification extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         return (new MailMessage)
-            ->subject('Urgent Update: ' . $this->schoolUpdate->title)
-            ->line('An urgent post has been published:')
+            ->subject('Post Update: ' . $this->schoolUpdate->title)
+            ->line('A post has been published:')
             ->line($this->schoolUpdate->title)
-            ->action('View Post', url('/school-updates/' . $this->schoolUpdate->id))
+            ->action('View Post', env('VITE_APP_URL') . 'comms-admin/posts')
             ->line('Thank you for staying updated!');
     }
 
@@ -68,8 +70,8 @@ class UrgentPostNotification extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'title' => 'Urgent Post Published',
-            'message' => 'An urgent post titled "' . $this->schoolUpdate->title . '" has been published.',
+            'title' => 'Post Published',
+            'message' => 'A post titled "' . $this->schoolUpdate->title . '" has been published.',
             'url' => '/school-updates/' . $this->schoolUpdate->id
         ];
     }

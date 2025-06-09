@@ -29,24 +29,26 @@ class FormNotification extends Notification implements ShouldQueue
     public function via($notifiable)
     {
         // Fallback: send email if no preferences
-        $preferences = $notifiable->notificationPreference;
+        // $preferences = $notifiable->notificationPreference;
 
-        if (!$preferences) {
-            return ['mail'];
-        }
+        // if (!$preferences) {
+        //     return ['mail'];
+        // }
 
-        $channels = [];
+        // $channels = [];
 
-        if ($preferences->in_app) {
-            $channels[] = 'database';
-            $channels[] = 'broadcast';
-        }
+        // if ($preferences->in_app) {
+        //     $channels[] = 'database';
+        //     $channels[] = 'broadcast';
+        // }
 
-        if ($preferences->email) {
-            $channels[] = 'mail';
-        }
+        // if ($preferences->email) {
+        //     $channels[] = 'mail';
+        // }
 
-        return $channels;
+        // return $channels;
+        
+         return ['database'];
     }
 
     /**

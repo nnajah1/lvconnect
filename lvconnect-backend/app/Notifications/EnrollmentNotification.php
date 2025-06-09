@@ -31,29 +31,30 @@ class EnrollmentNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        $prefs = $notifiable->notificationPreference;
+        // $prefs = $notifiable->notificationPreference;
 
-        // Default to true 
-        $emailEnabled = $prefs ? (bool) $prefs->email : true;
-        $inAppEnabled = $prefs ? (bool) $prefs->in_app : true;
+        // // Default to true 
+        // $emailEnabled = $prefs ? (bool) $prefs->email : true;
+        // $inAppEnabled = $prefs ? (bool) $prefs->in_app : true;
 
-        $channels = [];
+        // $channels = [];
 
-        if ($emailEnabled) {
-            $channels[] = 'mail';
-        }
+        // if ($emailEnabled) {
+        //     $channels[] = 'mail';
+        // }
 
-        if ($inAppEnabled) {
-            $channels[] = 'database';
-            $channels[] = 'broadcast';
-        }
+        // if ($inAppEnabled) {
+        //     $channels[] = 'database';
+        //     $channels[] = 'broadcast';
+        // }
 
-        \Log::info('EnrollmentNotification via()', [
-            'user_id' => $notifiable->id,
-            'channels' => $channels,
-        ]);
+        // \Log::info('EnrollmentNotification via()', [
+        //     'user_id' => $notifiable->id,
+        //     'channels' => $channels,
+        // ]);
 
-        return $channels;
+        // return $channels;
+         return ['database','mail'];
     }
 
     /**

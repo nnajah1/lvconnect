@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
 use App\Models\User;
 use App\Notifications\EnrollmentStatusNotification;
 use Illuminate\Http\Request;
@@ -277,7 +278,7 @@ class StudentManagementController extends Controller
         $ids = $request->input('ids');
         EnrolleeRecord::whereIn('id', $ids)->update(['enrollment_status' => 'archived']);
         return response()->json(['message' => 'Archived successfully.']);
-    
+
     }
 
     public function archive(Request $request, $studentId)
@@ -294,7 +295,7 @@ class StudentManagementController extends Controller
             return response()->json(['message' => 'Enrollee record not found for this student.'], 404);
         }
 
-         $request->validate([
+        $request->validate([
             'admin_remarks' => 'required|string|max:1000',
         ]);
 
@@ -304,7 +305,7 @@ class StudentManagementController extends Controller
         ]);
 
         //    $enrolleeRecord->notify(new EnrollmentStatusNotification('archived', ''));
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Student enrollee record archived successfully.',
@@ -317,13 +318,25 @@ class StudentManagementController extends Controller
 
         $user = JWTAuth::authenticate();
 
-       if ($user->hasRole('registrar')) {
-    return StudentInformation::with('enrolleeRecord')
-        ->whereHas('enrolleeRecord', function ($q) {
-            $q->whereNotNull('enrollment_status'); 
-        })
-        ->get();
-}
+        if ($user->hasActiveRole('registrar')) {
+            $activeYear = AcademicYear::where('is_active', true)->first();
+
+            if (!$activeYear) {
+                return response()->json(['error' => 'No active academic year found.'], 404);
+            }
+
+            return StudentInformation::with(
+                'enrolleeRecord.enrollmentSchedule.academicYear'
+            )
+                ->whereHas('enrolleeRecord', function ($q) use ($activeYear) {
+                    $q->whereHas('enrollmentSchedule', function ($q2) use ($activeYear) {
+                        $q2->where('academic_year_id', $activeYear->id);
+                    })
+                        ->whereIn('enrollment_status', ['enrolled', 'rejected', 'archived']);
+                })
+                ->get();
+
+        }
 
         return response()->json(['message' => 'Unauthorized'], 403);
 

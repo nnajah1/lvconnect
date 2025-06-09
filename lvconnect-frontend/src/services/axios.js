@@ -130,8 +130,16 @@ export const getClassSchedule = async () => {
 };
 
 export const fetchNotifications = async () => {
-  const res = await api.get('/notifications');
-  return res.data;
+  const { data } = await api.get('/notifications');
+  return data; 
+};
+
+export const markAllAsRead = async () => {
+  await api.post('/notifications/mark-as-read');
+};
+
+export const markOneAsRead = async (id) => {
+  await api.post(`/notifications/${id}/read`);
 };
 
 export default api;

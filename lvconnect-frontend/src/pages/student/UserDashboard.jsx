@@ -55,26 +55,26 @@ const UserDashboard = () => {
   const [showCalendarActivities, setShowCalendarActivities] = useState(false)
   const [selectedUpdate, setSelectedUpdate] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
-  const [semesterInfo, setSemesterInfo] = useState({})
-  const [scheduleItems, setScheduleItems] = useState([])
+  // const [semesterInfo, setSemesterInfo] = useState({})
+  // const [scheduleItems, setScheduleItems] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
 
-  const loadSchedule = async () => {
-    setIsLoading(true);
-    try {
-      const res = await getClassSchedule();
-      setSemesterInfo(res.data.semesterInfo);
-      setScheduleItems(res.data.schedules);
-    } finally {
-      setIsLoading(false);
-    }
+  // const loadSchedule = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     const res = await getClassSchedule();
+  //     setSemesterInfo(res.data.semesterInfo);
+  //     setScheduleItems(res.data.schedules);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
 
-  };
-  console.log(scheduleItems)
-  useEffect(() => {
-    loadSchedule();
-  }, []);
+  // };
+  // console.log(scheduleItems)
+  // useEffect(() => {
+  //   loadSchedule();
+  // }, []);
 
   const handleDateClick = (date) => {
     setSelectedDate(date)
@@ -259,13 +259,22 @@ const UserDashboard = () => {
                 className="prose prose-sm max-w-none text-xs sm:text-sm lg:text-base text-gray-800 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: selectedUpdate.content }}
               />
-              {selectedUpdate.image_url && (
-                <img
-                  src={selectedUpdate.image_urls}
-                  alt={selectedUpdate.title}
-                  className="mt-3 sm:mt-4 rounded-lg w-full h-auto object-cover max-h-64 sm:max-h-80"
-                />
-              )}
+              {Array.isArray(selectedUpdate?.image_urls) &&
+                selectedUpdate.image_urls.length > 0 && (
+                  <div className="mt-3 sm:mt-4 space-y-3">
+                    {selectedUpdate.image_urls
+                      .filter((url) => !!url) // remove null, undefined, or empty strings
+                      .map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`${selectedUpdate.title} ${index + 1}`}
+                          className="rounded-lg w-full h-auto object-cover max-h-64 sm:max-h-80"
+                        />
+                      ))}
+                  </div>
+                )}
+
             </div>
             <div className="h-[40vh] lg:h-full lg:w-80 xl:w-96">
               <SchoolUpdates onSelect={handleSelectUpdate} selected={selectedUpdate} />

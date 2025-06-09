@@ -1,6 +1,8 @@
 import { Archive, ArchiveRestore, Check, Eye, Pencil, Trash, Trash2, X } from "lucide-react";
+import { BiPencil, BiTrash } from "react-icons/bi";
+import { BsEye, BsEyeFill } from "react-icons/bs";
 import { FaFacebook } from "react-icons/fa6";
-import { MdPublish } from "react-icons/md";
+import { MdArchive, MdPublish, MdRestore, MdRestoreFromTrash } from "react-icons/md";
 
 export const schoolUpdateSchema = {
     // id: { header: "#", display: true},
@@ -26,48 +28,48 @@ export const schoolUpdateSchema = {
 
 export const actions = (handleViewPost, handlePublish, handleEdit, handleDelete, handleArchive, handlePostFb, handleApprove, handleReject) => ({
     view: {
-        icon: () => <Eye size={18} />,
+        icon: () => <BsEyeFill size={18} title="View"/>,
         fn: (id, item) => handleViewPost(item),
         variant: () => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
     edit: {
-        icon: () => <Pencil size={18} />,
+        icon: () => <BiPencil size={18} title="Edit"/>,
         fn: (id, item) => handleEdit(item),
         variant: () => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
     publish: {
-        icon: () => <MdPublish size={18} />,
+        icon: () => <MdPublish size={18} title="Publish" />,
         fn: (id, item) => handlePublish(item),
         variant: () => "ghost",
-        className: "text-blue-600 hover:bg-blue-200 p-1"
+        className: "text-green-600 hover:bg-green-200 p-1"
     },
     delete: {
-        icon: () => <Trash size={18} />,
+        icon: () => <Trash size={18} title="Delete"/>,
         fn: (id, item) => handleDelete(item),
         variant: () => "ghost",
-        className: "text-blue-600 hover:bg-blue-200 p-1"
+        className: "text-red-600 hover:bg-red-200 p-1"
     },
     archive: {
-        icon: () => <Archive size={18} />,
+        icon: () => <MdArchive size={18} title="Archive"/>,
         fn: (id, item) => handleArchive(item),
         variant: () => "ghost",
-        className: "text-blue-600 hover:bg-blue-200 p-1"
+        className: "text-yellow-600 hover:bg-yellow-200 p-1"
     },
     postFb: {
-        icon: () => <FaFacebook size={18} />,
+        icon: () => <FaFacebook size={18} title="Post to Facebook"/>,
         fn: (id, item) => handlePostFb(item),
         variant: () => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
     approve: {
-        icon: () => <Check size={18} />,
+        icon: () => <Check size={18} title="Approve"/>,
         fn: (id, item) => handleApprove(item),
         variant: () => "default", className: "hover:bg-green-300 bg-green-500 p-1 text-xs sm:text-sm max-w-xs"
     },
     reject: {
-        icon: () => <X size={18} />,
+        icon: () => <X size={18} title="Reject"/>,
         fn: (id, item) => handleReject(item),
         variant: () => "default",
         className: "hover:bg-red-300 bg-red-500 p-1 text-xs sm:text-sm max-w-xs"
@@ -126,22 +128,22 @@ export const archiveSchema = {
 
 export const archiveActions = (handleView, handleDelete, handleArchive) => ({
     view: {
-        icon: () => <Eye size={18} />,
+        icon: () => <BsEyeFill size={18} title="View"/>,
         fn: (id, item) => handleView(item),
         variant: () => "ghost",
         className: "text-blue-600 hover:bg-blue-200 p-1"
     },
     delete: {
-        icon: () => <Trash2 size={18} />,
+        icon: () => <BiTrash size={18} title="Delete"/>,
         fn: (id, item) => handleDelete(item),
         variant: () => "ghost",
         className: "text-red-600 hover:bg-red-200 p-1"
     },
     restore: {
-        icon: () => <ArchiveRestore size={18} />,
+        icon: () => <MdRestoreFromTrash size={20} title="Restore"/>,
         fn: (id, item) => handleArchive(item),
         variant: () => "ghost",
-        className: "text-blue-600 hover:bg-blue-200 p-1"
+        className: "text-green-600 hover:bg-green-200 p-1"
     },
 
 });

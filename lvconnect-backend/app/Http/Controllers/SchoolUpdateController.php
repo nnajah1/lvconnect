@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\SchoolUpdate;
 use App\Models\StudentInformation;
+use App\Models\User;
 use App\Notifications\UrgentPostNotification;
 use App\Notifications\PostApprovedNotification;
+use App\Notifications\PostRejectedNotification;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -139,12 +141,12 @@ class SchoolUpdateController extends Controller
             $schoolUpdate = SchoolUpdate::create($schoolUpdateData);
 
             // Notify students if post is urgent and published
-            // if ($schoolUpdate->is_urgent && $schoolUpdate->status === SchoolUpdate::STATUS_PUBLISHED && $schoolUpdate->is_notified) {
-            //     $students = User::role('student')->get();
-            //     foreach ($students as $student) {
-            //         $student->notify(new PostNotification($schoolUpdate));
-            //     }
-            // }
+            if ($schoolUpdate->is_urgent && $schoolUpdate->status === SchoolUpdate::STATUS_PUBLISHED && $schoolUpdate->is_notified) {
+                $students = User::role('student')->get();
+                foreach ($students as $student) {
+                    $student->notify(new UrgentPostNotification($schoolUpdate));
+                }
+            }
 
             return response()->json([
                 'message' => 'Post created successfully',
@@ -208,10 +210,12 @@ class SchoolUpdateController extends Controller
             ]);
 
             // Notify students if published and notified
-            // if ($finalStatus === SchoolUpdate::STATUS_PUBLISHED && $schoolupdate->is_notified) {
-            //     $comms = new \App\Services\StudentCommService();
-            //     $comms->notify(new \App\Notifications\PostNotification($schoolupdate));
-            // }    
+            if ($schoolupdate->is_urgent && $schoolupdate->status === SchoolUpdate::STATUS_PUBLISHED && $schoolupdate->is_notified) {
+                $students = User::role('student')->get();
+                foreach ($students as $student) {
+                    $student->notify(new UrgentPostNotification($schoolupdate));
+                }
+            }
 
             return response()->json([
                 'message' => 'Post updated successfully',
@@ -368,6 +372,12 @@ class SchoolUpdateController extends Controller
                 'rejected_at' => Carbon::now(),
             ]);
 
+             $commsOfficer = $schoolupdate->author;
+
+            if ($commsOfficer) {
+                $commsOfficer->notify(new PostRejectedNotification($schoolupdate));
+            }
+
             return response()->json(['message' => 'Post rejected']);
         } catch (AuthorizationException $e) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -429,12 +439,13 @@ class SchoolUpdateController extends Controller
         $post->save();
 
         // Notify users
-        // if ($post->is_notified && $post->is_urgent) {
-        //     $students = StudentInformation::where('role', 'student')->get();
-        //     foreach ($students as $student) {
-        //         $student->notify(new PostNotification($post));
-        //     }
-        // }
+        if ($post->is_notified || $post->is_urgent) {
+            $students = User::role('student')->get();
+            foreach ($students as $student) {
+                $student->notify(new UrgentPostNotification($post->id));
+            }
+        }
+        
 
         return response()->json(['message' => 'Post published successfully']);
     }

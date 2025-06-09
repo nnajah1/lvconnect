@@ -13,6 +13,7 @@ import { ConfirmationModal, ErrorModal, InfoModal, WarningModal } from "@/compon
 import EditPostForm from "@/components/school_updates/editPostForm";
 import EditPostModal from "./EditPost";
 import { toast } from "react-toastify";
+import { loadNotifications } from "@/hooks/notification";
 
 const Posts = () => {
   const userRole = useUserRole();
@@ -144,6 +145,7 @@ const Posts = () => {
     try {
       await publishPost(publishItem.id);
       await loadUpdates();
+      await loadNotifications();
       toast.success('Post published successfully!');
       setPublishItem(null)
     } catch (error) {
@@ -159,6 +161,7 @@ const Posts = () => {
     try {
       await approvePost(approveItem.id);
       await loadUpdates();
+      await loadNotifications();
       toast.success('Post approved successfully!');
       setApproveItem(null)
     } catch (error) {
@@ -184,6 +187,7 @@ const Posts = () => {
     try {
       await rejectPost(rejectItem.id, { revision_remarks: remarks });
       await loadUpdates();
+      await loadNotifications();
       toast.success('Post rejected successfully!');
       setRejectItem(null)
       setRemarks("");

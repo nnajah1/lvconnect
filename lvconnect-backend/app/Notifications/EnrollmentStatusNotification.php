@@ -28,24 +28,25 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        $prefs = $notifiable->notificationPreference;
+        // $prefs = $notifiable->notificationPreference;
 
-        $channels = [];
+        // $channels = [];
 
-        if ($prefs?->email) {
-            $channels[] = 'mail';
-        }
+        // if ($prefs?->email) {
+        //     $channels[] = 'mail';
+        // }
 
-        if ($prefs?->in_app) {
-            $channels[] = 'database';
-        }
+        // if ($prefs?->in_app) {
+        //     $channels[] = 'database';
+        // }
 
-        // Fallback to mail if no preferences are set
-        if (empty($channels)) {
-            $channels = ['mail'];
-        }
+        // // Fallback to mail if no preferences are set
+        // if (empty($channels)) {
+        //     $channels = ['mail'];
+        // }
 
-        return $channels;
+        // return $channels;
+         return ['database','mail'];
     }
 
     /**

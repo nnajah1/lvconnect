@@ -87,19 +87,19 @@ const TextEditor = ({
     loadSignedUrls();
   }, [images]);
 
-  const MAX_IMAGES = 5;
+  const MAX_IMAGES = 10;
   const handleImageUpload = (e) => {
     if (disabled) return;
 
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-  //   const totalImages = images.length + files.length;
-  // if (totalImages > MAX_IMAGES) {
-  //   toast.error(`You can only upload up to ${MAX_IMAGES} images.`);
-  //   e.target.value = '';
-  //   return;
-  // }
+    const totalImages = images.length + files.length;
+  if (totalImages > MAX_IMAGES) {
+    toast.error(`You can only upload up to ${MAX_IMAGES} images.`);
+    e.target.value = '';
+    return;
+  }
 
     const newImages = files.map(file => ({
       file,

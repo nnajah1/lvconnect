@@ -6,7 +6,7 @@ export default function SearchBar({ value, onChange }) {
     return (
         <div className="relative w-full sm:w-96 mx-auto transition-all duration-200 ease-in-out">
                 <CiSearch
-                className="absolute left-3 top-3 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                className="absolute left-3 top-3 text-gray-400 hover:text-gray-600 transition-colors z-5"
                 size={20}
             />
             <input

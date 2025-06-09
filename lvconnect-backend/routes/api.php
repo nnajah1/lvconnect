@@ -175,13 +175,32 @@ Route::middleware('auth.jwt')->group(function () {
   Route::post('/create-student-account', [CreateAccountController::class, 'createStudentAccount']);
   Route::post('/import-students', [CreateAccountController::class, 'importStudentsFromFile']);
 
-  
+
   Route::get('/class-schedule', [StudentController::class, 'viewSchedules']);
-  
 
 });
 
 Route::middleware('auth.jwt')->get('/notifications', function (Request $request) {
-    return $request->user()->notifications;
+  $user = $request->user();
+
+  return response()->json([
+    'notification' => $user->notifications()->get(),
+    'unread' => $user->unreadNotifications()->latest()->get(),
+    'read' => $user->readNotifications()->latest()->get(),
+  ]);
 });
+
+Route::middleware('auth.jwt')->post('/notifications/mark-as-read', function (Request $request) {
+  $request->user()->unreadNotifications->markAsRead();
+  return response()->json(['message' => 'All notifications marked as read.']);
+});
+
+
+Route::middleware('auth.jwt')->post('/notifications/{id}/read', function (Request $request, $id) {
+  $notification = $request->user()->notifications()->findOrFail($id);
+  $notification->markAsRead();
+
+  return response()->json(['message' => 'Notification marked as read']);
+});
+
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);
