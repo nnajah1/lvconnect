@@ -170,7 +170,7 @@ class DummyDataSyncController extends Controller
                 // Sync Grades
                 if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
                     foreach ($applicant['grades'] as $gradeData) {
-                        dd($gradeData);
+                        \Log::info('Grade data:', $gradeData);
                         if (
                             empty($gradeData['course']) ||
                             !isset($gradeData['grade']) ||
