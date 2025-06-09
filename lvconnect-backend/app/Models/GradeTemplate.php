@@ -12,6 +12,7 @@ class GradeTemplate extends Model
         'school_year',
         'target_GWA',
         'actual_GWA',
+        'status',
     ];
 
     public function studentInformation()

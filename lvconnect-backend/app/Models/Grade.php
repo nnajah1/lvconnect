@@ -12,6 +12,7 @@ class Grade extends Model
         'term',
         'academic_year',
         'grade',
+        'remarks',
     ];
 
     public function course()
