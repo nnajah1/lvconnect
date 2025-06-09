@@ -31,12 +31,10 @@ class DummyDataSyncController extends Controller
             $data = $response->json();
 
             foreach ($data as $applicant) {
-                // Skip if first_name or last_name is missing
                 if (empty($applicant['first_name']) || empty($applicant['last_name'])) {
                     continue;
                 }
 
-                // Find matching user by first_name and last_name only
                 $user = User::where('first_name', $applicant['first_name'])
                     ->where('last_name', $applicant['last_name'])
                     ->first();
@@ -45,41 +43,39 @@ class DummyDataSyncController extends Controller
                     continue;
                 }
 
-                // Validate and normalize civil_status
                 $validCivilStatus = ['single', 'married', 'divorced', 'widowed'];
                 $civilStatus = strtolower($applicant['marital_status'] ?? 'single');
                 if (!in_array($civilStatus, $validCivilStatus)) {
                     $civilStatus = 'single';
                 }
 
-                // Validate and normalize gender
                 $validGenders = ['male', 'female'];
                 $gender = strtolower($applicant['gender'] ?? 'male');
                 if (!in_array($gender, $validGenders)) {
                     $gender = 'male';
                 }
 
-                // Parse date safely
                 try {
                     $birthDate = Carbon::parse($applicant['date_of_birth'])->format('Y-m-d');
                 } catch (\Exception $e) {
                     continue;
                 }
 
-                // Set defaults for optional values
                 $fbLink = $applicant['fb_account'] ?? 'N/A';
                 $governmentSubsidy = $applicant['government_subsidy'] ?? 'N/A';
                 $zipCode = is_numeric($applicant['zip_code'] ?? null) ? $applicant['zip_code'] : 0;
 
-                // Now safe to insert/update
-                $student = StudentInformation::updateOrCreate(
-                    [
+                $existingStudent = StudentInformation::where('user_id', $user->id)
+                    ->where('first_name', $applicant['first_name'])
+                    ->where('last_name', $applicant['last_name'])
+                    ->first();
+
+                if (!$existingStudent) {
+                    $student = StudentInformation::create([
                         'user_id' => $user->id,
+                        'student_id_number' => 'STU' . now()->format('Ymd') . rand(100, 999),
                         'first_name'  => $applicant['first_name'],
                         'last_name'   => $applicant['last_name'],
-                    ],
-                    [
-                        'student_id_number' => 'STU' . now()->format('Ymd') . rand(100, 999),
                         'middle_name' => $applicant['middle_name'],
                         'civil_status' => $civilStatus,
                         'gender'       => $gender,
@@ -101,175 +97,140 @@ class DummyDataSyncController extends Controller
                         'city_municipality' => $applicant['city'],
                         'province' => $applicant['province'],
                         'zip_code' => $zipCode,
-                    ]
-                );
+                    ]);
+                } else {
+                    $student = $existingStudent;
+                }
 
-                // Save or update family information if guardian exists
-                if (isset($applicant['guardian'])) {
-                    StudentFamilyInformation::updateOrCreate(
-                        [
-                            'student_information_id' => $student->id,
-                        ],
-                        [
-                            'num_children_in_family' => (int) $applicant['no_of_children'],
-                            'birth_order' => (int) $applicant['birth_order'],
-                            'has_sibling_in_lvcc' => (bool) $applicant['is_bro_sis_curr_applying_studying'],
-                            'mother_first_name'  => $applicant['guardian']['mother_first_name'],
-                            'mother_last_name'   => $applicant['guardian']['mother_last_name'],
-                            'mother_middle_name' => $applicant['guardian']['mother_middle_name'],
-                            'mother_religion' => $applicant['guardian']['mother_religion'],
-                            'mother_occupation' => $applicant['guardian']['mother_occupation'],
-                            'mother_monthly_income' => $applicant['guardian']['mother_monthly_income'],
-                            'mother_mobile_number' => $applicant['guardian']['mother_mobile_number'],
-                            'father_first_name'  => $applicant['guardian']['father_first_name'],
-                            'father_last_name'   => $applicant['guardian']['father_last_name'],
-                            'father_middle_name' => $applicant['guardian']['father_middle_name'],
-                            'father_religion' => $applicant['guardian']['father_religion'],
-                            'father_occupation' => $applicant['guardian']['father_occupation'],
-                            'father_monthly_income' => $applicant['guardian']['father_monthly_income'],
-                            'father_mobile_number' => $applicant['guardian']['father_mobile_number'],
-                            'guardian_first_name'  => $applicant['guardian']['legal_guardian_first_name'],
-                            'guardian_last_name'   => $applicant['guardian']['legal_guardian_last_name'],
-                            'guardian_middle_name' => $applicant['guardian']['legal_guardian_middle_name'],
-                            'guardian_religion' => $applicant['guardian']['legal_guardian_religion'],
-                            'guardian_occupation' => $applicant['guardian']['legal_guardian_occupation'],
-                            'guardian_monthly_income' => $applicant['guardian']['legal_guardian_monthly_income'],
-                            'guardian_mobile_number' => $applicant['guardian']['legal_guardian_mobile_number'],
-                            'guardian_relationship' => $applicant['guardian']['legal_guardian_relationship'],
-                        ]
-                    );
+                if (isset($applicant['guardian']) && !StudentFamilyInformation::where('student_information_id', $student->id)->exists()) {
+                    StudentFamilyInformation::create([
+                        'student_information_id' => $student->id,
+                        'num_children_in_family' => (int) $applicant['no_of_children'],
+                        'birth_order' => (int) $applicant['birth_order'],
+                        'has_sibling_in_lvcc' => (bool) $applicant['is_bro_sis_curr_applying_studying'],
+                        'mother_first_name'  => $applicant['guardian']['mother_first_name'],
+                        'mother_last_name'   => $applicant['guardian']['mother_last_name'],
+                        'mother_middle_name' => $applicant['guardian']['mother_middle_name'],
+                        'mother_religion' => $applicant['guardian']['mother_religion'],
+                        'mother_occupation' => $applicant['guardian']['mother_occupation'],
+                        'mother_monthly_income' => $applicant['guardian']['mother_monthly_income'],
+                        'mother_mobile_number' => $applicant['guardian']['mother_mobile_number'],
+                        'father_first_name'  => $applicant['guardian']['father_first_name'],
+                        'father_last_name'   => $applicant['guardian']['father_last_name'],
+                        'father_middle_name' => $applicant['guardian']['father_middle_name'],
+                        'father_religion' => $applicant['guardian']['father_religion'],
+                        'father_occupation' => $applicant['guardian']['father_occupation'],
+                        'father_monthly_income' => $applicant['guardian']['father_monthly_income'],
+                        'father_mobile_number' => $applicant['guardian']['father_mobile_number'],
+                        'guardian_first_name'  => $applicant['guardian']['legal_guardian_first_name'],
+                        'guardian_last_name'   => $applicant['guardian']['legal_guardian_last_name'],
+                        'guardian_middle_name' => $applicant['guardian']['legal_guardian_middle_name'],
+                        'guardian_religion' => $applicant['guardian']['legal_guardian_religion'],
+                        'guardian_occupation' => $applicant['guardian']['legal_guardian_occupation'],
+                        'guardian_monthly_income' => $applicant['guardian']['legal_guardian_monthly_income'],
+                        'guardian_mobile_number' => $applicant['guardian']['legal_guardian_mobile_number'],
+                        'guardian_relationship' => $applicant['guardian']['legal_guardian_relationship'],
+                    ]);
                 }
 
                 if (!empty($applicant['grade_level_course_to_be_taken'])) {
                     $program = Program::where('program_name', $applicant['grade_level_course_to_be_taken'])->first();
+                    $activeSchedule = EnrollmentSchedule::where('is_active', true)->first();
 
-                    if ($program) {
-                        $activeSchedule = EnrollmentSchedule::where('is_active', true)->first();
-
-                        if ($activeSchedule) {
-                            EnrolleeRecord::updateOrCreate(
-                                [
-                                    'student_information_id' => $student->id,
-                                ],
-                                [
-                                    'program_id' => $program->id,
-                                    'enrollment_schedule_id' => $activeSchedule->id,
-                                    'year_level' => 1,
-                                    'privacy_policy' => true,
-                                    'enrollment_status' => 'enrolled',
-                                    'admin_remarks' => 'Synced from Dummy System',
-                                    'submission_date' => now(),
-                                ]
-                            );
-                        } else {
-                            \Log::warning('No active enrollment schedule found for syncing.');
-                        }
-                    }
-                }
-                // --- Sync Grades ---
-                if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
-                    foreach ($applicant['grades'] as $gradeData) {
-                        if (
-                            empty($gradeData['course']) ||
-                            !isset($gradeData['grade']) ||
-                            empty($gradeData['term']) ||
-                            empty($gradeData['academic_year'])
-                        ) {
-                            continue;
-                        }
-
-                        // Find the existing course by name
-                        $course = Course::where('course', $gradeData['course'] ?? null)->first();
-
-                        if (!$course) {
-                            continue;
-                        }
-
-                        Grade::updateOrCreate(
-                            [
-                                'student_information_id' => $student->id,
-                                'course_id' => $course->id,
-                                'term' => isset($gradeData['term']) ? (string) $gradeData['term'] : null,
-                                'academic_year' => isset($gradeData['academic_year']) ? (string) $gradeData['academic_year'] : null,
-                            ],
-                            [
-                                'grade' => isset($gradeData['grade']) && is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
-                                'remarks' => $gradeData['remarks'] ?? null,
-                            ]
-                        );
-                    }
-                }
-
-                // Sync GradeTemplate
-                if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
-                    $template = $applicant['grade_template'];
-
-                    try {
-                        GradeTemplate::updateOrCreate(
-                            [
-                                'student_information_id' => $student->id,
-                                'term' => $template['term'] ?? null,
-                                'school_year' => $template['school_year'] ?? null,
-                            ],
-                            [
-                                'target_GWA' => isset($template['target_GWA']) && is_numeric($template['target_GWA']) ? (float) $template['target_GWA'] : null,
-                                'actual_GWA' => isset($template['actual_GWA']) && is_numeric($template['actual_GWA']) ? (float) $template['actual_GWA'] : null,
-                                'status' => $template['status'] ?? null,
-                            ]
-                        );
-                    } catch (\Throwable $e) {
-                        \Log::error('Error syncing grade template:', [
-                            'message' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString(),
-                            'template' => $template,
+                    if ($program && $activeSchedule && !EnrolleeRecord::where('student_information_id', $student->id)->exists()) {
+                        EnrolleeRecord::create([
+                            'student_information_id' => $student->id,
+                            'program_id' => $program->id,
+                            'enrollment_schedule_id' => $activeSchedule->id,
+                            'year_level' => 1,
+                            'privacy_policy' => true,
+                            'enrollment_status' => 'enrolled',
+                            'admin_remarks' => 'Synced from Dummy System',
+                            'submission_date' => now(),
                         ]);
                     }
                 }
 
-                // --- Sync Schedules ---
+                if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
+                    foreach ($applicant['grades'] as $gradeData) {
+                        $course = Course::where('course', $gradeData['course'] ?? null)->first();
+                        if (!$course) continue;
+
+                        $exists = Grade::where('student_information_id', $student->id)
+                            ->where('course_id', $course->id)
+                            ->where('term', $gradeData['term'])
+                            ->where('academic_year', $gradeData['academic_year'])
+                            ->exists();
+
+                        if (!$exists) {
+                            Grade::create([
+                                'student_information_id' => $student->id,
+                                'course_id' => $course->id,
+                                'term' => $gradeData['term'],
+                                'academic_year' => $gradeData['academic_year'],
+                                'grade' => $gradeData['grade'],
+                                'remarks' => $gradeData['remarks'],
+                            ]);
+                        }
+                    }
+                }
+
+                if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
+                    $template = $applicant['grade_template'];
+
+                    $exists = GradeTemplate::where('student_information_id', $student->id)
+                        ->where('term', $template['term'])
+                        ->where('school_year', $template['school_year'])
+                        ->exists();
+
+                    if (!$exists) {
+                        GradeTemplate::create([
+                            'student_information_id' => $student->id,
+                            'term' => $template['term'],
+                            'school_year' => $template['school_year'],
+                            'target_GWA' => $template['target_GWA'],
+                            'actual_GWA' => $template['actual_GWA'],
+                            'status' => $template['status'],
+                        ]);
+                    }
+                }
+
                 if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
                     foreach ($applicant['schedules'] as $scheduleData) {
-                        if (
-                            empty($scheduleData['program']) ||
-                            empty($scheduleData['course']) ||
-                            empty($scheduleData['term']) ||
-                            empty($scheduleData['year_level']) ||
-                            empty($scheduleData['section']) ||
-                            empty($scheduleData['day']) ||
-                            empty($scheduleData['start_time']) ||
-                            empty($scheduleData['end_time'])
-                        ) {
-                            continue;
-                        }
+                        $program = Program::where('program_name', $scheduleData['program'])->first();
+                        $course = Course::where('course', $scheduleData['course'])->first();
 
-                        $program = Program::where('program_name', $scheduleData['program'] ?? null)->first();
-                        $course = Course::where('course', $scheduleData['course'] ?? null)->first();
+                        if (!$program || !$course) continue;
 
-                        if (!$program || !$course) {
-                            continue;
-                        }
+                        $exists = Schedule::where([
+                            'program' => $scheduleData['program'],
+                            'course_id' => $course->id,
+                            'term' => $scheduleData['term'],
+                            'year_level' => $scheduleData['year_level'],
+                            'section' => $scheduleData['section'],
+                            'day' => $scheduleData['day'],
+                            'start_time' => $scheduleData['start_time'],
+                            'end_time' => $scheduleData['end_time'],
+                        ])->exists();
 
-                        Schedule::updateOrCreate(
-                            [
-                                'program_id' => $program->id,
+                        if (!$exists) {
+                            Schedule::create([
+                                'program' => $scheduleData['program'],
                                 'course_id' => $course->id,
-                                'term' => $scheduleData['term'] ?? null,
-                                'year_level' => $scheduleData['year_level'] ?? null,
-                                'section' => $scheduleData['section'] ?? null,
-                                'day' => $scheduleData['day'] ?? null,
-                                'start_time' => $scheduleData['start_time'] ?? null,
-                                'end_time' => $scheduleData['end_time'] ?? null,
-                            ],
-                            [
+                                'term' => $scheduleData['term'],
+                                'year_level' => $scheduleData['year_level'],
+                                'section' => $scheduleData['section'],
+                                'day' => $scheduleData['day'],
+                                'start_time' => $scheduleData['start_time'],
+                                'end_time' => $scheduleData['end_time'],
                                 'room' => $scheduleData['room'] ?? null,
-                            ]
-                        );
+                            ]);
+                        }
                     }
                 }
             }
 
             return response()->json(['message' => 'Applicants synced successfully.']);
-
         } catch (\Throwable $e) {
             \Log::error('Sync error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Sync failed.', 'error' => $e->getMessage()], 500);
