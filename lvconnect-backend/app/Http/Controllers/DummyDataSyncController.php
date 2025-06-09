@@ -166,11 +166,52 @@ class DummyDataSyncController extends Controller
                         }
                     }
                 }
-                
-                // Sync Grades
+            }
+
+            return response()->json(['message' => 'Applicants synced successfully.']);
+
+        } catch (\Throwable $e) {
+            \Log::error('Sync error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'Sync failed.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function syncGradesAndSchedules()
+    {
+        try {
+            $response = Http::withToken(env('DUMMY_API_TOKEN'))
+                ->get(env('DUMMY_API_URL') . '/api/applicants');
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'Failed to fetch data from Dummy System'], 500);
+            }
+
+            $data = $response->json();
+
+            foreach ($data as $applicant) {
+                // Skip if first_name or last_name is missing
+                if (empty($applicant['first_name']) || empty($applicant['last_name'])) {
+                    continue;
+                }
+
+                // Find matching user by first_name and last_name only
+                $user = User::where('first_name', $applicant['first_name'])
+                    ->where('last_name', $applicant['last_name'])
+                    ->first();
+
+                if (!$user) {
+                    continue;
+                }
+
+                // Find the student_information for that user
+                $student = StudentInformation::where('user_id', $user->id)->first();
+                if (!$student) {
+                    continue;
+                }
+
+                // --- Sync Grades ---
                 if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
                     foreach ($applicant['grades'] as $gradeData) {
-                        \Log::info('Grade data:', $gradeData);
                         if (
                             empty($gradeData['course']) ||
                             !isset($gradeData['grade']) ||
@@ -180,60 +221,29 @@ class DummyDataSyncController extends Controller
                             continue;
                         }
 
-                        try {
-                            // Find the existing course by name
-                            $course = Course::where('course', $gradeData['course'])->first();
+                        // Find the existing course by name
+                        $course = Course::where('course', $gradeData['course'])->first();
 
-                            // Skip if course does not exist
-                            if (!$course) {
-                                continue;
-                            }
-
-                            Grade::updateOrCreate(
-                                [
-                                    'student_information_id' => $student->id,
-                                    'course_id' => $course->id,
-                                    'term' => (string) $gradeData['term'],
-                                    'academic_year' => (string) $gradeData['academic_year'],
-                                ],
-                                [
-                                    'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
-                                    'remarks' => $gradeData['remarks'] ?? null,
-                                ]
-                            );
-                        } catch (\Throwable $e) {
+                        if (!$course) {
                             continue;
                         }
-                    }
-                }
 
-                // Sync GradeTemplate
-                if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
-                    $template = $applicant['grade_template'];
-
-                    try {
-                        GradeTemplate::updateOrCreate(
+                        Grade::updateOrCreate(
                             [
                                 'student_information_id' => $student->id,
-                                'term' => $template['term'] ?? null,
-                                'school_year' => $template['school_year'] ?? null,
+                                'course_id' => $course->id,
+                                'term' => (string) $gradeData['term'],
+                                'academic_year' => (string) $gradeData['academic_year'],
                             ],
                             [
-                                'target_GWA' => isset($template['target_GWA']) && is_numeric($template['target_GWA']) ? (float) $template['target_GWA'] : null,
-                                'actual_GWA' => isset($template['actual_GWA']) && is_numeric($template['actual_GWA']) ? (float) $template['actual_GWA'] : null,
-                                'status' => $template['status'] ?? null,
+                                'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
+                                'remarks' => $gradeData['remarks'] ?? null,
                             ]
                         );
-                    } catch (\Throwable $e) {
-                        \Log::error('Error syncing grade template:', [
-                            'message' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString(),
-                            'template' => $template,
-                        ]);
                     }
                 }
 
-                // Sync Schedules
+                // --- Sync Schedules ---
                 if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
                     foreach ($applicant['schedules'] as $scheduleData) {
                         if (
@@ -275,10 +285,10 @@ class DummyDataSyncController extends Controller
                 }
             }
 
-            return response()->json(['message' => 'Applicants synced successfully.']);
+            return response()->json(['message' => 'Grades and schedules synced successfully.']);
 
         } catch (\Throwable $e) {
-            \Log::error('Sync error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            \Log::error('Sync grades and schedules error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Sync failed.', 'error' => $e->getMessage()], 500);
         }
     }
