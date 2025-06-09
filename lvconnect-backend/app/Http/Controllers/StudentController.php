@@ -52,76 +52,93 @@ class StudentController extends Controller
 
 
     public function viewSchedules()
-{
-    $user = JWTAuth::authenticate();
+    {
+        $user = JWTAuth::authenticate();
 
-    if (!$user->hasRole('student')) {
-        return response()->json(['message' => 'Unauthorized. Only students can access schedules.'], 403);
-    }
+        if (!$user->hasRole('student')) {
+            return response()->json(['message' => 'Unauthorized. Only students can access schedules.'], 403);
+        }
 
-    $student = $user->studentInformation;
+        $student = $user->studentInformation;
 
-    if (!$student) {
-        return response()->json(['message' => 'Student information not found.'], 404);
-    }
+        if (!$student) {
+            return response()->json(['message' => 'Student information not found.'], 404);
+        }
 
-    // Get latest active semester and year
-    $latestEnrollmentSchedule = EnrollmentSchedule::with('academicYear')
-        ->orderByDesc('start_date') 
-        ->first();
+        // Get latest active semester and year
+        $latestEnrollmentSchedule = EnrollmentSchedule::with('academicYear')
+            ->orderByDesc('start_date')
+            ->first();
 
-    if (!$latestEnrollmentSchedule) {
+        if (!$latestEnrollmentSchedule) {
+            return response()->json([
+                'message' => 'No academic schedule found.',
+                'semesterInfo' => null,
+                'schedules' => []
+            ]);
+        }
+
+        $semesterInfo = [
+            'schoolYear' => $latestEnrollmentSchedule->school_year,
+            'semester' => $latestEnrollmentSchedule->semester,
+        ];
+
+        // Year level mapping
+        $yearLevelMap = [
+            1 => '1st Year',
+            2 => '2nd Year',
+            3 => '3rd Year',
+            4 => '4th Year',
+        ];
+
+        $mappedYearLevel = $yearLevelMap[$student->year_level] ?? null;
+
+        if (!$mappedYearLevel) {
+            return response()->json([
+                'message' => 'Invalid year level format.',
+                'semesterInfo' => $semesterInfo,
+                'schedules' => []
+            ]);
+        }
+
+        // Color palette for schedule display
+        $colorPalette = [
+            ['bg' => 'bg-orange-200', 'text' => 'text-orange-900'],
+            ['bg' => 'bg-blue-200', 'text' => 'text-blue-900'],
+            ['bg' => 'bg-green-200', 'text' => 'text-green-900'],
+            ['bg' => 'bg-purple-200', 'text' => 'text-purple-900'],
+            ['bg' => 'bg-pink-200', 'text' => 'text-pink-900'],
+        ];
+
+        // Retrieve schedules based on program and year level
+        $schedules = Schedule::with('course')
+            ->where('program_id', $student->program_id)
+            ->where('year_level', $mappedYearLevel)
+            ->when($student->section, function ($query) use ($student) {
+                $query->where('section', $student->section);
+            })
+            ->orderBy('day')
+            ->orderBy('start_time')
+            ->get();
+
+        $formatted = [];
+
+        foreach ($schedules as $index => $schedule) {
+            $colorSet = $colorPalette[$index % count($colorPalette)];
+
+            $formatted[] = [
+                'day' => $schedule->day,
+                'time' => date('g:i A', strtotime($schedule->start_time)) . ' - ' . date('g:i A', strtotime($schedule->end_time)),
+                'subject' => $schedule->course->course ?? 'N/A',
+                'tag' => $schedule->room ?? 'N/A',
+                'color' => $colorSet['bg'],
+                'textColor' => $colorSet['text'],
+            ];
+        }
+
         return response()->json([
-            'message' => 'No academic schedule found.',
-            'semesterInfo' => null,
-            'schedules' => []
+            'semesterInfo' => $semesterInfo,
+            'schedules' => $formatted,
         ]);
     }
-
-    $semesterInfo = [
-        'schoolYear' => $latestEnrollmentSchedule->school_year,
-        'semester' => $latestEnrollmentSchedule->semester,
-    ];
-
-    $colorPalette = [
-        ['bg' => 'bg-orange-200', 'text' => 'text-orange-900'],
-        ['bg' => 'bg-blue-200', 'text' => 'text-blue-900'],
-        ['bg' => 'bg-green-200', 'text' => 'text-green-900'],
-        ['bg' => 'bg-purple-200', 'text' => 'text-purple-900'],
-        ['bg' => 'bg-pink-200', 'text' => 'text-pink-900'],
-    ];
-
-    // Get schedules filtered by student info only
-    $schedules = Schedule::with('course')
-        ->where('program_id', $student->program_id)
-        ->where('year_level', $student->year_level)
-        ->when($student->section, function ($query) use ($student) {
-            $query->where('section', $student->section);
-        })
-        ->orderBy('day')
-        ->orderBy('start_time')
-        ->get();
-
-    $formatted = [];
-
-    foreach ($schedules as $index => $schedule) {
-        $colorSet = $colorPalette[$index % count($colorPalette)];
-
-        $formatted[] = [
-            'day' => $schedule->day,
-            'time' => date('g:i A', strtotime($schedule->start_time)) . ' - ' . date('g:i A', strtotime($schedule->end_time)),
-            'subject' => $schedule->course->course ?? 'N/A',
-            'tag' => $schedule->room ?? 'N/A',
-            'color' => $colorSet['bg'],
-            'textColor' => $colorSet['text'],
-        ];
-    }
-
-    return response()->json([
-        'semesterInfo' => $semesterInfo,
-        'schedules' => $formatted,
-    ]);
-}
-
-
 }
