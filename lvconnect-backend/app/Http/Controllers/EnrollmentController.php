@@ -580,13 +580,17 @@ class EnrollmentController extends Controller
         }
 
         $academicYear = AcademicYear::find($data['academic_year_id']);
-        $students = User::role('student')->get();
         $isOpen = $data['is_active'];
 
-        //open
+        // Fetch students with notification preferences
+        $students = User::role('student')->with('notificationPreference')->get();
+
+        // open
         if ($isOpen) {
+            // Disable all existing schedules for the same academic year
             EnrollmentSchedule::where('academic_year_id', $data['academic_year_id'])->update(['is_active' => false]);
 
+            // Create or update current schedule
             $schedule = EnrollmentSchedule::updateOrCreate(
                 ['academic_year_id' => $data['academic_year_id'], 'semester' => $data['semester']],
                 ['is_active' => true, 'start_date' => now(), 'end_date' => null]
@@ -604,7 +608,7 @@ class EnrollmentController extends Controller
             $schedule->update(['is_active' => false, 'end_date' => now()]);
         }
 
-        // Send one combined notification
+        // Send notification to all students
         Notification::send($students, new EnrollmentNotification($academicYear, $data['semester'], $isOpen));
 
         return response()->json([

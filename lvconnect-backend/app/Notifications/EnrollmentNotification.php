@@ -32,22 +32,21 @@ class EnrollmentNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $prefs = $notifiable->notificationPreference;
-
         $channels = [];
 
-        if ($prefs?->email) {
+        if ($prefs?->email ?? true) {
             $channels[] = 'mail';
         }
 
-        if ($prefs?->in_app) {
+        if ($prefs?->in_app ?? true) {
             $channels[] = 'database';
             $channels[] = 'broadcast';
         }
 
-        // Force Fallback to email if no preferences are set
-        if (!$prefs || empty($channels)) {
-            $channels = ['mail'];
-        }
+        \Log::info('EnrollmentNotification via()', [
+            'user_id' => $notifiable->id,
+            'channels' => $channels,
+        ]);
 
         return $channels;
     }
