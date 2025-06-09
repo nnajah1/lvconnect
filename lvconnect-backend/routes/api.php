@@ -177,7 +177,11 @@ Route::middleware('auth.jwt')->group(function () {
 
   
   Route::get('/class-schedule', [StudentController::class, 'viewSchedules']);
+  
 
 });
 
+Route::middleware('auth.jwt')->get('/notifications', function (Request $request) {
+    return $request->user()->notifications;
+});
 Route::patch('/user/notification-preference', [UserController::class, 'updateNotificationPreference']);

@@ -160,6 +160,10 @@ export const newStudentSchema = {
     header: "Name",
     display: true,
   },
+  email: {
+    header: "Email",
+    display: true,
+  }
   // enrollment_status: {
   //   header: "Status",
   //   display: true,

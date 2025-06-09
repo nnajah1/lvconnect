@@ -87,7 +87,7 @@ class AuthController extends Controller
 
         // If device is trusted or no OTP or no password change needed, login immediately and generate JWT
         $customClaims = [
-            'role' => $user->active_role, 
+            'role' => $user->active_role,
         ];
 
         $token = JWTAuth::fromUser($user, $customClaims);
@@ -97,7 +97,7 @@ class AuthController extends Controller
             'message' => 'Login successful',
             // 'must_change_password' => $user->must_change_password,
             'user_id' => encrypt($user->id),
-            'active_role' => $user->active_role, 
+            'active_role' => $user->active_role,
         ])
             ->cookie('auth_token', $token, 60, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'))
             ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'));
@@ -144,9 +144,17 @@ class AuthController extends Controller
 
             // Return the user data
             return response()->json([
-                'user' => $user,
-                'permissions' => $permissions,
-                'active_role' => $user->active_role, // include active role in response
+                'user' => [
+                     'id' => $user->id,
+                    'full_name' => $user->full_name,
+                    'active_role' => $user->active_role,
+                    'roles' => $user->roles->map(fn($role) => [
+                        'name' => $role->name
+                    ])
+                ],
+                // 'permissions' => $permissions,
+                'active_role' => $user->active_role,
+                'message' => 'login successfully'
             ], 200);  // 200 OK
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return response()->json(['error' => 'Token expired'], 401);

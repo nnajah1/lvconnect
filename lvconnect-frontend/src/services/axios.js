@@ -129,4 +129,9 @@ export const getClassSchedule = async () => {
   }
 };
 
+export const fetchNotifications = async () => {
+  const res = await api.get('/notifications');
+  return res.data;
+};
+
 export default api;

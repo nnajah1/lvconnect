@@ -1,19 +1,25 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Bell } from "lucide-react"
+import { fetchNotifications } from "@/services/axios";
 
 export function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
 
-  const notifications = [
+  // const notifications = [
     // { id: 1, message: "New message received", time: "5 min ago", isRead: false },
     // { id: 2, message: "Your report is ready", time: "1 hour ago", isRead: false },
     // { id: 3, message: "Meeting scheduled for tomorrow", time: "3 hours ago", isRead: true },
 
-  ]
+  // ]
+ const [notifications, setNotifications] = useState([]);
 
-  const unreadCount = notifications.filter((notification) => !notification.isRead).length
+  useEffect(() => {
+    fetchNotifications().then(setNotifications);
+  }, []);
+
+  const unreadCount = notifications.filter((notification) => !notification.read_at).length
 
   // Close dropdown when clicking outside
   useEffect(() => {

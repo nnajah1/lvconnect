@@ -78,6 +78,11 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
                     ->line("Reminder! Kindly submit all your incomplete requirements for Academic Year {$this->academicYear->school_year}.")
                     ->line('Please check your student portal for more details or contact the registrar for assistance.');
 
+            case 'archived':
+                return (new MailMessage)
+                    ->subject("Archived Account")
+                    ->line("Please be informed that your account has been archived and you no longer have access to the system.");
+
             default:
                 return (new MailMessage)
                     ->subject('Enrollment Status Update')
@@ -96,6 +101,7 @@ class EnrollmentStatusNotification extends Notification implements ShouldQueue
             'rejected' => "Your enrollment application for Academic Year {$this->academicYear->school_year} has been rejected.",
             'not_enrolled' => "Reminder! You have not yet enrolled for Academic Year {$this->academicYear->school_year}.",
             'remind_rejected' => "Reminder! Please reprocess your enrollment application for Academic Year {$this->academicYear->school_year}.",
+            'archived' => "Please be informed that your account has been archived and you no longer have access to the system.",
             default => 'Your enrollment status has been updated.',
         };
 

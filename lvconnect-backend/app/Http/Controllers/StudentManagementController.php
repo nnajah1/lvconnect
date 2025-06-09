@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\EnrollmentStatusNotification;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\StudentInformation;
@@ -269,26 +270,14 @@ class StudentManagementController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasActiveRole('registrar')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $ids = $request->input('ids');
-
-        foreach ($ids as $studentId) {
-            $enrolleeRecord = EnrolleeRecord::where('student_information_id', $studentId)
-                ->latest()
-                ->first();
-
-            if ($enrolleeRecord) {
-                $enrolleeRecord->update(['enrollment_status' => 'archived']);
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Selected students archived successfully.',
-        ]);
+        EnrolleeRecord::whereIn('id', $ids)->update(['enrollment_status' => 'archived']);
+        return response()->json(['message' => 'Archived successfully.']);
+    
     }
 
     public function archive(Request $request, $studentId)
@@ -314,6 +303,8 @@ class StudentManagementController extends Controller
             'admin_remarks' => $request->input('admin_remarks')
         ]);
 
+        //    $enrolleeRecord->notify(new EnrollmentStatusNotification('archived', ''));
+    
         return response()->json([
             'success' => true,
             'message' => 'Student enrollee record archived successfully.',
@@ -326,10 +317,13 @@ class StudentManagementController extends Controller
 
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('registrar')) {
-            return StudentInformation::with('enrolleeRecord')
-                ->get();
-        }
+       if ($user->hasRole('registrar')) {
+    return StudentInformation::with('enrolleeRecord')
+        ->whereHas('enrolleeRecord', function ($q) {
+            $q->whereNotNull('enrollment_status'); 
+        })
+        ->get();
+}
 
         return response()->json(['message' => 'Unauthorized'], 403);
 
@@ -346,6 +340,8 @@ class StudentManagementController extends Controller
                     return [
                         'id' => $user->id,
                         'full_name' => $user->full_name,
+                        'email' => $user->email,
+                        // 'enrollment_status' => 'not_enrolled',
                     ];
                 });
         }
