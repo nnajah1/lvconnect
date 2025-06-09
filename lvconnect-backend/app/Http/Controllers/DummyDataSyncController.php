@@ -225,7 +225,6 @@ class DummyDataSyncController extends Controller
                 // Sync Schedules
                 if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
                     foreach ($applicant['schedules'] as $scheduleData) {
-                        // Skip if any required field is missing
                         if (
                             empty($scheduleData['program']) ||
                             empty($scheduleData['course']) ||
@@ -246,6 +245,11 @@ class DummyDataSyncController extends Controller
                             continue;
                         }
 
+                        if (!empty($scheduleData['student_type'])) {
+                            $student->student_type = $scheduleData['student_type'];
+                            $student->save();
+                        }
+
                         Schedule::updateOrCreate(
                             [
                                 'program_id' => $program->id,
@@ -259,6 +263,7 @@ class DummyDataSyncController extends Controller
                             ],
                             [
                                 'room' => $scheduleData['room'] ?? null,
+                                'student_type' => $scheduleData['student_type'] ?? null,
                             ]
                         );
                     }

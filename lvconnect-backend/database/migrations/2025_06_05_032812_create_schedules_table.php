@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
             $table->string('term'); 
             $table->string('year_level');
+            $table->string('student_type')->nullable();
             $table->string('section')->nullable(); 
             $table->string('day'); 
             $table->time('start_time');
