@@ -24,8 +24,6 @@ class StudentController extends Controller
             return response()->json(['message' => 'Forbidden. You can only view your own grades.'], 403);
         }
 
-        $student = $user->studentInformation; 
-        
         $grades = Grade::with('course')
             ->where('student_information_id', $studentInformationId)
             ->get()
@@ -42,11 +40,22 @@ class StudentController extends Controller
             })
             ->groupBy(fn($grade) => $grade['academic_year'] . ' - ' . $grade['term']);
 
-        $templates = GradeTemplate::where('student_information_id', $studentInformationId)->get();
+        $gradeTemplates = GradeTemplate::where('student_information_id', $studentInformationId)
+            ->get()
+            ->map(function ($template) {
+                return [
+                    'term' => $template->term,
+                    'school_year' => $template->school_year,
+                    'target_GWA' => $template->target_GWA,
+                    'actual_GWA' => $template->actual_GWA,
+                    'status' => $template->status,
+                ];
+            })
+            ->groupBy(fn($template) => $template['school_year'] . ' - ' . $template['term']);
 
         return response()->json([
             'grades_by_term' => $grades,
-            'grade_templates' => $templates,
+            'grade_templates_by_term' => $gradeTemplates,
         ]);
     }
 
