@@ -144,14 +144,15 @@ class AuthController extends Controller
 
             // Return the user data
             return response()->json([
-                'user' => [
-                     'id' => $user->id,
-                    'full_name' => $user->full_name,
-                    'active_role' => $user->active_role,
-                    'roles' => $user->roles->map(fn($role) => [
-                        'name' => $role->name
-                    ])
-                ],
+                // 'user' => [
+                //      'id' => $user->id,
+                //     'full_name' => $user->full_name,
+                //     'active_role' => $user->active_role,
+                //     'roles' => $user->roles->map(fn($role) => [
+                //         'name' => $role->name
+                //     ])
+                // ],
+                'user' => $user,
                 // 'permissions' => $permissions,
                 'active_role' => $user->active_role,
                 'message' => 'login successfully'

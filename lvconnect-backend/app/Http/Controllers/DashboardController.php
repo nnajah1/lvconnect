@@ -26,7 +26,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasActiveRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -109,7 +109,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('psas')) {
+        if (!$user->hasActiveRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -205,7 +205,7 @@ class DashboardController extends Controller
         $user = JWTAuth::authenticate();
 
         // Allow only users with the 'scadmin' role
-        if (!$user->hasRole('scadmin')) {
+        if (!$user->hasActiveRole('scadmin')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -295,7 +295,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasActiveRole('registrar')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
