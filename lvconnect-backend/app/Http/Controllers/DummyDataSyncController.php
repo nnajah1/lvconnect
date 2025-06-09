@@ -180,7 +180,7 @@ class DummyDataSyncController extends Controller
     {
         try {
             $response = Http::withToken(env('DUMMY_API_TOKEN'))
-                ->get(env('DUMMY_API_URL') . '/api/applicants');
+                ->get(env('DUMMY_API_URL') . '/api/gradesSchedule');
 
             if ($response->failed()) {
                 return response()->json(['error' => 'Failed to fetch data from Dummy System'], 500);
@@ -209,65 +209,65 @@ class DummyDataSyncController extends Controller
                     continue;
                 }
 
-                // // --- Sync Grades ---
-                // if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
-                //     foreach ($applicant['grades'] as $gradeData) {
-                //         if (
-                //             empty($gradeData['course']) ||
-                //             !isset($gradeData['grade']) ||
-                //             empty($gradeData['term']) ||
-                //             empty($gradeData['academic_year'])
-                //         ) {
-                //             continue;
-                //         }
+                // --- Sync Grades ---
+                if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
+                    foreach ($applicant['grades'] as $gradeData) {
+                        if (
+                            empty($gradeData['course']) ||
+                            !isset($gradeData['grade']) ||
+                            empty($gradeData['term']) ||
+                            empty($gradeData['academic_year'])
+                        ) {
+                            continue;
+                        }
 
-                //         // Find the existing course by name
-                //         $course = Course::where('course', $gradeData['course'])->first();
+                        // Find the existing course by name
+                        $course = Course::where('course', $gradeData['course'])->first();
 
-                //         if (!$course) {
-                //             continue;
-                //         }
+                        if (!$course) {
+                            continue;
+                        }
 
-                //         Grade::updateOrCreate(
-                //             [
-                //                 'student_information_id' => $student->id,
-                //                 'course_id' => $course->id,
-                //                 'term' => (string) $gradeData['term'],
-                //                 'academic_year' => (string) $gradeData['academic_year'],
-                //             ],
-                //             [
-                //                 'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
-                //                 'remarks' => $gradeData['remarks'] ?? null,
-                //             ]
-                //         );
-                //     }
-                // }
+                        Grade::updateOrCreate(
+                            [
+                                'student_information_id' => $student->id,
+                                'course_id' => $course->id,
+                                'term' => (string) $gradeData['term'],
+                                'academic_year' => (string) $gradeData['academic_year'],
+                            ],
+                            [
+                                'grade' => is_numeric($gradeData['grade']) ? $gradeData['grade'] : null,
+                                'remarks' => $gradeData['remarks'] ?? null,
+                            ]
+                        );
+                    }
+                }
 
-                //  // Sync GradeTemplate
-                // if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
-                //     $template = $applicant['grade_template'];
+                 // Sync GradeTemplate
+                if (!empty($applicant['grade_template']) && is_array($applicant['grade_template'])) {
+                    $template = $applicant['grade_template'];
 
-                //     try {
-                //         GradeTemplate::updateOrCreate(
-                //             [
-                //                 'student_information_id' => $student->id,
-                //                 'term' => $template['term'] ?? null,
-                //                 'school_year' => $template['school_year'] ?? null,
-                //             ],
-                //             [
-                //                 'target_GWA' => isset($template['target_GWA']) && is_numeric($template['target_GWA']) ? (float) $template['target_GWA'] : null,
-                //                 'actual_GWA' => isset($template['actual_GWA']) && is_numeric($template['actual_GWA']) ? (float) $template['actual_GWA'] : null,
-                //                 'status' => $template['status'] ?? null,
-                //             ]
-                //         );
-                //     } catch (\Throwable $e) {
-                //         \Log::error('Error syncing grade template:', [
-                //             'message' => $e->getMessage(),
-                //             'trace' => $e->getTraceAsString(),
-                //             'template' => $template,
-                //         ]);
-                //     }
-                // }
+                    try {
+                        GradeTemplate::updateOrCreate(
+                            [
+                                'student_information_id' => $student->id,
+                                'term' => $template['term'] ?? null,
+                                'school_year' => $template['school_year'] ?? null,
+                            ],
+                            [
+                                'target_GWA' => isset($template['target_GWA']) && is_numeric($template['target_GWA']) ? (float) $template['target_GWA'] : null,
+                                'actual_GWA' => isset($template['actual_GWA']) && is_numeric($template['actual_GWA']) ? (float) $template['actual_GWA'] : null,
+                                'status' => $template['status'] ?? null,
+                            ]
+                        );
+                    } catch (\Throwable $e) {
+                        \Log::error('Error syncing grade template:', [
+                            'message' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                            'template' => $template,
+                        ]);
+                    }
+                }
 
                 // --- Sync Schedules ---
                 if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
