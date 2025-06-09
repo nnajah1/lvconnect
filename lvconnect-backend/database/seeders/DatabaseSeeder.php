@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             SOASeeder::class,
             NotificationPreferenceSeeder::class,
             CalendarOfActivitySeeder::class,
+            CourseSeeder::class,
         ]);
     }
 }
