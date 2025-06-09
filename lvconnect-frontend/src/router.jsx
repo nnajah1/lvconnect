@@ -37,12 +37,12 @@ import RegistrarDashboard from "./pages/registrar/AdminDashboard";
 import CommsDashboard from "./pages/admins/comms/AdminDashboard";
 import SchoolAdminDashboard from "./pages/admins/scadmin/AdminDashboard";
 import RoleManagement from "./pages/admins/systemAdmin/RoleManagement";
-import ErrorPage from "./layouts/error";
+import PageError from "./layouts/Error";
 
 
 const router = createBrowserRouter([
     { path: '/', element: <Navigate to="/login" />, 
-        // errorElement: <ErrorPage />,
+        errorElement: <PageError />,
     },
 
     { path: '/google-auth-success', element: <OAuthCallback /> },
