@@ -303,7 +303,7 @@ class StudentManagementController extends Controller
             'admin_remarks' => $request->input('admin_remarks')
         ]);
 
-           $enrolleeRecord->notify(new EnrollmentStatusNotification('archived', ''));
+        //    $enrolleeRecord->notify(new EnrollmentStatusNotification('archived', ''));
     
         return response()->json([
             'success' => true,
