@@ -24,6 +24,8 @@ class StudentController extends Controller
             return response()->json(['message' => 'Forbidden. You can only view your own grades.'], 403);
         }
 
+        $student = $user->studentInformation;
+
         $grades = Grade::with('course')
             ->where('student_information_id', $studentInformationId)
             ->get()
@@ -91,7 +93,6 @@ class StudentController extends Controller
             'schoolYear' => $latestEnrollmentSchedule->school_year,
             'semester' => $latestEnrollmentSchedule->semester,
         ];
-
         // Year level mapping
         $yearLevelMap = [
             1 => '1st Year',
@@ -131,10 +132,10 @@ class StudentController extends Controller
             ->get();
 
         $formatted = [];
+        $formatted = [];
 
         foreach ($schedules as $index => $schedule) {
             $colorSet = $colorPalette[$index % count($colorPalette)];
-
             $formatted[] = [
                 'day' => $schedule->day,
                 'time' => date('g:i A', strtotime($schedule->start_time)) . ' - ' . date('g:i A', strtotime($schedule->end_time)),

@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { smActionsConditions, smActions, registrarSchema, newStudentSchema, archiveSchema } from "@/tableSchemas/studentManagement";
-import { archiveData, bulkArchiveEnrollment, getNewStudents, getStudents, syncAccounts } from "@/services/enrollmentAPI";
+import { archiveData, bulkArchiveEnrollment, getNewStudents, getStudents, syncAccounts, syncGradesSchedules } from "@/services/enrollmentAPI";
 import { ConfirmationModal, DataModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
@@ -30,6 +30,7 @@ const StudentInformation = () => {
   const [showSingleForm, setShowSingleForm] = useState(false);
   const [showBatchForm, setShowBatchForm] = useState(false);
   const [syncAccount, setSyncAccount] = useState(false);
+  const [syncGrades, setSyncGrades] = useState(false);
 
 
   const loadStudents = async () => {
@@ -179,6 +180,21 @@ const StudentInformation = () => {
     }
   };
 
+    const handleSyncGrades = async () => {
+
+    try {
+      await syncGradesSchedules();
+      toast.success("New grades & schedule sync successfully!");
+      setSyncGrades(false);
+      await loadNewStudents();
+
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to sync grades & schedule");
+    }
+  };
+
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
@@ -199,13 +215,23 @@ const StudentInformation = () => {
           Create Batch Account
         </button>
         {newStudent && activeTab === "new_accounts" && (
-          <button
+          <>
+            <button
             onClick={() => setSyncAccount(true)}
             className="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700 cursor-pointer"
           >
             Sync New Accounts
           </button>
+          <button
+            onClick={() => setSyncGrades(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+          >
+            Sync Grades & class schedules
+          </button>
+          </>
+          
         )}
+        
       </div>
 
       <DynamicTabs
@@ -323,6 +349,27 @@ const StudentInformation = () => {
             className="px-4 py-2 bg-violet-500 text-white rounded hover:bg-violet-600" onClick={handleSyncAccount}
           >
             Sync New Accounts
+          </button>
+        </DataModal>
+      )}
+
+      {syncGrades && (
+        <DataModal
+          isOpen={syncGrades}
+          closeModal={() => setSyncGrades(false)}
+          title="Sync New Accounts"
+          description="Are you sure you want to sync grades and schedule?"
+        >
+          <button
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+            onClick={() => setSyncGrades(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-violet-500 text-white rounded hover:bg-violet-600" onClick={handleSyncGrades}
+          >
+            Sync Grades & class schedules
           </button>
         </DataModal>
       )}
