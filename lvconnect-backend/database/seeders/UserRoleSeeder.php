@@ -53,6 +53,7 @@ class UserRoleSeeder extends Seeder
             ['first_name' => 'Jerreck', 'last_name' => 'Navalta', 'email' => 'jerreckreynaldnavalta@laverdad.edu.ph'],
             ['first_name' => 'Luckie', 'last_name' => 'Villanueva', 'email' => 'luckievillanueva@laverdad.edu.ph'],
             ['first_name' => 'Willen Anne', 'last_name' => 'Alba', 'email' => 'willenannealba@laverdad.edu.ph'],
+            ['first_name' => 'Psas', 'last_name' => 'Admin', 'email' => 'psas@laverdad.edu.ph'],
         ];
 
         foreach ($psasUsers as $data) {
@@ -81,6 +82,7 @@ class UserRoleSeeder extends Seeder
             ['first_name' => 'Jade', 'last_name' => 'Abuela', 'email' => 'jaderiel.abuela@laverdad.edu.ph'],
             ['first_name' => 'Jordan Earl', 'last_name' => 'Pascua', 'email' => 'jordanearlpascua@laverdad.edu.ph'],
             ['first_name' => 'Dannver', 'last_name' => 'Lagramada', 'email' => 'dannverjay.lagramada@laverdad.edu.ph'],
+            ['first_name' => 'System', 'last_name' => 'Admin', 'email' => 'system@laverdad.edu.ph'],
         ];
 
         foreach ($superAdminUsers as $data) {
@@ -110,6 +112,7 @@ class UserRoleSeeder extends Seeder
             ['first_name' => 'Beverly Anne', 'last_name' => 'Soriano', 'email' => 'annebeverlysoriano@laverdad.edu.ph'],
             ['first_name' => 'Emmanuel', 'last_name' => 'Sunga', 'email' => 'emmanuelsunga@laverdad.edu.ph'],
             ['first_name' => 'Judith', 'last_name' => 'Callo', 'email' => 'judithcallo@laverdad.edu.ph'],
+            ['first_name' => 'Registrar', 'last_name' => 'Admin', 'email' => 'registrar@laverdad.edu.ph'],
         ];
 
         foreach ($registrarUsers as $data) {
@@ -138,6 +141,7 @@ class UserRoleSeeder extends Seeder
             ['first_name' => 'Jehu', 'last_name' => 'Casimiro', 'email' => 'jehucasimiro@laverdad.edu.ph'],
             ['first_name' => 'Edyssa', 'last_name' => 'Belandres', 'email' => 'edyssabelandres@laverdad.edu.ph'],
             ['first_name' => 'Carl Laurence', 'last_name' => 'Altares', 'email' => 'carllaurence.altares@laverdad.edu.ph'],
+            ['first_name' => 'Comms', 'last_name' => 'Admin', 'email' => 'comms@laverdad.edu.ph'],
         ];
 
         foreach ($commsUsers as $data) {
@@ -164,6 +168,7 @@ class UserRoleSeeder extends Seeder
 
         $scadminUsers = [
             ['first_name' => 'Alfie Mae', 'last_name' => 'Macababbad', 'email' => 'alfiemae.macababbad@laverdad.edu.ph'],
+            ['first_name' => 'School ', 'last_name' => 'Admin', 'email' => 'school@laverdad.edu.ph'],
         ];
 
         foreach ($scadminUsers as $data) {
