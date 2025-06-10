@@ -1,6 +1,7 @@
 
 import { ChevronLeft } from "lucide-react"
 import "@/styles/student_information.css"
+import { Button } from "../ui/button"
 
 export default function ActionButtons({
   isEditing,
@@ -43,7 +44,10 @@ export default function ActionButtons({
         <button onClick={handleCancel} className="add_action_btn cancel">Cancel</button>
       </>
     ) : (
-      <button onClick={handleEditToggle} className="add_action_btn edit">Edit</button>
+      <Button 
+      // onClick={handleEditToggle} 
+      disabled
+      className="">Enrolled</Button>
     )}
   </div>
 )}

@@ -129,6 +129,15 @@ export const getClassSchedule = async () => {
   }
 };
 
+export const getGrades = async () => {
+  try {
+    const response = await api.get("/grades");
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || "Something went wrong!";
+  }
+};
+
 export const fetchNotifications = async () => {
   const { data } = await api.get('/notifications');
   return data; 

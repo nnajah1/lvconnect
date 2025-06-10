@@ -179,6 +179,7 @@ Route::middleware('auth.jwt')->group(function () {
 
 
   Route::get('/class-schedule', [StudentController::class, 'viewSchedules']);
+  Route::get('/grades', [StudentController::class, 'viewGrades']);
 
 });
 

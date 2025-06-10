@@ -13,6 +13,7 @@ import { createEnrollee, editStudentData, getEnrollee } from "@/services/enrollm
 import {mapToApiPayload, programOptions, religionOptions, incomeOptions, fields } from "@/utils/enrollmentHelper.js"
 import { useUserRole } from "@/utils/userRole";
 import { Loader2 } from "@/components/dynamic/loader";
+import { toast } from "react-toastify";
 
 const Enrollees = ({ mode, editType }) => {
   const userRole = useUserRole();
@@ -82,6 +83,7 @@ const Enrollees = ({ mode, editType }) => {
       guardian_occupation: "",
       guardian_monthly_income: "",
       guardian_mobile_number: "",
+      guardian_relationship: "",
 
     }
   });
@@ -131,6 +133,7 @@ const Enrollees = ({ mode, editType }) => {
     // }
   };
 
+
   const handleEditToggle = () => {
     setIsEditing(!isEditing)
   }
@@ -174,18 +177,47 @@ const Enrollees = ({ mode, editType }) => {
 
     return false;
   };
-
   const handleSave = async () => {
     setError(null);
     setSuccess(null);
 
-    try {
-      const payload = mapToApiPayload(studentData, studentId, editType);
+    // Basic validation: check for empty required fields
+    const payload = mapToApiPayload(studentData, studentId, editType);
+    const missingFields = Object.entries(payload).filter(
+      ([key, value]) => value === undefined || value === null || value.toString().trim() === ""
+    );
 
+    // Phone number validation (basic: must be 10 or 11 digits, numbers only)
+    const phoneFields = [
+      "mobile_number",
+      "student_family_info.mother_mobile_number",
+      "student_family_info.father_mobile_number",
+      "student_family_info.guardian_mobile_number"
+    ];
+
+    const invalidPhones = phoneFields.filter(field => {
+      // Support nested fields
+      const value = field.includes(".")
+        ? field.split(".").reduce((obj, k) => (obj ? obj[k] : undefined), studentData)
+        : studentData[field];
+      // Accept format 09123456789 only (must start with 09 and be 11 digits)
+      return value && !/^09\d{9}$/.test(value);
+    });
+
+    if (invalidPhones.length > 0) {
+      toast.error("Please enter valid phone numbers (11 digits).");
+      return;
+    }
+
+    if (missingFields.length > 0) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+
+    try {
       let response;
       if (editType === "partial") {
         response = await createEnrollee(studentId, payload);
-        
       } else if (editType === "full") {
         response = await editStudentData(studentId, payload);
       } else {
@@ -200,14 +232,14 @@ const Enrollees = ({ mode, editType }) => {
 
       if (error.response) {
         if (error.response.status === 422) {
-          setError("Validation failed. Please check your inputs.");
+          toast.error("Validation failed. Please check your inputs.");
         } else if (error.response.status === 409) {
-          setError("You have already enrolled.");
+          toast.error("Student is already enrolled.");
         } else {
-          setError("An error occurred. Please try again.");
+          toast.error("An error occurred. Please try again.");
         }
       } else {
-        setError("Network error. Please try again later.");
+        toast.error("Network error. Please try again later.");
       }
     }
   };

@@ -222,12 +222,12 @@ const StudentInformation = () => {
           >
             Sync New Accounts
           </button>
-          <button
+          {/* <button
             onClick={() => setSyncGrades(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
           >
             Sync Grades & class schedules
-          </button>
+          </button> */}
           </>
           
         )}

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\AcademicYear;
+use App\Models\EnrollmentSchedule;
 use Illuminate\Database\Seeder;
 use App\Models\Course;
 use App\Models\Grade;
@@ -18,6 +20,9 @@ class GradeSeeder extends Seeder
         $courses = Course::all();
         $applicants = StudentInformation::all();
 
+        // Get all academic years
+        $academicYears = AcademicYear::pluck('school_year');
+
         if ($courses->isEmpty()) {
             $this->command->warn('No courses found. Please run CourseSeeder first.');
             return;
@@ -28,23 +33,33 @@ class GradeSeeder extends Seeder
             return;
         }
 
+        if ($academicYears->isEmpty()) {
+            $this->command->warn('No academic years found in EnrollmentSchedule.');
+            return;
+        }
+
+        // Use only one academic year for all grades (e.g., the latest)
+        $academicYear = $academicYears->last();
+
         foreach ($applicants as $applicant) {
             $numCourses = rand(5, 8);
             $randomCourses = $courses->random($numCourses);
 
             foreach ($randomCourses as $course) {
-                $gradeValue = $faker->randomFloat(2, 1.00, 5.00); 
+                foreach (['1st', '2nd'] as $term) {
+                    $gradeValue = $faker->randomFloat(2, 1.00, 5.00);
 
-                Grade::create([
-                    'student_information_id' => $applicant->id,
-                    'course_id' => $course->id,
-                    'term' => $faker->randomElement(['1st', '2nd']),
-                    'academic_year' => $faker->year() . '-' . ($faker->year() + 1),
-                    'grade' => $gradeValue,
-                    'remarks' => $gradeValue <= 3.0 ? 'passed' : 'not_passed',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                    Grade::create([
+                        'student_information_id' => $applicant->id,
+                        'course_id' => $course->id,
+                        'term' => $term,
+                        'academic_year' => $academicYear,
+                        'grade' => $gradeValue,
+                        'remarks' => $gradeValue <= 3.0 ? 'passed' : 'not_passed',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
             foreach (['1st', '2nd'] as $term) {
@@ -55,7 +70,7 @@ class GradeSeeder extends Seeder
                 GradeTemplate::create([
                     'student_information_id' => $applicant->id,
                     'term' => $term,
-                    'school_year' => $faker->year() . '-' . ($faker->year() + 1),
+                    'school_year' => $academicYear,
                     'target_GWA' => $targetGWA,
                     'actual_GWA' => $actualGWA,
                     'status' => $status,

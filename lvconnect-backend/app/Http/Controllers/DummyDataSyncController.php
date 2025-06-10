@@ -153,8 +153,25 @@ class DummyDataSyncController extends Controller
 
                 if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
                     foreach ($applicant['grades'] as $gradeData) {
-                        $course = Course::where('course', $gradeData['course'] ?? null)->first();
-                        if (!$course) continue;
+                        // Accept both string course name/code or array with course info
+                        $courseIdentifier = $gradeData['course'] ?? null;
+                        if (is_array($courseIdentifier)) {
+                            // If course is an array, try to use 'id', 'course', or 'course_code'
+                            if (isset($courseIdentifier['id'])) {
+                                $course = Course::find($courseIdentifier['id']);
+                            } elseif (isset($courseIdentifier['course_code'])) {
+                                $course = Course::where('course_code', $courseIdentifier['course_code'])->first();
+                            } elseif (isset($courseIdentifier['course'])) {
+                                $course = Course::where('course', $courseIdentifier['course'])->first();
+                            } else {
+                                $course = null;
+                            }
+                        } else {
+                            // If course is a string, try both course name and code
+                            $course = Course::where('course', $courseIdentifier)
+                                ->orWhere('course_code', $courseIdentifier)
+                                ->first();
+                        }
 
                         $exists = Grade::where('student_information_id', $student->id)
                             ->where('course_id', $course->id)
@@ -192,38 +209,101 @@ class DummyDataSyncController extends Controller
                             'actual_GWA' => $template['actual_GWA'],
                             'status' => $template['status'],
                         ]);
+                        \Log::info('GradeTemplate created', [
+                            'student_information_id' => $student->id,
+                            'term' => $template['term'],
+                            'school_year' => $template['school_year']
+                        ]);
+                    } else {
+                        \Log::info('GradeTemplate already exists', [
+                            'student_information_id' => $student->id,
+                            'term' => $template['term'],
+                            'school_year' => $template['school_year']
+                        ]);
                     }
                 }
 
                 if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
                     foreach ($applicant['schedules'] as $scheduleData) {
-                        $program = Program::where('program_name', $scheduleData['program'])->first();
-                        $course = Course::where('course', $scheduleData['course'])->first();
+                        // Ensure $scheduleData is an array
+                        if (!is_array($scheduleData)) {
+                            \Log::info('Schedule sync: scheduleData is not an array', [
+                                'scheduleData' => $scheduleData
+                            ]);
+                            continue;
+                        }
 
-                        if (!$program || !$course) continue;
+                        $program = Program::where('program_name', $scheduleData['program'] ?? null)->first();
+
+                        // Handle course as array or string
+                        $courseIdentifier = $scheduleData['course'] ?? null;
+                        if (is_array($courseIdentifier)) {
+                            if (isset($courseIdentifier['id'])) {
+                                $course = Course::find($courseIdentifier['id']);
+                            } elseif (isset($courseIdentifier['course_code'])) {
+                                $course = Course::where('course_code', $courseIdentifier['course_code'])->first();
+                            } elseif (isset($courseIdentifier['course'])) {
+                                $course = Course::where('course', $courseIdentifier['course'])->first();
+                            } else {
+                                $course = null;
+                            }
+                        } else {
+                            $course = Course::where('course', $courseIdentifier)
+                                ->orWhere('course_code', $courseIdentifier)
+                                ->first();
+                        }
+
+                        if (!$program || !$course) {
+                            \Log::info('Schedule sync: Program or Course not found', [
+                                'program' => $scheduleData['program'] ?? null,
+                                'course' => $scheduleData['course'] ?? null
+                            ]);
+                            continue;
+                        }
 
                         $exists = Schedule::where([
-                            'program' => $scheduleData['program'],
+                            'program_id' => $program->id,
                             'course_id' => $course->id,
-                            'term' => $scheduleData['term'],
-                            'year_level' => $scheduleData['year_level'],
-                            'section' => $scheduleData['section'],
-                            'day' => $scheduleData['day'],
-                            'start_time' => $scheduleData['start_time'],
-                            'end_time' => $scheduleData['end_time'],
+                            'term' => $scheduleData['term'] ?? null,
+                            'year_level' => $scheduleData['year_level'] ?? null,
+                            'section' => $scheduleData['section'] ?? null,
+                            'day' => $scheduleData['day'] ?? null,
+                            'start_time' => $scheduleData['start_time'] ?? null,
+                            'end_time' => $scheduleData['end_time'] ?? null,
                         ])->exists();
 
                         if (!$exists) {
                             Schedule::create([
-                                'program' => $scheduleData['program'],
+                                'program_id' => $program->id,
                                 'course_id' => $course->id,
-                                'term' => $scheduleData['term'],
-                                'year_level' => $scheduleData['year_level'],
-                                'section' => $scheduleData['section'],
-                                'day' => $scheduleData['day'],
-                                'start_time' => $scheduleData['start_time'],
-                                'end_time' => $scheduleData['end_time'],
+                                'term' => $scheduleData['term'] ?? null,
+                                'year_level' => $scheduleData['year_level'] ?? null,
+                                'section' => $scheduleData['section'] ?? null,
+                                'day' => $scheduleData['day'] ?? null,
+                                'start_time' => $scheduleData['start_time'] ?? null,
+                                'end_time' => $scheduleData['end_time'] ?? null,
                                 'room' => $scheduleData['room'] ?? null,
+                            ]);
+                            \Log::info('Schedule created', [
+                                'program_id' => $program->id,
+                                'course_id' => $course->id,
+                                'term' => $scheduleData['term'] ?? null,
+                                'year_level' => $scheduleData['year_level'] ?? null,
+                                'section' => $scheduleData['section'] ?? null,
+                                'day' => $scheduleData['day'] ?? null,
+                                'start_time' => $scheduleData['start_time'] ?? null,
+                                'end_time' => $scheduleData['end_time'] ?? null
+                            ]);
+                        } else {
+                            \Log::info('Schedule already exists', [
+                                'program_id' => $program->id,
+                                'course_id' => $course->id,
+                                'term' => $scheduleData['term'] ?? null,
+                                'year_level' => $scheduleData['year_level'] ?? null,
+                                'section' => $scheduleData['section'] ?? null,
+                                'day' => $scheduleData['day'] ?? null,
+                                'start_time' => $scheduleData['start_time'] ?? null,
+                                'end_time' => $scheduleData['end_time'] ?? null
                             ]);
                         }
                     }

@@ -12,7 +12,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class StudentController extends Controller
 {
-    public function viewGrades($studentInformationId)
+    public function viewGrades()
     {
         $user = JWTAuth::authenticate();
 
@@ -20,11 +20,13 @@ class StudentController extends Controller
             return response()->json(['message' => 'Unauthorized. Only students can view grades.'], 403);
         }
 
-        if ($user->student_information_id !== (int) $studentInformationId) {
-            return response()->json(['message' => 'Forbidden. You can only view your own grades.'], 403);
+        $student = $user->studentInformation;
+
+        if (!$student) {
+            return response()->json(['message' => 'Student information not found.'], 404);
         }
 
-        $student = $user->studentInformation;
+        $studentInformationId = $student->id;
 
         $grades = Grade::with('course')
             ->where('student_information_id', $studentInformationId)
@@ -38,6 +40,12 @@ class StudentController extends Controller
                     'remarks' => $grade->remarks,
                     'term' => $grade->term,
                     'academic_year' => $grade->academic_year,
+                    'all_units' => Grade::where('student_information_id', $grade->student_information_id)
+                        ->where('academic_year', $grade->academic_year)
+                        ->where('term', $grade->term)
+                        ->with('course')
+                        ->get()
+                        ->sum(fn($g) => $g->course->unit),
                 ];
             })
             ->groupBy(fn($grade) => $grade['academic_year'] . ' - ' . $grade['term']);
@@ -55,7 +63,28 @@ class StudentController extends Controller
             })
             ->groupBy(fn($template) => $template['school_year'] . ' - ' . $template['term']);
 
+        // Get the first school year and term from gradeTemplates
+        $firstKey = $gradeTemplates->keys()->first();
+        $schoolYear = '';
+        $term = '';
+        if ($firstKey) {
+            [$schoolYear, $term] = explode(' - ', $firstKey);
+        }
+
+        $userFormat = [
+            'schoolYear' => $schoolYear,
+            'term' => $term,
+            'program' => $student->program ?? '',
+            'yearLevel' => $student->year_level ?? '',
+            'student' => [
+                'name' => $student->fullname ?? '',
+                'studentNumber' => $student->student_id_number ?? '',
+                'scholarshipStatus' => $student->scholarship_status ?? '',
+            ],
+        ];
+
         return response()->json([
+            'user' => $userFormat,
             'grades_by_term' => $grades,
             'grade_templates_by_term' => $gradeTemplates,
         ]);

@@ -38,7 +38,7 @@ class ScheduleSeeder extends Seeder
         }
 
         foreach ($grouped as $combo) {
-            $randomCourses = $courses->random(5);
+            $randomCourses = $courses->random(10);
 
             foreach ($randomCourses as $index => $course) {
                 Schedule::create([
@@ -47,7 +47,7 @@ class ScheduleSeeder extends Seeder
                     'term' => '1st Term',
                     'year_level' => $combo['year_level'],
                     'section' => 'A',
-                    'day' => ['Mon/Wed', 'Tue/Thu', 'Friday'][$index % 3],
+                    'day' => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][$index % 7],
                     'start_time' => Carbon::createFromTime(8 + $index, 0),
                     'end_time' => Carbon::createFromTime(9 + $index, 0),
                     'room' => 'Room ' . chr(65 + $index),

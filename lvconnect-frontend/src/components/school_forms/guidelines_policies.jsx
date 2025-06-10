@@ -9,7 +9,7 @@ const GuidelinesAndPolicies = () => {
       <div className="guidelines-header">Guidelines and Policies</div>
       <div className="guidelines-grid">
         <a
-          href="/coming-soon"
+          href="student-services/student-handbook"
           target="_blank"
           rel="noopener noreferrer"
           className="guidelines-card"

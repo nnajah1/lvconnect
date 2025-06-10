@@ -31,17 +31,19 @@ import NotificationsPanel from "./users_dashboards/dasboards_components/notifica
 import Unauthorized from "./layouts/Unauthorized";
 import ComingSoon from "./layouts/ComingSoon";
 import ResetPassword from "./pages/authentication/ResetPassword";
-import PrivacyPolicy  from "./layouts/PrivacyPolicy";
+import PrivacyPolicy from "./layouts/PrivacyPolicy";
 import { Authenticate } from "./components/dynamic/loader";
 import RegistrarDashboard from "./pages/registrar/AdminDashboard";
 import CommsDashboard from "./pages/admins/comms/AdminDashboard";
 import SchoolAdminDashboard from "./pages/admins/scadmin/AdminDashboard";
 import RoleManagement from "./pages/admins/systemAdmin/RoleManagement";
 import PageError from "./layouts/Error";
+import StudentHandbook from "./components/school_forms/studentHandbook";
 
 
 const router = createBrowserRouter([
-    { path: '/', element: <Navigate to="/login" />, 
+    {
+        path: '/', element: <Navigate to="/login" />,
         errorElement: <PageError />,
     },
 
@@ -70,8 +72,8 @@ const router = createBrowserRouter([
 
 
     { path: '/change-password', element: <MustChangePassword /> },
-    
-    {path:"/reset-password", element: <ResetPassword />},
+
+    { path: "/reset-password", element: <ResetPassword /> },
 
     {
         path: '/', element: <DefaultLayout />,
@@ -88,11 +90,12 @@ const router = createBrowserRouter([
                         handle: { roles: ['student'] },
                         children: [
                             { index: true, element: <UserDashboard /> },
-                            { path: "enrollment", element: <UserEnrollment mode="edit" editType="partial"/> },
+                            { path: "enrollment", element: <UserEnrollment mode="edit" editType="partial" /> },
                             { path: "grades", element: <Grades /> },
                             { path: "soa", element: <StudentSoa /> },
                             { path: "surveys", element: <VisibleSurveys /> },
                             { path: "student-services", element: <VisibleForms /> },
+                            { path: "student-services/student-handbook", element: <StudentHandbook /> }, 
                         ],
                     },
                     {
@@ -130,12 +133,12 @@ const router = createBrowserRouter([
                         path: "registrar",
                         handle: { roles: ['registrar'] },
                         children: [
-                            { index: true, element: <RegistrarDashboard/> },
+                            { index: true, element: <RegistrarDashboard /> },
                             { path: "enrollment", element: <Enrollment /> },
-                            { path: "enrollment/student-information/:studentId", element: <Enrollees mode="view"/> },
-                            { path: "enrollment/student-information/:studentId/edit", element: <Enrollees mode="edit" editType="partial"/>},
-                            { path: "student-information-management/:studentId/edit", element: <Enrollees mode="edit" editType="full"/>}, 
-                            { path: "student-information-management/:studentId/view", element: <Enrollees mode="view"/>},
+                            { path: "enrollment/student-information/:studentId", element: <Enrollees mode="view" /> },
+                            { path: "enrollment/student-information/:studentId/edit", element: <Enrollees mode="edit" editType="partial" /> },
+                            { path: "student-information-management/:studentId/edit", element: <Enrollees mode="edit" editType="full" /> },
+                            { path: "student-information-management/:studentId/view", element: <Enrollees mode="view" /> },
                             { path: "student-information-management", element: <StudentInformation /> },
                             { path: "", element: <StudentInformation /> },
                             { path: "soa", element: <AdminSoa /> },
@@ -155,8 +158,9 @@ const router = createBrowserRouter([
 
         ],
     },
-    { path: "/privacy-policy", element: <PrivacyPolicy/> },
-    { path: "/coming-soon", element: <ComingSoon/> },
+
+    { path: "/privacy-policy", element: <PrivacyPolicy /> },
+    { path: "/coming-soon", element: <ComingSoon /> },
     { path: "/unauthorized", element: <Unauthorized /> },
 
 

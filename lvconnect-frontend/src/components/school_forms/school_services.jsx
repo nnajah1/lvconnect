@@ -34,7 +34,7 @@ const SchoolServices = () => {
         </a>
 
         <a
-          href="/coming-soon"
+          href="https://tpes.vercel.app/login"
           target="_blank"
           rel="noopener noreferrer"
           className="school-service-card"

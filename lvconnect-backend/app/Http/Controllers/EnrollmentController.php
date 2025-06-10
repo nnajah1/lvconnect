@@ -172,11 +172,9 @@ class EnrollmentController extends Controller
                 ->pluck('student_information_id')
                 ->unique();
 
-            // Students with no enrollee record for this academic year and semester
-            // AND do not have any enrollee record at all
+            // Students with no enrollee record for this academic year and semester only
             $studentsNotEnrolled = StudentInformation::whereIn('id', $studentInformationIds)
                 ->whereNotIn('id', $studentsWithEnrolleeRecord)
-                ->whereNotIn('id', $studentsWithAnyEnrolleeRecord)
                 ->get()
                 ->map(function ($student) {
                     return [
@@ -675,9 +673,9 @@ class EnrollmentController extends Controller
 
         $userIds = $studentsToNotify->pluck('user_id')->filter()->unique();
 
-        User::whereIn('id', $userIds)->chunk(50, function ($users) use ($year, $data) {
+        User::whereIn('id', $userIds)->chunk(20, function ($users) use ($year, $data) {
             foreach ($users as $user) {
-                $user->notify(new EnrollmentNotification($year, $data['semester'], true));
+            $user->notify(new EnrollmentNotification($year, $data['semester'], true));
             }
         });
 
@@ -722,7 +720,7 @@ class EnrollmentController extends Controller
 
         $userIds = $studentsToNotify->pluck('user_id')->filter()->unique();
 
-        User::whereIn('id', $userIds)->chunk(50, function ($users) use ($year, $data) {
+        User::whereIn('id', $userIds)->chunk(20, function ($users) use ($year, $data) {
             foreach ($users as $user) {
                 $user->notify(new EnrollmentNotification($year, $data['semester'], false));
             }
@@ -744,7 +742,7 @@ class EnrollmentController extends Controller
         }
 
         return response()->json([
-            'active' => true,
+            'active' => $activeSchedule,
             'data' => $activeSchedule,
         ]);
     }
