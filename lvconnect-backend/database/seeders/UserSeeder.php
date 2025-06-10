@@ -71,6 +71,7 @@ class UserSeeder extends Seeder
             ['first_name' => 'Jorilyn',  'last_name' => 'Pantallano', 'email' => 'jorilynpantallano@student.laverdad.edu.ph'],
             ['first_name' => 'Numeriano',  'last_name' => 'Constantino Jr', 'email' => 'numerianoconstantinojr@student.laverdad.edu.ph'],
             ['first_name' => 'Lorlyn Grace',  'last_name' => 'Boiser', 'email' => 'lorlyngraceboiser@student.laverdad.edu.ph'],
+            ['first_name' => 'Chris',  'last_name' => 'Py', 'email' => 'chris@student.laverdad.edu.ph'],
         ];
 
         foreach ($students as $data) {
