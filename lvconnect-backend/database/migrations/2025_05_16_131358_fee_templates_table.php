@@ -32,6 +32,7 @@ return new class extends Migration
             $table->decimal('total_payment', 10, 2)->default(0);        // always 0 for full scholars
 
             // Metadata
+            $table->enum('status', ['saved', 'archived']);
             $table->boolean('is_visible')->default(false);
             $table->timestamps();
         });
