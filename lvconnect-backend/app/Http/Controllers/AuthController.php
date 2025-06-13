@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\App;
 use Mail;
 use Str;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -37,7 +39,10 @@ class AuthController extends Controller
 
         // Return validation errors
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         // Get the authenticated user
@@ -157,12 +162,14 @@ class AuthController extends Controller
                 'active_role' => $user->active_role,
                 'message' => 'login successfully'
             ], 200);  // 200 OK
-        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        } catch (TokenExpiredException $e) {
             return response()->json(['error' => 'Token expired'], 401);
-        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (TokenInvalidException $e) {
             return response()->json(['error' => 'Invalid token'], 401);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not retrieve user data'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Unexpected error occurred'], 500);
         }
     }
 

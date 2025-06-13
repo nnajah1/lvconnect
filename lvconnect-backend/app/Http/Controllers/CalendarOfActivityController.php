@@ -37,27 +37,43 @@ class CalendarOfActivityController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $request->validate([
-            'event_title' => 'required|string|max:255',
-            'description' => 'required|string|max:1000',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'color' => 'required|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'event_title' => 'required|string|max:255',
+                'description' => 'required|string|max:1000',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'color' => 'required|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
 
-        $activity = CalendarOfActivity::create([
-            'event_title' => $request->event_title,
-            'description' => $request->description,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'created_by' => $user->id,
-            'color' => $request->color,
-        ]);
+        try {
+            $event = CalendarOfActivity::create([
+                'event_title' => $validated['event_title'],
+                'description' => $validated['description'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'created_by' => $user->id,
+                'color' => $validated['color'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create event',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Activity created successfully',
-            'data' => $activity,
+            'message' => 'Event created successfully',
+            'data' => $event,
         ], 201);
     }
 
@@ -92,45 +108,62 @@ class CalendarOfActivityController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $activity = CalendarOfActivity::find($id);
+        $event = CalendarOfActivity::find($id);
 
-        if (!$activity) {
-            return response()->json(['message' => 'Activity not found'], 404);
+        if (!$event) {
+            return response()->json(['message' => 'Event not found'], 404);
         }
 
-        $request->validate([
-            'event_title' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string|max:1000',
-            'start_date' => 'sometimes|required|date',
-            'end_date' => 'sometimes|required|date|after_or_equal:start_date',
-            'color' => 'required|string',
-        ]);
-
-        if ($request->has('event_title')) {
-            $activity->event_title = $request->event_title;
+        try {
+            $validated = $request->validate([
+                'event_title' => 'sometimes|required|string|max:255',
+                'description' => 'sometimes|required|string|max:1000',
+                'start_date' => 'sometimes|required|date',
+                'end_date' => 'sometimes|required|date|after_or_equal:start_date',
+                'color' => 'required|string',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
         }
 
-        if ($request->has('description')) {
-            $activity->description = $request->description;
+        if (isset($validated['event_title'])) {
+            $event->event_title = $validated['event_title'];
         }
 
-        if ($request->has('start_date')) {
-            $activity->start_date = $request->start_date;
+        if (isset($validated['description'])) {
+            $event->description = $validated['description'];
         }
 
-        if ($request->has('end_date')) {
-            $activity->end_date = $request->end_date;
-        }
-         if ($request->has('color')) {
-            $activity->color = $request->color;
+        if (isset($validated['start_date'])) {
+            $event->start_date = $validated['start_date'];
         }
 
-        $activity->save();
+        if (isset($validated['end_date'])) {
+            $event->end_date = $validated['end_date'];
+        }
+
+        if (isset($validated['color'])) {
+            $event->color = $validated['color'];
+        }
+
+        try {
+            $event->save();
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update event',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Activity updated successfully',
-            'data' => $activity,
+            'message' => 'Event updated successfully',
+            'data' => $event,
         ]);
     }
 
@@ -148,11 +181,11 @@ class CalendarOfActivityController extends Controller
         $activity = CalendarOfActivity::find($id);
 
         if (!$activity) {
-            return response()->json(['message' => 'Activity not found'], 404);
+            return response()->json(['message' => 'Event not found'], 404);
         }
 
         $activity->delete();
 
-        return response()->json(['message' => 'Activity deleted successfully']);
+        return response()->json(['message' => 'Event deleted successfully']);
     }
 }

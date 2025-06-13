@@ -59,12 +59,19 @@ class CreateAccountController extends Controller
         $email = $firstName . $lastName . '@laverdad.edu.ph';
 
         // Ensure email is unique (append number if needed)
-        // $counter = 1;
+        $counter = 1;
+        $baseEmail = $firstName . $lastName;
         while (User::where('email', $email)->exists()) {
-            // $email = $firstName . '.' . $lastName . $counter . '@example.com';
-            $email = $firstName . $lastName . '@laverdad.edu.ph';
+            $email = $baseEmail . $counter . '@laverdad.edu.ph';
+            $counter++;
+        }
 
-            // $counter++;
+        // Check if email is valid
+        $emailValidator = Validator::make(['email' => $email], [
+            'email' => 'required|email|unique:users,email',
+        ]);
+        if ($emailValidator->fails()) {
+            return response()->json(['errors' => $emailValidator->errors()], 422);
         }
 
         // Generate a random password
@@ -112,12 +119,18 @@ class CreateAccountController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
         $firstName = ucwords(strtolower($request->first_name));
         $lastName = ucwords(strtolower($request->last_name));
 
         // convert first and last name: only letters and lowercase
         $firstNameClean = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->first_name));
         $lastNameClean = strtolower(preg_replace('/[^a-zA-Z]/', '', $request->last_name));
+
+        // Check if names are empty after cleaning
+        if (empty($firstNameClean) || empty($lastNameClean)) {
+            return response()->json(['errors' => ['name' => ['First name and last name must contain at least one letter.']]], 422);
+        }
 
         // Create base email
         $email = $firstNameClean . $lastNameClean . '@student.laverdad.edu.ph';
@@ -129,21 +142,36 @@ class CreateAccountController extends Controller
             $counter++;
         }
 
+        // Validate generated email
+        $emailValidator = Validator::make(['email' => $email], [
+            'email' => 'required|email|unique:users,email',
+        ]);
+        if ($emailValidator->fails()) {
+            return response()->json(['errors' => $emailValidator->errors()], 422);
+        }
+
         // Generate random password
         $randomPassword = Str::random(10);
 
-        // Create student user
-        $student = User::create([
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'email' => $email,
-            'password' => Hash::make($randomPassword),
-        ]);
+        try {
+            // Create student user
+            $student = User::create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'password' => Hash::make($randomPassword),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create user', 'details' => $e->getMessage()], 500);
+        }
 
-        $student->assignRole('student');
-
-        // Notify student with credentials
-        $student->notify(new UserCredentialsNotification($randomPassword));
+        try {
+            $student->assignRole('student');
+            // Notify student with credentials
+            $student->notify(new UserCredentialsNotification($randomPassword));
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'User created but failed to assign role or notify', 'details' => $e->getMessage()], 500);
+        }
 
         return response()->json([
             'message' => 'Student account created successfully.',
@@ -177,11 +205,29 @@ class CreateAccountController extends Controller
         }
 
         $createdUsers = [];
+        $errors = [];
 
-        foreach ($request->users as $userData) {
+        foreach ($request->users as $index => $userData) {
+            // Validate individual user data
+            $userValidator = Validator::make($userData, [
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+            ]);
+
+            if ($userValidator->fails()) {
+                $errors[$index] = $userValidator->errors();
+                continue;
+            }
+
             // convert first and last name: only letters and lowercase
             $first = strtolower(preg_replace('/[^a-zA-Z]/', '', $userData['first_name']));
             $last = strtolower(preg_replace('/[^a-zA-Z]/', '', $userData['last_name']));
+
+            // Check if names are empty after cleaning
+            if (empty($first) || empty($last)) {
+                $errors[$index] = ['name' => ['First name and last name must contain at least one letter.']];
+                continue;
+            }
 
             // Build base email
             $emailBase = $first . $last;
@@ -194,31 +240,47 @@ class CreateAccountController extends Controller
                 $counter++;
             }
 
+            // Validate generated email
+            $emailValidator = Validator::make(['email' => $email], [
+                'email' => 'required|email|unique:users,email',
+            ]);
+            if ($emailValidator->fails()) {
+                $errors[$index] = $emailValidator->errors();
+                continue;
+            }
+
             $randomPassword = Str::random(10);
 
-            $newUser = User::create([
-                'first_name' => $userData['first_name'],
-                'last_name' => $userData['last_name'],
-                'email' => $email,
-                'password' => Hash::make($randomPassword),
-                'is_active' => true,
-            ]);
+            try {
+                $newUser = User::create([
+                    'first_name' => $userData['first_name'],
+                    'last_name' => $userData['last_name'],
+                    'email' => $email,
+                    'password' => Hash::make($randomPassword),
+                    'is_active' => true,
+                ]);
+                $newUser->assignRole('student');
+                $newUser->notify(new UserCredentialsNotification($randomPassword));
 
-            $newUser->assignRole('student');
-
-            $newUser->notify(new UserCredentialsNotification($randomPassword));
-
-            $createdUsers[] = [
-                'name' => $newUser->first_name . ' ' . $newUser->last_name,
-                'email' => $email,
-                'role' => 'student',
-            ];
+                $createdUsers[] = [
+                    'name' => $newUser->first_name . ' ' . $newUser->last_name,
+                    'email' => $email,
+                    'role' => 'student',
+                ];
+            } catch (\Exception $e) {
+                $errors[$index] = ['exception' => [$e->getMessage()]];
+            }
         }
 
-        return response()->json([
-            'message' => 'Student accounts created successfully',
+        $response = [
+            'message' => 'Batch student account creation completed.',
             'users' => $createdUsers,
-        ], 201);
+        ];
+        if (!empty($errors)) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, empty($createdUsers) ? 422 : 201);
     }
 
     public function importStudentsFromFile(Request $request)
@@ -251,6 +313,10 @@ class CreateAccountController extends Controller
 
         if (!$authUser || !$authUser->hasAnyRole(['superadmin', 'registrar'])) {
             return response()->json(['error' => 'Not authorized'], 403);
+        }
+
+        if (!is_numeric($id) || $id <= 0) {
+            return response()->json(['error' => 'Invalid user ID'], 422);
         }
 
         $user = User::find($id);
@@ -286,6 +352,10 @@ class CreateAccountController extends Controller
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
+        if (!is_numeric($id) || $id <= 0) {
+            return response()->json(['error' => 'Invalid user ID'], 422);
+        }
+
         $user = User::find($id);
 
         if (!$user) {
@@ -313,48 +383,52 @@ class CreateAccountController extends Controller
      */
     public function showUserRole(Request $request, string $id = null)
     {
-        $authUser = JWTAuth::authenticate();
+        try {
+            $authUser = JWTAuth::authenticate();
 
-        if (!$authUser || !$authUser->hasRole('superadmin')) {
-            return response()->json(['error' => 'Not authorized'], 403);
-        }
-
-        if ($id) {
-            $user = User::with('roles')->find($id);
-
-            if (!$user) {
-                return response()->json(['error' => 'User not found'], 404);
+            if (!$authUser || !$authUser->hasRole('superadmin')) {
+                return response()->json(['error' => 'Not authorized'], 403);
             }
 
-            return response()->json([
-                'user' => [
+            if ($id) {
+                $user = User::with('roles')->find($id);
+
+                if (!$user) {
+                    return response()->json(['error' => 'User not found'], 404);
+                }
+
+                return response()->json([
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->first_name . ' ' . $user->last_name,
+                        'email' => $user->email,
+                        'roles' => $user->getRoleNames(),
+                    ]
+                ]);
+            }
+
+            $users = User::with('roles')->get();
+
+            $data = $users->map(function ($user) {
+                return [
                     'id' => $user->id,
                     'name' => $user->first_name . ' ' . $user->last_name,
                     'email' => $user->email,
+                    'is_active' => $user->is_active,
                     'roles' => $user->getRoleNames(),
-                ]
+                ];
+            });
+
+            // Get all role names
+            $roles = Role::pluck('name');
+
+            return response()->json([
+                'users' => $data,
+                'roles' => $roles,
             ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred', 'details' => $e->getMessage()], 500);
         }
-
-        $users = User::with('roles')->get();
-
-        $data = $users->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
-                'is_active' => $user->is_active,
-                'roles' => $user->getRoleNames(),
-            ];
-        });
-
-        // Get all role names
-        $roles = Role::pluck('name');
-
-        return response()->json([
-            'users' => $data,
-            'roles' => $roles,
-        ]);
     }
     /**
      * Update the specified resource in storage.
@@ -380,6 +454,9 @@ class CreateAccountController extends Controller
         $allowedAdminRoles = ['registrar', 'psas', 'scadmin', 'comms'];
         $roles = $request->input('roles');
 
+        if (empty($roles)) {
+            return response()->json(['error' => 'Roles field is required.'], 422);
+        }
 
         if (!is_array($roles)) {
             $roles = [$roles];
@@ -442,7 +519,10 @@ class CreateAccountController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return response()->json([
+                'message' => 'Validation error.',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         // Update user data

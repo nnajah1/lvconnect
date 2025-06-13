@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Validation\ValidationException;
 
 class AcademicYearController extends Controller
 {
@@ -29,24 +30,31 @@ class AcademicYearController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $validated = $request->validate([
-            'school_year' => [
-                'required',
-                'regex:/^\d{4}-\d{4}$/',
-                'unique:academic_years,school_year',
-            ],
-        ]);
+        try {
+            $validated = $request->validate([
+                'school_year' => [
+                    'required',
+                    'regex:/^\d{4}-\d{4}$/',
+                    'unique:academic_years,school_year',
+                ],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
 
         $parts = explode('-', $validated['school_year']);
         if ((int) $parts[1] !== (int) $parts[0] + 1) {
-            return response()->json(['message' => 'Invalid school year range.'], 422);
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => ['school_year' => ['Invalid school year range.']]
+            ], 422);
         }
 
-        // Always deactivate others and set new acad year to active
         AcademicYear::query()->update(['is_active' => false]);
         $validated['is_active'] = true;
-
-
 
         $year = AcademicYear::create($validated);
 
