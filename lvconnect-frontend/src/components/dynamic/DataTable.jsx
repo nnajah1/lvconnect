@@ -96,8 +96,7 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
               table.getRowModel().rows.map((row, index) => (
                 <tr
                   key={row.id}
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${index % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800/50"
-                    }`}
+                  className="dark:hover:bg-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 transition-colors duration-200"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td

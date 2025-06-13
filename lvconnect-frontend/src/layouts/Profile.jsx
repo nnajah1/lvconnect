@@ -45,7 +45,7 @@ export function ProfileDropdown({ user, logout }) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
-        className="flex items-center rounded p-1 hover:bg-blue-800"
+        className="flex items-center rounded p-1 hover:bg-blue-100"
         aria-label="User profile"
       >
         <div className="h-8 w-8 overflow-hidden rounded-full bg-white">

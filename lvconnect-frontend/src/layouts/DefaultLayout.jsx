@@ -8,6 +8,7 @@ import { Loader2 } from "@/components/dynamic/loader";
 import { useState } from "react";
 import { Navbar } from "./Navbar";
 import Sidebar from "./sidebar";
+import { cn } from "@/lib/utils";
 
 export default function DefaultLayout() {
   preventBackNavigation(OTPVerification || MustChangePassword)
@@ -25,15 +26,16 @@ export default function DefaultLayout() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-muted">
+    // <div className="flex h-screen overflow-hidden bg-muted">
+    <div className="min-h-screen bg-white transition-colors dark:bg-slate-950">
+
       {/* Mobile backdrop */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-20 bg-black/30 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
-
       <Sidebar
         isExpanded={isSidebarExpanded}
         setIsExpanded={setSidebarExpanded}
@@ -41,7 +43,7 @@ export default function DefaultLayout() {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
       />
 
-      <div className="flex flex-1 flex-col transition-all duration-300 lg:ml-0">
+      <div className={cn("transition-[margin] duration-300", isSidebarExpanded ? "md:ml-[240px]" : "md:ml-[70px]")}>
         <Navbar
           user={user}
           logout={logout}
@@ -49,12 +51,9 @@ export default function DefaultLayout() {
           onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
 
-        <main
-          className={`mx-auto overflow-auto p-20 px-4 pb-4 transition-all scrollbar-hide duration-300 md:px-6 md:pb-6 ${isSidebarExpanded ? "w-[80vw] lg:ml-64" : "w-[95vw] lg:ml-20"
-            }`}
-        >
+        <div className="h-[calc(100vh-60px)] overflow-y-auto overflow-x-hidden p-6 scrollbar-hide">
           <Outlet />
-        </main>
+        </div>
 
       </div>
     </div>

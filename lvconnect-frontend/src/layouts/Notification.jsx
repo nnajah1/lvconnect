@@ -83,7 +83,7 @@ export function NotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
-        className="relative rounded p-1.5 hover:bg-blue-800"
+        className="relative rounded p-1.5 hover:bg-blue-100 text-secondary"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
