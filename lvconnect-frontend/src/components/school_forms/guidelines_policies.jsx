@@ -1,6 +1,5 @@
 import React from 'react';
-import { FaBook, FaUserShield } from 'react-icons/fa';
-import { FaFileLines } from "react-icons/fa6";
+import { FaFileLines, FaUserShield } from "react-icons/fa6";
 
 const StudentResources = () => {
   return (

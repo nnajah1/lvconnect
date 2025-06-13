@@ -1,6 +1,7 @@
 import React from 'react';
 import lvcc_libray_logo from '../assets/lvcc_library_logo.jpg'
 import lvcc_logo from '../assets/lvcc_logo.jpg'
+
 const InstitutionalSystems = () => {
   return (
     <div className="box-border flex flex-col items-start p-2.5 gap-2.5 w-full max-w-full border border-solid border-[#CED4DA] rounded-lg mx-auto">
