@@ -15,11 +15,11 @@ class CalendarOfActivityController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasActiveRole('student')) {
+        if ($user->hasAnyRole(['student', 'superadmin'])) {
             return CalendarOfActivity::select('event_title', 'description', 'start_date', 'end_date', 'color')->get();
         }
 
-        if ($user->hasActiveRole('comms')) {
+        if ($user->hasAnyRole(['comms', 'superadmin'])) {
             return CalendarOfActivity::all();
         }
 
@@ -33,7 +33,7 @@ class CalendarOfActivityController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -104,9 +104,9 @@ class CalendarOfActivityController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+            if (!$user->hasAnyRole(['comms', 'superadmin'])) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
 
         $event = CalendarOfActivity::find($id);
 
@@ -174,7 +174,7 @@ class CalendarOfActivityController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

@@ -51,7 +51,7 @@ class SurveyController extends Controller
         }
 
         // Check if the user has the 'psas' role
-        if ($user->hasActiveRole('psas')) {
+        if ($user->hasAnyRole(['psas', 'superadmin'])) {
             $psasSurveys = Survey::with('questions')
                 ->orderBy('updated_at', 'desc')
                 ->get();
@@ -74,7 +74,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -138,7 +138,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole(['student', 'psas'])) {
+        if (!$user->hasActiveRole(['student', 'psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -198,7 +198,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -270,7 +270,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -334,7 +334,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -608,7 +608,7 @@ class SurveyController extends Controller
         $user = JWTAuth::authenticate();
         $survey = Survey::findOrFail($id);
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

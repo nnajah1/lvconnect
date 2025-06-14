@@ -31,17 +31,17 @@ class SchoolUpdateController extends Controller
 
         $user = JWTAuth::authenticate();
 
-        if ($user->hasActiveRole('comms')) {
+        if ($user->hasAnyRole(['comms', 'superadmin'])) {
             return SchoolUpdate::where('created_by', $user->id)
                 ->where('status', '!=', 'archived')
                 ->orderBy('updated_at', 'desc')
                 ->get();
         }
-        if ($user->hasActiveRole('student')) {
+        if ($user->hasAnyRole(['student', 'superadmin'])) {
             return SchoolUpdate::where('status', SchoolUpdate::STATUS_PUBLISHED)->get();
         }
 
-        if ($user->hasActiveRole('scadmin')) {
+        if ($user->hasAnyRole(['scadmin', 'superadmin'])) {
             return SchoolUpdate::whereIn('status', [
                 SchoolUpdate::STATUS_PENDING,
                 SchoolUpdate::STATUS_REJECTED,
@@ -63,7 +63,7 @@ class SchoolUpdateController extends Controller
         $user = JWTAuth::authenticate();
 
         // Handle 'comms' role
-        if ($user->hasActiveRole('comms')) {
+        if ($user->hasAnyRole(['comms', 'superadmin'])) {
             $schoolUpdate = SchoolUpdate::where('id', $id)->first();
 
             if (!$schoolUpdate) {
@@ -74,7 +74,7 @@ class SchoolUpdateController extends Controller
         }
 
         // Handle 'scadmin' role
-        if ($user->hasActiveRole('scadmin')) {
+        if ($user->hasAnyRole(['scadmin', 'superadmin'])) {
             $schoolUpdate = SchoolUpdate::where('id', $id)
                 ->where('status', '!=', SchoolUpdate::STATUS_DRAFT)
                 ->with('author')
@@ -103,7 +103,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -172,7 +172,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole(['comms'])) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -233,7 +233,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -259,7 +259,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -281,7 +281,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -299,7 +299,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -322,7 +322,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('scadmin')) {
+        if (!$user->hasAnyRole(['scadmin', 'superadmin'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -357,7 +357,7 @@ class SchoolUpdateController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('scadmin')) {
+        if (!$user->hasAnyRole(['scadmin', 'superadmin'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -394,7 +394,7 @@ class SchoolUpdateController extends Controller
 
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('scadmin')) {
+        if (!$user->hasAnyRole(['scadmin', 'superadmin'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -425,7 +425,7 @@ class SchoolUpdateController extends Controller
 
         $post = SchoolUpdate::findOrFail($id);
 
-        if (!$user->hasActiveRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -639,7 +639,7 @@ class SchoolUpdateController extends Controller
     public function destroy(string $id)
     {
         $user = JWTAuth::authenticate();
-        if (!$user->hasActiveRole('comms')) {
+        if (!$user->hasAnyRole(['comms', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

@@ -25,16 +25,16 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasActiveRole('student')) {
+        if ($user->hasAnyRole(['student', 'superadmin'])) {
             return FormType::with('formFields')
-                ->where('is_visible', true)
-                ->get();
+            ->where('is_visible', true)
+            ->get();
         }
 
-        if ($user->hasActiveRole('psas')) {
+        if ($user->hasAnyRole(['psas', 'superadmin'])) {
             return FormType::with('formFields')
-                ->orderBy('updated_at', 'desc')
-                ->get();
+            ->orderBy('updated_at', 'desc')
+            ->get();
         }
 
         return response()->json(['message' => 'Unauthorized'], 403);
@@ -43,7 +43,7 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasActiveRole('student')) {
+        if ($user->hasAnyRole(['student', 'superadmin'])) {
             // Ensure there's data being returned
             $submissions = FormSubmission::with('formType')
                 ->where('submitted_by', $user->id)
@@ -52,7 +52,7 @@ class SchoolFormsController extends Controller
             return response()->json($submissions);
         }
 
-        if ($user->hasActiveRole('psas')) {
+        if ($user->hasAnyRole(['psas', 'superadmin'])) {
             // Ensure there's data being returned for psas role
             $submissions = FormSubmission::with('formType')
                 ->where('status', '!=', 'draft')
@@ -74,7 +74,7 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -158,7 +158,7 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('student')) {
+        if (!$user->hasAnyRole(['student', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -245,7 +245,7 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -307,7 +307,7 @@ class SchoolFormsController extends Controller
     public function upload2x2Image(Request $request)
     {
         $user = JWTAuth::authenticate();
-        if (!$user->hasActiveRole('student')) {
+        if (!$user->hasAnyRole(['student', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -359,7 +359,7 @@ class SchoolFormsController extends Controller
             return response()->json(['message' => 'Unauthorized access to this submission.'], 403);
         }
 
-        if ($user->hasActiveRole('psas') || $user->hasActiveRole('student')) {
+        if ($user->hasAnyRole(['psas', 'superadmin']) || $user->hasRole('student')) {
             return response()->json([
                 'submission' => $submission,
                 'submission_data' => $submission->submissionData,
@@ -377,7 +377,7 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -563,7 +563,7 @@ class SchoolFormsController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
