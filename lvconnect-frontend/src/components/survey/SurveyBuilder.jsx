@@ -203,68 +203,65 @@ export default function SurveyBuilder({
         }
         closeAlertModal();
     };
-    return (
-        <div className="flex flex-col max-w-4xl mx-auto">
+ return (
+  <div className="flex flex-col max-w-4xl mx-auto">
+    {/* Header with title and dropdown */}
+    <div className="flex justify-between items-center mb-4">
+      <div>
+        <h2 className="text-2xl font-bold text-[#2CA4DD]">
+          {mode === 'edit' ? 'Edit Survey' : 'Create New Survey'}
+        </h2>
+        <p className="text-sm text-gray-600">Create and publish new survey questionnaires for students to answer.</p>
+      </div>
+      
+      <div className="flex flex-col items-start w-fit">
+        <label htmlFor="visibilityMode" className="text-sm font-medium text-slate-700 mb-1">
+          Survey Visibility
+        </label>
+        <Select value={visibilityMode} onValueChange={setVisibilityMode}>
+          <SelectTrigger
+            id="visibilityMode"
+            className="sm:w-64 bg-white dark:bg-slate-950 border-[#2CA4DD] dark:border-[#2CA4DD] text-sm"
+          >
+            <SelectValue placeholder="Select visibility mode" />
+          </SelectTrigger>
+          <SelectContent className="bg-white text-sm">
+            <SelectItem value="hidden" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
+              Hidden (Not shown to users)
+            </SelectItem>
+            <SelectItem value="optional" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
+              Visible (Visible in survey list)
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
 
-            <div className="form-title">
-                <h2 className="text-2xl font-bold text-[#2CA4DD]">
-                    {mode === 'edit' ? 'Edit Survey' : 'Create Survey'}
-                </h2>
-                </div>
+    <hr className="divider mb-5" />
 
-                <hr className="divider m-3" />
-
-            <div className="flex flex-col items-end">
-  {/* Survey Visibility label above the dropdown, aligned left, block aligned right */}
-  <div className="flex flex-col items-start w-fit mb-4">
-    <label
-      htmlFor="visibilityMode"
-      className="text-sm font-medium text-slate-700 mb-1"
-    >
-      Survey Visibility
-    </label>
-    <Select value={visibilityMode} onValueChange={setVisibilityMode}>
-      <SelectTrigger
-        id="visibilityMode"
-        className="sm:w-64 bg-white dark:bg-slate-950 border-[#2CA4DD] dark:border-[#2CA4DD] text-sm"
-      >
-        <SelectValue placeholder="Select visibility mode" />
-      </SelectTrigger>
-      <SelectContent className="bg-white text-sm">
-  <SelectItem value="hidden" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
-    Hidden (Not shown to users)
-  </SelectItem>
-  <SelectItem value="optional" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
-    Visible (Visible in survey list)
-  </SelectItem>
-</SelectContent>
-    </Select>
-  </div>
-
-  {/* Other dropdowns follow below here */}
-</div>
-
-
-
-
+    {/* Title and Description fields */}
     <div className="flex flex-col space-y-4 mb-6">
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">Title </label>
         <input
           type="text"
-          placeholder="Survey Title *"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="survey-input survey-input-title p-6 border border-[#2CA4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2CA4DD] mb-5 h-10"
-        />
-
-        <textarea
-          placeholder="Survey Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="survey-textarea survey-description p-3 border border-gray-200 rounded-lg h-25"
+          className="survey-input survey-input-title border border-[#2CA4DD] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2CA4DD] h-10 px-3 w-full"
         />
       </div>
 
-            <div className="space-y-6 mb-6">
+      <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="survey-textarea survey-description p-3 border border-gray-200 bg-white rounded-lg  w-full"
+        />
+      </div>
+    </div>
+
+     <div className="space-y-6 mb-6">
                 {questions.map((q, index) => (
                     <div key={q.id} className="question-card p-4 border rounded-lg shadow-sm">
                         <div className="question-header flex items-start gap-4 mb-4">
@@ -280,7 +277,7 @@ export default function SurveyBuilder({
                             <select
                                 value={q.type}
                                 onChange={(e) => handleTypeChange(q.id, e.target.value)}
-                                className="select-type p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-36 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             >
                                 {QUESTION_TYPES.map((type) => (
                                     <option key={type} value={type}>
@@ -368,13 +365,13 @@ export default function SurveyBuilder({
                             />
                             <div className="h-5 w-px bg-gray-300" />
                             <button
-                                onClick={() => deleteQuestion(q.id)}
-                                className="text-red-500 hover:text-red-700 flex items-center gap-1"
-                                disabled={questions.length <= 1}
+                            onClick={() => deleteQuestion(q.id)}
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                            disabled={questions.length <= 1}
                             >
-                                <RiDeleteBin6Line size={18} />
-                                <span>Delete</span>
+                            Delete
                             </button>
+
                         </div>
                     </div>
                 ))}
@@ -387,52 +384,49 @@ export default function SurveyBuilder({
                 + Add question
             </button>
 
-            <div className="publish-actions flex justify-end gap-4">
-                {mode === 'edit' ? (
-                    <div>
-                        <button
-                            onClick={openAlertModal}
-                            className="text-red-600 border border-red-600 hover:bg-red-50 px-4 py-2 rounded-lg"
-                        >
-                            Delete
-                        </button>
-                        <DeleteModal
-                            isOpen={isAlertModal}
-                            closeModal={closeAlertModal}
-                        >
-                            {/* Action buttons inside the modal */}
-                            <button
-                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-                                onClick={closeAlertModal}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleDeleteSurvey}
-                            >
-                                Delete
-                            </button>
-                        </DeleteModal>
-                    </div>
-                ) :
-                    (
-                        <button
-                            onClick={closeModal}
-                            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-                        >
-                            Cancel
-                        </button>
-                    )
-                }
 
-                <button
-                    onClick={handleSubmit}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]"
-                >
-                    {mode === 'edit' ? 'Update Survey' : 'Publish Survey'}
-                </button>
-            </div>
+    <div className="publish-actions flex justify-end gap-4">
+      {mode === 'edit' ? (
+        <div>
+          <button
+            onClick={openAlertModal}
+            className="text-red-600 border border-red-600 hover:bg-red-50 px-4 py-2 rounded-lg"
+          >
+            Delete
+          </button>
+          <DeleteModal isOpen={isAlertModal} closeModal={closeAlertModal}>
+            <button
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+              onClick={closeAlertModal}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              onClick={handleDeleteSurvey}
+            >
+              Delete
+            </button>
+          </DeleteModal>
         </div>
-    );
+      ) : (
+        <button
+          onClick={closeModal}
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
+        >
+          Cancel
+        </button>
+      )}
+
+      <button
+        onClick={handleSubmit}
+        disabled={isLoading}
+        className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]"
+      >
+        {mode === 'edit' ? 'Update Survey' : 'Publish Survey'}
+      </button>
+    </div>
+  </div>
+);
+
 }
