@@ -25,7 +25,7 @@ const DynamicModal = ({
               {/* Close button positioned absolutely relative to this container */}
               <button
                 onClick={closeModal}
-                className="absolute -top-3 right-0 sm:-top-4 sm:-right-4 bg-red-500 text-white rounded-full p-2 hover:opacity-90 transform translate-y-[-50%] translate-x-[50%] z-10 cursor-pointer"
+                className="absolute -top-3 right-0 sm:-top-4 sm:-right-4 text-white rounded-full p-2 hover:opacity-90 transform translate-y-[-50%] translate-x-[50%] z-10 cursor-pointer"
               >
                 <X className="w-5 h-5 bg-red-500 rounded text-white" />
                 <span className="sr-only">Close</span>

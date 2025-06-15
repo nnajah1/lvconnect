@@ -72,45 +72,45 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 flex items-center justify-center w-full">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 flex items-center justify-center w-auto">
       <div className="bg-accent rounded-lg p-4 w-[800px]">
-        <h2 className="font-bold mb-2">Edit Event</h2>
+        <h2 className="text-xl font-bold text-[#2CA4DD] flex-grow text-center">Edit Event</h2>
 
         <div className="grid grid-cols-7 gap-4 items-start p-4">
           {/* Event Title */}
           <div className="col-span-7">
-            <label className="block text-sm font-medium text-gray-700">Event Title</label>
+            <label className="block font-bold text-[14px] text-gray-700">Event Title</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter event title"
               maxLength={255}
-              className="w-full p-2 border rounded-md mb-2"
+              className="w-full h-full-p-3 border border-[#2CA4DD] rounded-md bg-white"
             />
           </div>
 
           {/* Description */}
           <div className="col-span-7">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block font-bold text-[14px] text-gray-700">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter description"
               maxLength={1000}
-              className="w-full h-32 p-2 border rounded-md resize-none mb-2"
+              className="w-full h-30 bg-white p-2 border  border-gray-200 rounded-md resize-none mb-2"
             ></textarea>
           </div>
 
           {/* Start Date */}
           <div className="col-span-3">
-            <label className="block text-sm font-medium text-gray-700">Start Date</label>
+            <label className="block text-sm font-bold text-gray-700">Start Date</label>
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
               dateFormat="yyyy-MM-dd"
               placeholderText="Select start date"
-              className="w-full p-2 border rounded-md"
+              className="w-full p-2 border rounded-md "
               withPortal
               isClearable
               minDate={new Date()}
@@ -119,13 +119,13 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
 
           {/* End Date */}
           <div className="col-span-3">
-            <label className="block text-sm font-medium text-gray-700">End Date</label>
+            <label className="block text-sm font-bold text-gray-700">End Date</label>
             <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
               dateFormat="yyyy-MM-dd"
               placeholderText="Select end date"
-              className="w-full p-2 border rounded-md"
+              className="w-full p-2 border rounded-md "
               withPortal
               isClearable
               minDate={startDate || new Date()}
@@ -133,12 +133,12 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
           </div>
           {/* Custom Color Picker */}
           <div className='col-span-3'>
-            <label className="block text-sm font-medium text-gray-700">Select Event Color</label>
+            <label className="block text-sm font-bold text-gray-700">Select Event Color</label>
             <input
               type="color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
-              className="w-16 h-10 p-0 border-0"
+              className="w-16 h-10 p-0 border-0  "
             />
           </div>
         </div>
@@ -154,13 +154,13 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
 
           {/* Right side: Cancel and Save */}
           <div className="flex gap-2">
-            <button onClick={onClose} className="border px-3 py-1 rounded">
+            <button onClick={onClose} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-400">
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={isSaving}
-              className="bg-blue-600 text-white px-3 py-1 rounded"
+              className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]"
             >
               {isSaving ? 'Updating...' : 'Update'}
             </button>
