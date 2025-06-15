@@ -74,29 +74,109 @@ class SurveySeeder extends Seeder
             ],
         ];
 
-        $questionTypes = ['Short answer', 'Multiple choice', 'Checkboxes', 'Dropdown'];
+        // Assign realistic question types and choices for each survey
+        $surveyQuestionTypes = [
+            // Post-Flood Emergency Response Survey
+            [
+            'Short answer',         // How did the flood impact your ability to attend classes?
+            'Dropdown',             // What source did you use most to get updates?
+            'Checkboxes',           // What kind of support would you want after such events?
+            'Multiple choice',      // Rate the school’s SMS updates effectiveness.
+            'Short answer',         // Briefly describe how you felt during the flood.
+            ],
+            // Typhoon Preparedness Feedback
+            [
+            'Short answer',         // What preparations did you make before the typhoon?
+            'Checkboxes',           // Select all support services you used.
+            'Short answer',         // How would you improve communication before storms?
+            'Multiple choice',      // Choose the most helpful school response:
+            'Short answer',         // Share a personal tip for typhoon preparedness.
+            ],
+            // School Fire Drill Effectiveness Survey
+            [
+            'Short answer',         // Describe your experience during the last fire drill.
+            'Multiple choice',      // Pick the most useful fire drill instruction.
+            'Short answer',         // What did you find unclear during the drill?
+            'Checkboxes',           // Which areas need more fire safety tools?
+            'Short answer',         // What would make fire drills more effective?
+            ],
+            // Campus Security Incident Response Survey
+            [
+            'Multiple choice',      // Have you ever reported a security concern?
+            'Dropdown',             // Which communication method do you prefer?
+            'Short answer',         // What safety measure would you add?
+            'Checkboxes',           // Pick all security improvements you’ve noticed.
+            'Short answer',         // Describe a situation where you felt unsafe on campus.
+            ],
+            // COVID-19 Health and Safety Measures Survey
+            [
+            'Multiple choice',      // How well did you follow COVID-19 protocols?
+            'Dropdown',             // Which safety feature helped you most?
+            'Short answer',         // What would you change about campus guidelines?
+            'Checkboxes',           // Select all hygiene practices you followed.
+            'Short answer',         // What was your biggest challenge during the pandemic?
+            ],
+        ];
+
+        $surveyQuestionChoices = [
+            // Post-Flood Emergency Response Survey
+            [
+            null,
+            ['School website', 'SMS alerts', 'Social media', 'Teachers', 'Classmates'],
+            ['Food assistance', 'Temporary shelter', 'Counseling', 'Financial aid', 'Transportation'],
+            ['Very effective', 'Somewhat effective', 'Not effective', 'Did not receive updates'],
+            null,
+            ],
+            // Typhoon Preparedness Feedback
+            [
+            null,
+            ['Evacuation center', 'Emergency kit', 'Hotline', 'School nurse', 'Counseling'],
+            null,
+            ['Early warning', 'Evacuation drill', 'Emergency kit distribution', 'Parent notifications'],
+            null,
+            ],
+            // School Fire Drill Effectiveness Survey
+            [
+            null,
+            ['Exit quickly', 'Stay calm', 'Follow teacher', 'Use stairs', 'Do not use elevator'],
+            null,
+            ['Classrooms', 'Hallways', 'Laboratories', 'Library', 'Cafeteria'],
+            null,
+            ],
+            // Campus Security Incident Response Survey
+            [
+            ['Yes', 'No'],
+            ['SMS', 'Email', 'School app', 'In-person', 'Phone call'],
+            null,
+            ['More guards', 'CCTV cameras', 'Lighting', 'Emergency buttons', 'Security patrols'],
+            null,
+            ],
+            // COVID-19 Health and Safety Measures Survey
+            [
+            ['Always', 'Most of the time', 'Sometimes', 'Rarely', 'Never'],
+            ['Face masks', 'Hand sanitizer', 'Temperature checks', 'Social distancing', 'Online classes'],
+            null,
+            ['Hand washing', 'Mask wearing', 'Physical distancing', 'Temperature checks', 'Disinfecting surfaces'],
+            null,
+            ],
+        ];
 
         foreach ($surveyTitles as $index => $title) {
             $survey = Survey::create([
-                'title' => $title,
-                'description' => 'This survey collects feedback related to the event or incident: ' . $title,
-                'created_by' => $faker->randomElement($psasUserIds),
-                'visibility_mode' => $faker->boolean(20) ? 'mandatory' : 'optional',
-                'created_at' => now(),
-                'updated_at' => now(),
+            'title' => $title,
+            'description' => 'This survey collects feedback related to the event or incident: ' . $title,
+            'created_by' => $faker->randomElement($psasUserIds),
+            'visibility_mode' => $faker->boolean(20) ? 'mandatory' : 'optional',
+            'created_at' => now(),
+            'updated_at' => now(),
             ]);
 
             $questions = $questionsPerSurvey[$index];
             $questionRecords = [];
 
             foreach ($questions as $qIndex => $questionText) {
-                $type = $qIndex === count($questions) - 1
-                    ? 'Short answer'
-                    : Arr::random($questionTypes);
-
-                $choices = in_array($type, ['Multiple choice', 'Checkboxes', 'Dropdown'])
-                    ? $faker->randomElements(['Yes', 'No', 'Maybe', 'Not Sure', 'Prefer not to say'], rand(3, 5))
-                    : [];
+                $type = $surveyQuestionTypes[$index][$qIndex];
+                $choices = $surveyQuestionChoices[$index][$qIndex] ?? [];
 
                 $data = ['choices' => $choices];
 
