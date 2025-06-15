@@ -1,4 +1,4 @@
-
+"use client"
 
 import { Menu } from "lucide-react"
 import { NotificationDropdown } from "./Notification"
@@ -6,10 +6,8 @@ import { ProfileDropdown } from "./Profile"
 
 export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) {
   return (
-    <header className="relative z-10 bg-white shadow-md transition-all duration-300 w-full">
-      <div
-        className="flex items-center justify-between px-4 py-3 md:px-6 transition-all duration-300"
-      >
+    <header className="relative z-10 bg-white shadow-md transition-all duration-300 w-full h-20 justify-center ">
+      <div className="flex items-center justify-between px-4 py-3 md:px-6 transition-all duration-300">
         {/* Left: Menu + Title */}
         <div className="flex items-center space-x-3 min-w-0">
           <button
@@ -19,9 +17,14 @@ export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) 
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="pl-4 text-secondary text-base sm:text-lg md:text-xl font-semibold truncate max-w-xs sm:max-w-sm md:max-w-md">
-            Welcome, {user?.first_name || "User"}
-          </h1>
+          <div className="pl-4 flex flex-col leading-tight">
+            <span className="text-gray-500 text-sm font-normal">Welcome,</span>
+            <span className="text-blue-900 text-lg md:text-xl font-bold truncate max-w-xs sm:max-w-sm md:max-w-md">
+              {user?.first_name && user?.last_name
+                ? `${user.first_name} ${user.last_name}`
+                : user?.first_name || user?.last_name || "User"}
+            </span>
+          </div>
         </div>
 
         {/* Right: Dropdowns */}
@@ -31,5 +34,5 @@ export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) 
         </div>
       </div>
     </header>
-  );
+  )
 }
