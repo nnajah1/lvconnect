@@ -204,53 +204,65 @@ export default function SurveyBuilder({
         closeAlertModal();
     };
     return (
-        <div className="flex flex-col p-4 max-w-4xl mx-auto">
+        <div className="flex flex-col max-w-4xl mx-auto">
 
-            <div className="flex items-center justify-end">
-                <div className="flex items-center w-fit justify-center gap-2 sm:gap-4 mb-6 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <label htmlFor="visibilityMode" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Survey Visibility
-                    </label>
-                    <Select value={visibilityMode} onValueChange={setVisibilityMode}>
-                        <SelectTrigger
-                            id="visibilityMode"
-                            className=" sm:w-64 bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 text-sm"
-                        >
-                            <SelectValue placeholder="Select visibility mode" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white text-sm">
-                            <SelectItem value="hidden">Hidden (Not shown to users)</SelectItem>
-                            <SelectItem value="optional">Visible (Visible in survey list)</SelectItem>
-                            {/* <SelectItem value="mandatory">Mandatory (Shown on login, required)</SelectItem> */}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-
-            <div className="form-title mb-4">
-                <h2 className="text-2xl font-bold">
+            <div className="form-title">
+                <h2 className="text-2xl font-bold text-[#2CA4DD]">
                     {mode === 'edit' ? 'Edit Survey' : 'Create Survey'}
                 </h2>
-            </div>
+                </div>
 
-            <hr className="divider mb-6" />
+                <hr className="divider m-3" />
 
-            <div className="flex flex-col space-y-4 mb-6">
-                <input
-                    type="text"
-                    placeholder="Survey Title *"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="survey-input survey-input-title p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            <div className="flex flex-col items-end">
+  {/* Survey Visibility label above the dropdown, aligned left, block aligned right */}
+  <div className="flex flex-col items-start w-fit mb-4">
+    <label
+      htmlFor="visibilityMode"
+      className="text-sm font-medium text-slate-700 mb-1"
+    >
+      Survey Visibility
+    </label>
+    <Select value={visibilityMode} onValueChange={setVisibilityMode}>
+      <SelectTrigger
+        id="visibilityMode"
+        className="sm:w-64 bg-white dark:bg-slate-950 border-[#2CA4DD] dark:border-[#2CA4DD] text-sm"
+      >
+        <SelectValue placeholder="Select visibility mode" />
+      </SelectTrigger>
+      <SelectContent className="bg-white text-sm">
+  <SelectItem value="hidden" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
+    Hidden (Not shown to users)
+  </SelectItem>
+  <SelectItem value="optional" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
+    Visible (Visible in survey list)
+  </SelectItem>
+</SelectContent>
+    </Select>
+  </div>
 
-                <textarea
-                    placeholder="Survey Description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="survey-textarea survey-description p-3 border rounded-lg h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-            </div>
+  {/* Other dropdowns follow below here */}
+</div>
+
+
+
+
+    <div className="flex flex-col space-y-4 mb-6">
+        <input
+          type="text"
+          placeholder="Survey Title *"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="survey-input survey-input-title p-6 border border-[#2CA4DD] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2CA4DD] mb-5 h-10"
+        />
+
+        <textarea
+          placeholder="Survey Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="survey-textarea survey-description p-3 border border-gray-200 rounded-lg h-25"
+        />
+      </div>
 
             <div className="space-y-6 mb-6">
                 {questions.map((q, index) => (
@@ -278,59 +290,67 @@ export default function SurveyBuilder({
                             </select>
                         </div>
 
-                        {isChoiceBased(q.type) && (
-                            <div className="choice-list space-y-2 mb-4">
-                                {q.choices.map((choice, i) => (
-                                    <div key={i} className="choice-container flex items-center gap-2">
-                                        <div className="choice-icon flex items-center justify-center w-6">
-                                            {q.type === 'Multiple choice' && (
-                                                <input type="radio" disabled className="mr-2" />
-                                            )}
-                                            {q.type === 'Checkboxes' && (
-                                                <input type="checkbox" disabled className="mr-2" />
-                                            )}
-                                            {q.type === 'Dropdown' && (
-                                                <RiArrowDropDownLine size={20} />
-                                            )}
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={choice}
-                                            onChange={(e) => handleChoiceChange(q.id, i, e.target.value)}
-                                            className="choice-textarea flex-1 p-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                            placeholder="Option"
-                                        />
-                                        {q.choices.length > 1 && (
-                                            <button
-                                                onClick={() => removeChoice(q.id, i)}
-                                                className="btn-remove-choice text-red-500 hover:text-red-700 p-1"
-                                            >
-                                                ✕
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                                <button
-                                    onClick={() => addChoice(q.id)}
-                                    className="add-choice-btn text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1 mt-2"
-                                >
-                                    + Add option
-                                </button>
-                            </div>
-                        )}
+        
 
-                        {q.type === 'Short answer' && (
-                            <input
-                                type="text"
-                                placeholder="Short answer text"
-                                className="survey-textarea w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 mb-4"
-                                disabled
-                            />
-                        )}
 
-                        {q.type === 'Upload Photo' && (
-                            <WebcamCapture />
-                        )}
+                            {isChoiceBased(q.type) && (
+            <div className="space-y-1 pl-2">
+                {q.choices.map((choice, i) => (
+                <div key={i} className="flex items-center space-x-3">
+                    <div className="flex-shrink-0 flex items-center justify-center h-6">
+                    {q.type === "Multiple choice" && (
+                        <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
+                    )}
+                    {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
+                    {q.type === "Dropdown" && <RiArrowDropDownLine size={16} className="text-gray-400" />}
+                    </div>
+                    <input
+                    type="text"
+                    value={choice}
+                    onChange={(e) => handleChoiceChange(q.id, i, e.target.value)}
+                    className="flex-1 text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 h-6 leading-6"
+                    placeholder="Option"
+                    />
+                    {q.choices.length > 1 && (
+                    <button
+                        onClick={() => removeChoice(q.id, i)}
+                        className="flex-shrink-0 text-red hover:text-red-500 p-1"
+                    >
+                        ✕
+                    </button>
+                    )}
+                </div>
+                ))}
+                <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0 flex items-center justify-center h-6">
+                    {q.type === "Multiple choice" && (
+                    <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
+                    )}
+                    {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
+                    {q.type === "Dropdown" && <RiArrowDropDownLine className="w-4 h-4 text-gray-400" />}
+                </div>
+                <button onClick={() => addChoice(q.id)} className="text-blue-500 hover:text-blue-600 font-medium h-6 leading-6">
+                    Add option
+                </button>
+                </div>
+            </div>
+            )}
+
+            {q.type === "Short answer" && (
+              <div className="pl-2">
+                <input
+                  type="text"
+                  placeholder="Short answer text"
+                  className="w-full text-gray-600 bg-transparent border-none border-b border-gray-300 outline-none pb-2 placeholder-gray-400"
+                  disabled
+                />
+              </div>
+            )}
+
+            {q.type === "Upload Photo" && <WebcamCapture />}
+                        
+
+
 
                         <div className="question-actions flex items-center gap-4 pt-2 border-t">
                             <SwitchComponent
@@ -362,7 +382,7 @@ export default function SurveyBuilder({
 
             <button
                 onClick={addQuestion}
-                className="btn-add-question w-full py-2 mb-6 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center gap-2"
+                className="btn-add-question w-fit py-2  bg-gray-100 hover:bg-gray-200 rounded-lg flex gap-2"
             >
                 + Add question
             </button>
@@ -398,7 +418,7 @@ export default function SurveyBuilder({
                     (
                         <button
                             onClick={closeModal}
-                            className="btn-cancel px-4 py-2 border rounded-lg hover:bg-gray-50"
+                            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
                         >
                             Cancel
                         </button>
@@ -408,7 +428,7 @@ export default function SurveyBuilder({
                 <button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="btn-publish px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300 flex items-center gap-2"
+                    className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]"
                 >
                     {mode === 'edit' ? 'Update Survey' : 'Publish Survey'}
                 </button>
