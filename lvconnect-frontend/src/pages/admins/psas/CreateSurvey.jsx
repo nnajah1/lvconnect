@@ -53,7 +53,7 @@ const CreateSurveyModal = ({ isOpen, closeModal, loadSurveys }) => {
                 description="The Survey has been successfully created."
             >
                 <button
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    className="px-4 py-2 bg-[#1F3463] text-white rounded"
                     onClick={() => setIsSuccessModalOpen(false)}
                 >
                     Manage Surveys

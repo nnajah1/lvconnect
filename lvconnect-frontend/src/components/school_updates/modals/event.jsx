@@ -48,33 +48,36 @@ const AddEventModal = ({ onEventAdded, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 flex items-center justify-center w-full">
       <div className="bg-accent rounded-lg p-4 w-[800px]">
-        <h2 className="font-bold mb-2">Add Event</h2>
+        <h2 className="text-2xl font-bold text-[#2CA4DD] text-center">Add Event</h2>
+        <hr className="divider m-3" />
 
         <div className="grid grid-cols-7 gap-4 items-start p-4">
           {/* Event Title */}
-          <div className="col-span-7">
-            <label className="block text-sm font-medium text-gray-700">Event Title</label>
+           <div className="col-span-7">
+            <label className="block font-bold text-[14px] text-gray-700">Event Title</label>
             <input
               type="text"
               value={eventTitle}
               onChange={(e) => setEventTitle(e.target.value)}
               placeholder="Enter event title"
               maxLength={255}
-              className="w-full p-2 border rounded-md mb-2"
+              className="w-full h-full-p-3 border border-[#2CA4DD] rounded-md bg-white"
             />
           </div>
 
+
           {/* Description */}
           <div className="col-span-7">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block font-medium text-[14px] text-gray-700">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter description"
               maxLength={1000}
-              className="w-full h-32 p-2 border rounded-md resize-none mb-2"
+              className="w-full h-25 bg-white p-2 border rounded-md resize-none mb-2"
             ></textarea>
           </div>
+
 
           {/* Start Date */}
           <div className="col-span-3">
@@ -118,13 +121,13 @@ const AddEventModal = ({ onEventAdded, onClose }) => {
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="border px-3 py-1 rounded">
+        <div className="flex justify-end gap-2 ">
+          <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer">
             Cancel
           </button>
           <button onClick={handleSubmit}
-            disabled={isSaving} className="bg-blue-600 text-white px-3 py-1 rounded">
-            {isSaving ? 'Saving...' : 'Add'}
+            disabled={isSaving} className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]">
+            {isSaving ? 'Saving...' : 'Add Event'}
           </button>
         </div>
       </div>
