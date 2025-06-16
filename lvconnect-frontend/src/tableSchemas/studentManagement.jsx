@@ -127,13 +127,13 @@ export const smActions = (viewModal, openModal, openArchiveModal) => ({
     icon: () => <Eye size={18} />,
     fn: (id, item) => viewModal(item),
     variant: () => "ghost",
-    className: "hover:bg-blue-200 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+    className: "hover:bg-blue-100 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
   update: {
     icon: () => <Pencil size={18} />,
     fn: (id, item) => openModal(item),
     variant: () => "ghost",
-    className: "hover:bg-blue-200 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+    className: "hover:bg-blue-100 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
   archive: {
     icon: (item) => <div className="flex items-center justify-center gap-1.5">

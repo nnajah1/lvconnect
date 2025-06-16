@@ -119,4 +119,30 @@ const EditSurvey = ({ surveyId, closeModal, onDelete, onSuccess }) => {
 };
 
 
+// {mode === 'edit' && (
+//     <DeleteModal
+//         isOpen={isAlertModal}
+//         closeModal={closeAlertModal}
+//         onConfirm={handleDeleteSurvey}
+//         confirmText="Delete"
+//     />
+// )}
+
+// {mode === 'edit' ? (
+//                 <>
+//                     <button
+//                         onClick={openAlertModal}
+//                         className="text-red-600 border border-red-600 hover:bg-red-50 px-4 py-2 rounded-lg"
+//                     >
+//                         Delete
+//                     </button>
+//                     <button
+//                         onClick={handleSubmit}
+//                         disabled={isLoading}
+//                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300 flex items-center gap-2"
+//                     >
+//                         Update Survey
+//                     </button>
+//                 </>
+//             )
 export default EditSurvey;

@@ -28,7 +28,7 @@ export const actions = (openModal, openModalDelete, openModalReactivate, openMod
         icon: () => <Pencil size={18} />,
         fn: (id, item) => openModal(item),
         variant: () => "ghost",
-        className: "hover:bg-blue-200 flex p-1 text-xs sm:text-sm max-w-xs"
+        className: "hover:bg-blue-100 flex p-1 text-xs sm:text-sm max-w-xs"
     },
     reactivate: {
         icon: () => <UserRoundCheck size={18} className="text-white"/>,

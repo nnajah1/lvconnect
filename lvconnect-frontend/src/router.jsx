@@ -39,6 +39,7 @@ import SchoolAdminDashboard from "./pages/admins/scadmin/AdminDashboard";
 import RoleManagement from "./pages/admins/systemAdmin/RoleManagement";
 import PageError from "./layouts/Error";
 import StudentHandbook from "./components/school_forms/studentHandbook";
+import FormBuilder from "./components/school_forms/FormBuilder";
 
 
 const router = createBrowserRouter([
@@ -124,6 +125,7 @@ const router = createBrowserRouter([
                         children: [
                             { index: true, element: <PsasDashboard /> },
                             { path: "forms", element: <Forms /> },
+                            { path: "forms/create-form", element: <FormBuilder /> },
                             { path: "surveys", element: <Surveys /> },
                             { path: "surveys/survey-responses/:surveyId", element: <SurveyResponses /> },
 

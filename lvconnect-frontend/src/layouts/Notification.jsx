@@ -48,29 +48,29 @@ export function NotificationDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    let interval = setInterval(() => {
-      loadNotifications(setUnread, setRead, setNotifications);
-    }, 10000);
+  // useEffect(() => {
+  //   let interval = setInterval(() => {
+  //     loadNotifications(setUnread, setRead, setNotifications);
+  //   }, 10000);
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        clearInterval(interval);
-      } else {
-        loadNotifications(setUnread, setRead, setNotifications);
-        interval = setInterval(() => {
-          loadNotifications(setUnread, setRead, setNotifications);
-        }, 10000);
-      }
-    };
+  //   const handleVisibilityChange = () => {
+  //     if (document.hidden) {
+  //       clearInterval(interval);
+  //     } else {
+  //       loadNotifications(setUnread, setRead, setNotifications);
+  //       interval = setInterval(() => {
+  //         loadNotifications(setUnread, setRead, setNotifications);
+  //       }, 10000);
+  //     }
+  //   };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
+  //   return () => {
+  //     clearInterval(interval);
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //   };
+  // }, []);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);

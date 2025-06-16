@@ -32,7 +32,7 @@ export const surveyActions = (openFormModal) => ({
     },
     fn: (id, item) => openFormModal(item),
     variant: (item) => (item.completed_at ? "outline" : "default"),
-    className: "hover:bg-blue-200 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+    className: "hover:bg-blue-100 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
 })
 

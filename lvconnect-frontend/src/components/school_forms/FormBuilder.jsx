@@ -17,6 +17,9 @@ import { useForms } from '@/context/FormsContext';
 import ConfirmationModal from '@/components/dynamic/DeleteModal';
 import { toast } from 'react-toastify';
 import { DeleteModal } from '../dynamic/alertModal';
+import { Breadcrumbs } from '../dynamic/breadcrumbs';
+import DynamicModal from '../dynamic/DynamicModal';
+import { useNavigate } from 'react-router-dom';
 
 const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, onSuccess, onDelete, closeModal }) => {
 
@@ -48,6 +51,10 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
   const openAlertModal = () => setIsAlertModal(true);
   const closeAlertModal = () => setIsAlertModal(false);
 
+  const [showPreview, setShowPreview] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
 
     if (editorRef.current && !quillRef.current) {
@@ -80,10 +87,10 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
     //   setInstructions(initialData.content);
     // }
     if (initialData?.content && quillRef.current) {
-    const cleanedHTML = initialData.content.trim().replace(/(<p><br><\/p>)+$/g, '');
-    quillRef.current.clipboard.dangerouslyPasteHTML(cleanedHTML);
-    setInstructions(cleanedHTML);
-  }
+      const cleanedHTML = initialData.content.trim().replace(/(<p><br><\/p>)+$/g, '');
+      quillRef.current.clipboard.dangerouslyPasteHTML(cleanedHTML);
+      setInstructions(cleanedHTML);
+    }
 
     if (initialData) {
       setValue('title', initialData.title || '');
@@ -106,7 +113,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
     if (file && file.type === 'application/pdf') {
       setPdfFile(file);
     } else {
-      setLocalError('Only PDF files are allowed');
+      toast.error('Only PDF files are allowed');
     }
 
     const reader = new FileReader();
@@ -187,13 +194,13 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
 
     // If not previously inserted or already replaced, insert at cursor
     if (!editorText.includes(newPlaceholder)) {
-    const selection = quill.getSelection();
-    const insertAt = selection?.index ?? editorText.trimEnd().length;
+      const selection = quill.getSelection();
+      const insertAt = selection?.index ?? editorText.trimEnd().length;
 
-    // Insert without a newline
-    quill.insertText(insertAt, newPlaceholder, 'user');
-    quill.setSelection(insertAt + newPlaceholder.length);
-  }
+      // Insert without a newline
+      quill.insertText(insertAt, newPlaceholder, 'user');
+      quill.setSelection(insertAt + newPlaceholder.length);
+    }
   };
 
   const removeField = (id) => {
@@ -266,8 +273,8 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
 
     try {
       const cleanedContent = instructions?.trim().replace(/\s+/g, ' ')
-      .replace(/(<p><br><\/p>)+$/g, '') // Remove trailing <p><br></p>
-      .replace(/<p><br><\/p>/g, '');    // Remove any <p><br></p> anywhere;
+        .replace(/(<p><br><\/p>)+$/g, '') // Remove trailing <p><br></p>
+        .replace(/<p><br><\/p>/g, '');    // Remove any <p><br></p> anywhere;
       if (mode === 'edit') {
         data.content = cleanedContent;
         await onSubmit(data, formFields, deletedFieldIds);
@@ -286,9 +293,11 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
         const formId = formRes.data.form.id;
 
         await saveFormFields(formId, formFields);
+        navigate(`/psas-admin/forms`);
+        toast.success('Form created successfully');
         await fetchForms();
         await fetchSubmitted();
-        if (onSuccess) onSuccess(formId);
+        // if (onSuccess) onSuccess(formId);
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -317,64 +326,80 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
   };
 
   return (
-    <div className="w-auto">
-
+    <div className="p-4 max-w-screen-xl mx-auto">
       <form onSubmit={handleSubmit(handleCreateForm)} className="space-y-4">
+        <Breadcrumbs rootName="Forms" rootHref="/psas-admin/forms" name={mode === 'edit' ? 'Edit Form' : 'Create Form'} />
 
-        <div className="flex flex-col">
-          <h2 className="text-xl font-bold text-[#2CA4DD] text-center">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold mb-4 text-secondary">
             {mode === 'edit' ? 'Edit Form' : 'Create Form'}
           </h2>
-
-          
-
-          <div className="flex justify-end mt-2">
-            <Controller
-              name="is_visible"
-              control={control}
-              render={({ field }) => (
-                <SwitchComponent
-                  label="Visible to Users"
-                  checked={!!field.value}
-                  onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
-                />
-              )}
-            />
-          </div>
-        </div>
-        
-        
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Form Title</label>
-          <input
-            {...register('title')}
-            className="w-full p-3 border border-[#2CA4DD] rounded-md bg-white"
-            required
+          <Controller
+            name="is_visible"
+            control={control}
+            render={({ field }) => (
+              <SwitchComponent
+                label="Visible to Users"
+                checked={!!field.value}
+                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+              />
+            )}
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <textarea
-            {...register('description')}
-            className="w-full h-[100px] p-3 border border-gray-200 rounded-md bg-white"
-          />
-        </div>
-
-        {mode !== 'edit' && (
-          <input type="file" accept="application/pdf" onChange={handlePdfUpload} />
-        )}
-
-        <div className={`grid ${pdfFile
-          ? 'grid-cols-[300px_450px_250px]' // Custom 3-column widths
-          : 'grid-cols-[1fr_250px]' // Custom 2-column widths
-          } gap-4 mt-6`}>
-          {pdfFile && (
-            <div>
-              <h3 className="font-semibold mb-2">PDF Preview</h3>
-              <canvas ref={canvasRef} className="border w-full max-h-[500px] overflow-auto" />
+        <input {...register('title')} placeholder="Form Title" className="border p-2 w-full rounded" required />
+        <textarea {...register('description')} placeholder="Description" className="border border-gray-200 p-2 w-full rounded bg-white" />
+        <div className="flex items-center justify-between gap-4">
+          {mode !== 'edit' && (
+            <div className="flex items-center">
+              <label
+                htmlFor="pdf-upload"
+                className="cursor-pointer inline-flex items-center px-4 py-2 text-white hover:bg-blue-800 bg-blue-900 rounded"
+              >
+                Upload PDF
+              </label>
+              <input
+                id="pdf-upload"
+                type="file"
+                accept="application/pdf"
+                onChange={handlePdfUpload}
+                className="hidden"
+              />
             </div>
           )}
+
+          <div className='flex gap-4'>
+            {/* {pdfFile && (
+              <button
+                type="button"
+                onClick={() => setShowPdfPreview((prev) => !prev)}
+                className="px-4 py-2 rounded bg-blue-900 hover:bg-blue-800 text-white"
+              >
+                {showPdfPreview ? 'Hide Preview' : 'Show PDF Preview'}
+              </button>
+            )} */}
+
+            <button
+              type="button"
+              onClick={() => setShowPreview((prev) => !prev)}
+              className="px-4 py-2 rounded bg-blue-900 hover:bg-blue-800 text-white"
+            >
+              {showPreview ? 'Hide Preview' : 'Show Printed Preview'}
+            </button>
+          </div>
+        </div>
+
+        <div
+          className={`grid w-full grid-cols-[2fr_1fr] gap-4 mt-6`}
+        >
+          {/* {showPdfPreview && pdfFile && (
+            <DynamicModal isOpen={showPdfPreview} closeModal={() => setShowPdfPreview(false)}>
+              <div>
+                <h3 className="font-semibold mb-2">PDF Preview</h3>
+                <canvas ref={canvasRef} className="border w-full rounded max-h-[500px] overflow-auto" />
+              </div>
+            </DynamicModal>
+          )} */}
 
           <div className="flex flex-col min-h-0">
             <h3 className="font-semibold mb-2">Editor</h3>
@@ -382,14 +407,28 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
               ref={editorRef}
               className="bg-white border rounded p-2 min-h-[200px] max-h-[500px] overflow-auto"
             />
+            {showPreview && (
+              <DynamicModal
+                isOpen={showPreview}
+                closeModal={() => setShowPreview(false)}
+              >
+                <div>
+                  <h3 className="font-semibold mt-4 mb-2">Printed Preview</h3>
+                  <div
+                    className="ql-editor mt-2 p-4 border rounded-md max-h-[400px] overflow-auto bg-white"
+                    dangerouslySetInnerHTML={{ __html: instructions }}
+                  />
+                </div>
+              </DynamicModal>
+            )}
           </div>
 
           <div className="flex flex-col min-h-0">
             <h3 className="font-semibold mb-2">Form Fields</h3>
-            <div className="overflow-auto max-h-[500px] space-y-2 pr-1">
+            <div className="overflow-auto max-h-[500px] space-y-2 pr-1 bg-white rounded p-2 border">
               {formFields.map((field, i) => (
-                <div key={field.id} className="border p-2 rounded">
-                  <div className='flex items-center justify-between gap-2'>
+                <div key={field.id} className="border p-2 rounded bg-gray-50">
+                  <div className="flex items-center justify-between gap-2">
                     <h4 className="font-medium mb-1">Field {i + 1}</h4>
                     <label className="flex items-center gap-2">
                       Required
@@ -404,12 +443,12 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
 
                   <input
                     value={field.name || ''}
-                    onFocus={() => {
+                    onFocus={() =>
                       setPreviousFieldNames((prev) => ({
                         ...prev,
-                        [field.id]: field.name, // Store current name
-                      }));
-                    }}
+                        [field.id]: field.name,
+                      }))
+                    }
                     onChange={(e) => updateField(field.id, 'name', e.target.value)}
                     className="border p-1 w-full mb-2"
                   />
@@ -439,7 +478,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
                         type="text"
                         value={(field.options && field.options.join(', ')) || ''}
                         onChange={(e) =>
-                          updateField(field.id, 'options', e.target.value.split(',').map(opt => opt.trim()))
+                          updateField(field.id, 'options', e.target.value.split(',').map((opt) => opt.trim()))
                         }
                         className="border p-2 w-full"
                         placeholder="e.g. Option 1, Option 2"
@@ -453,16 +492,21 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
                       onClick={() => insertFieldToEditor(field)}
                       type="button"
                       className="bg-blue-200 text-sm px-2 py-1 rounded"
-                    >Insert</button>
+                    >
+                      Insert
+                    </button>
                     <button
                       onClick={() => removeField(field.id)}
                       type="button"
                       className="bg-red-200 text-sm px-2 py-1 rounded"
-                    >Delete</button>
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
+
             {deletedFields.length > 0 && (
               <div className="mt-4">
                 <h4 className="font-semibold mb-2">Deleted Fields</h4>
@@ -473,17 +517,21 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
                       <button
                         onClick={() => restoreField(field.id)}
                         className="text-sm bg-green-200 px-2 py-1 rounded"
-                      >Restore</button>
+                      >
+                        Restore
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-            <button onClick={addField} type="button" className="mt-2 bg-gray-300 px-4 py-1">Add Field</button>
+            <button onClick={addField} type="button" className="mt-2 bg-gray-300 px-4 py-1 rounded">
+              Add Field
+            </button>
           </div>
         </div>
-        <div className=' space-x-2 flex justify-end'>
-      
+
+        <div className="space-x-2 flex justify-end">
           {mode === 'edit' ? (
             <div>
               <button
@@ -493,11 +541,7 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
               >
                 Delete
               </button>
-              <DeleteModal
-                isOpen={isAlertModal}
-                closeModal={closeAlertModal}
-              >
-                {/* Action buttons inside the modal */}
+              <DeleteModal isOpen={isAlertModal} closeModal={closeAlertModal}>
                 <button
                   type="button"
                   className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
@@ -507,33 +551,32 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleDeleteForm}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  onClick={handleDeleteForm}
                 >
                   Delete
                 </button>
               </DeleteModal>
             </div>
-          ) :
-            (
-              <button
-                onClick={closeModal}
-                className="btn-cancel px-4 py-2 border rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-            )
-          }
-            <button type="submit" disabled={isLoading} className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-500 text-white'}`}>
+          ) : (
+            <button
+              onClick={closeModal}
+              className="btn-cancel px-4 py-2 border rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`px-4 py-2 rounded cursor-pointer ${isLoading ? 'bg-gray-400' : 'bg-blue-900 text-white hover:bg-blue-800'
+              }`}
+          >
             {isLoading ? 'Saving...' : 'Save Form'}
           </button>
-
         </div>
       </form>
-
-
     </div>
-
-
   );
 };
 

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
-import { getSurveys } from "@/services/surveyAPI";
+import { changeVisibility, getSurveys } from "@/services/surveyAPI";
 import { actionConditions, actions, surveySchema } from "@/tableSchemas/survey";
 import { CiCirclePlus, CiSearch } from "react-icons/ci";
 import CreateSurveyModal from "./CreateSurvey";
@@ -26,7 +26,7 @@ const Surveys = () => {
   const [globalFilter, setGlobalFilter] = useState("");
 
   const navigate = useNavigate();
-const location = useLocation();
+  const location = useLocation();
 
   const openModal = (item) => {
     setFormItem(item);
@@ -35,8 +35,6 @@ const location = useLocation();
   const openResponseModal = (item) => {
     setresponseItem(item);
   };
-
-  console.log(userRole)
 
   const columns = getColumns({
     userRole,
@@ -47,31 +45,47 @@ const location = useLocation();
   });
 
   const loadSurveys = async () => {
-      setLoading(true)
-      try {
-        const data = await getSurveys();
-        setSurvey(data);
-      } catch (err) {
-        console.error("Failed to load surveys", err);
-        console.error("Failed to load surveys.");
-      } finally {
-        setLoading(false); 
-      }
-    };
+    setLoading(true)
+    try {
+      const data = await getSurveys();
+      setSurvey(data);
+    } catch (err) {
+      console.error("Failed to load surveys", err);
+      console.error("Failed to load surveys.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
- useEffect(() => {
-    loadSurveys(); 
+  useEffect(() => {
+    loadSurveys();
   }, []);
 
   useEffect(() => {
-      if (responseItem) {
-        setLoading(true);
-        navigate(`/psas-admin/surveys/survey-responses/${responseItem.id}`, {
-          state: { from: location.pathname, loading: true },
-        });
-      }
-    }, [responseItem, navigate, location.pathname]);
-  
+    if (responseItem) {
+      setLoading(true);
+      navigate(`/psas-admin/surveys/survey-responses/${responseItem.id}`, {
+        state: { from: location.pathname, loading: true, name: responseItem.title },
+      });
+    }
+  }, [responseItem, navigate, location.pathname]);
+
+  const handleToggleVisibility = async () => {
+    if (!formItem) return;
+
+    try {
+      setLoading(true);
+      await changeVisibility(formItem.id);
+      toast.success("Survey visibility updated successfully");
+      setFormItem(null);
+      loadSurveys();
+    } catch (error) {
+      console.error("Failed to toggle visibility", error);
+      toast.error("Failed to update survey visibility");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -105,11 +119,13 @@ const location = useLocation();
     
       </div>
 
-      <DataTable columns={columns} data={survey} context="Surveys" globalFilter={globalFilter} isLoading={loading}/>
+      <DataTable columns={columns} data={survey} context="Surveys" globalFilter={globalFilter} isLoading={loading} />
 
       {/* Modals */}
-      <CreateSurveyModal isOpen={isOpen} closeModal={() => setIsOpen(false)} loadSurveys={loadSurveys}/>
-      {formItem && (
+      <CreateSurveyModal isOpen={isOpen} closeModal={() => setIsOpen(false)} loadSurveys={loadSurveys} />
+
+      {/* edit survey */}
+      {/* {formItem && (
         <EditSurveyModal
           isOpen={!!formItem}
           closeModal={() => setFormItem(null)}
@@ -117,22 +133,27 @@ const location = useLocation();
           onDeleteModal={() => setIsSuccessModalOpen(true)}
           onSuccessModal={() => setIsSuccessModalOpen(false)}
         />
-      )}
-
-      <ConfirmationModal
-        isOpen={isSuccessModalOpen}
-        closeModal={() => setIsSuccessModalOpen(false)}
-        title="Survey Deleted"
-        description="The survey has been successfully deleted."
-      >
-        <button
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          onClick={() => setIsSuccessModalOpen(false)}
+      )} */}
+      {formItem && (
+        <ConfirmationModal
+          isOpen={!!formItem}
+          closeModal={() => setFormItem(null)}
+          title="Toggle Visibility"
+          description="Are you sure you want to change the visibility of this survey?"
         >
-          Back to Surveys
-        </button>
-      </ConfirmationModal>
-
+          <button
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+            onClick={() => setFormItem(null)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onClick={handleToggleVisibility}
+          >
+            {loading ? "Loading..." : "Confirm"}
+          </button>
+        </ConfirmationModal>
+      )};
     </div>
   );
 }

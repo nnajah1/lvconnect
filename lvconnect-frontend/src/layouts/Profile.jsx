@@ -1,13 +1,13 @@
-"use client"
 
 import { useState, useRef, useEffect } from "react"
 import { ChevronDown, LogOut } from "lucide-react"
+import { roleRename, useUserRole } from "@/utils/userRole"
 
 export function ProfileDropdown({ user, logout }) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
+  const userRole = useUserRole();
 
-  
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -109,8 +109,8 @@ export function ProfileDropdown({ user, logout }) {
               color: "#08318B",
             }}
           >
-            {/* Jah please insert this the role
-            {user?.role || ""} */}
+
+            {roleRename[userRole] || "User"}
           </div>
         </div>
       </button>

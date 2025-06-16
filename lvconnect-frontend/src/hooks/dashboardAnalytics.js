@@ -2,18 +2,19 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getAnalyticsDashboardPsas, getRegistrarDashboard, getSchoolAdminDashboard } from '@/services/dashboardAPI';
+import { useLoading } from '@/context/LoadingContext';
 
 export const useAnalyticsDashboard = () => {
     const [data, setData] = useState({
         stats: [],
         demographics: [],
     });
-
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { setLoading } = useLoading();
 
     useEffect(() => {
         const fetchDashboard = async () => {
+            setLoading(true);
             try {
                 const res = await getAnalyticsDashboardPsas();
                 const { stats, student_demographics } = res;
@@ -38,7 +39,7 @@ export const useAnalyticsDashboard = () => {
         fetchDashboard();
     }, []);
 
-    return { ...data, loading, error };
+    return { ...data, error };
     
 };
 
@@ -49,11 +50,13 @@ export const useSchoolAdminDashboard = () => {
         programs: [],
     });
 
-    const [loading, setLoading] = useState(true);
+    
+    const { setLoading } = useLoading();
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchDashboard = async () => {
+            setLoading(true);
             try {
                 const res = await getSchoolAdminDashboard();
                 const { stats, student_demographics, higher_ed_population } = res;
@@ -79,7 +82,7 @@ export const useSchoolAdminDashboard = () => {
         fetchDashboard();
     }, []);
 
-    return { ...data, loading, error };
+    return { ...data, error };
     
 }
 
@@ -89,11 +92,12 @@ export const useRegistrarDashboard = () => {
         programs: [],
     });
 
-    const [loading, setLoading] = useState(true);
+    const { setLoading } = useLoading();
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchDashboard = async () => {
+            setLoading(true);
             try {
                 const res = await getRegistrarDashboard();
                 const { stats, higher_ed_population } = res;
@@ -118,6 +122,6 @@ export const useRegistrarDashboard = () => {
         fetchDashboard();
     }, []);
 
-    return { ...data, loading, error };
+    return { ...data, error };
     
 };

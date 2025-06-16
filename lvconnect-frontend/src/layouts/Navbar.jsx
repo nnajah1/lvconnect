@@ -4,11 +4,11 @@ import { Menu } from "lucide-react"
 import { NotificationDropdown } from "./Notification"
 import { ProfileDropdown } from "./Profile"
 
-export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) {
+export function Navbar({ user, logout, onMobileMenuToggle }) {
   return (
-    <header className="relative z-10 bg-white shadow-md transition-all duration-300 w-full h-20 justify-center ">
-      <div className="flex items-center justify-between px-4 py-3 md:px-6 transition-all duration-300">
-        {/* Left: Menu + Title */}
+    <header className="sticky top-0 z-10 w-full bg-white shadow-md transition-all duration-300">
+      <div className="flex items-center justify-between px-4 py-3 md:px-6">
+        {/* Left: Mobile Menu + Title */}
         <div className="flex items-center space-x-3 min-w-0">
           <button
             onClick={onMobileMenuToggle}
@@ -25,14 +25,16 @@ export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) 
                 : user?.first_name || user?.last_name || "User"}
             </span>
           </div>
+
         </div>
 
         {/* Right: Dropdowns */}
-        <div className="mt-2 flex items-center sm:mt-0 sm:space-x-4 flex-shrink-0">
+        <div className="flex items-center sm:space-x-4 mt-2 sm:mt-0 flex-shrink-0">
           <NotificationDropdown />
           <ProfileDropdown user={user} logout={logout} />
         </div>
       </div>
     </header>
-  )
+  );
+
 }
