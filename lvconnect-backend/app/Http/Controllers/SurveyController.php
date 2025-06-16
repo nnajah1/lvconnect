@@ -600,6 +600,24 @@ class SurveyController extends Controller
         ], 200);
     }
 
+       public function toggleVisibility(Request $request, $id)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $survey = Survey::findOrFail($id);
+
+        $survey->visibility_mode = $survey->visibility_mode === 'hidden' ? 'optional' : 'hidden';
+        $survey->save();
+
+        return response()->json([
+            'message' => 'Visibility updated successfully.',
+        ]);
+    }
+
     /**
      * Remove the specified survey from storage.
      */
@@ -617,6 +635,7 @@ class SurveyController extends Controller
         return response()->json(['message' => 'Survey deleted successfully.']);
     }
 }
+
 /**$mandatorySurveys = Survey::where('visibility_mode', 'mandatory')->get();
 
 $incomplete = $mandatorySurveys->filter(function ($survey) use ($user) {

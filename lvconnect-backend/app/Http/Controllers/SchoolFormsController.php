@@ -56,6 +56,7 @@ class SchoolFormsController extends Controller
             // Ensure there's data being returned for psas role
             $submissions = FormSubmission::with('formType')
                 ->where('status', '!=', 'draft')
+                ->orderBy('updated_at', 'desc')
                 ->get();
 
             return response()->json($submissions);
@@ -553,6 +554,24 @@ class SchoolFormsController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+       public function toggleVisibility(Request $request, $id)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $form = FormType::findOrFail($id);
+
+        $form->is_visible = !$form->is_visible;
+        $form->save();
+
+        return response()->json([
+            'message' => 'Visibility updated successfully.',
+        ]);
     }
 
 

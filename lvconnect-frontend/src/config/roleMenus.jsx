@@ -29,8 +29,8 @@ export const roleMenus = {
   ],
   psas: [
     { name: "Dashboard", path: "/psas-admin", solidIcon: HiHome, outlineIcon: HiOutlineHome },
-    { name: "Survey Management", path: "/psas-admin/surveys",match: "/psas-admin/surveys", solidIcon: MdFileCopy, outlineIcon: MdOutlineFileCopy  },
-    { name: "School Forms Management", path: "/psas-admin/forms", solidIcon: BiSolidFolderOpen, outlineIcon: BiFolderOpen },
+    { name: "Survey Management", path: "/psas-admin/surveys", match: "/psas-admin/surveys", solidIcon: MdFileCopy, outlineIcon: MdOutlineFileCopy  },
+    { name: "School Form Management", path: "/psas-admin/forms", match: "/psas-admin/forms", solidIcon: BiSolidFolderOpen, outlineIcon: BiFolderOpen },
   ],
   registrar: [
     { name: "Dashboard", path: "/registrar", solidIcon: HiHome, outlineIcon: HiOutlineHome },

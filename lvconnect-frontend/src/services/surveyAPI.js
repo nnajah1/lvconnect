@@ -8,6 +8,11 @@ export const getSurveys = async () => {
 export const getSurveyById = (surveyId) => {
   return api.get(`/surveys/${surveyId}`);
 };
+
+export const changeVisibility = (surveyId) => {
+  return api.patch(`/surveys/${surveyId}`);
+};
+
 export const getSubmittedSurveyResponses = (surveyId) => {
   return api.get(`/survey-response/${surveyId}`);
 };

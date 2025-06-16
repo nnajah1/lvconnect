@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { RiDeleteBin6Line, RiArrowDropDownLine } from 'react-icons/ri';
 import { createSurvey, deleteSurvey } from '@/services/surveyAPI';
 import {
@@ -13,7 +13,7 @@ import { DeleteModal, ErrorModal } from '../dynamic/alertModal';
 import { toast } from 'react-toastify';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function SurveyBuilder({
+ const SurveyBuilder = forwardRef(({
     mode = 'create',
     initialData = {},
     initialQuestions = [],
@@ -22,7 +22,7 @@ export default function SurveyBuilder({
     onDelete,
     closeModal,
     loadSurveys
-}) {
+}, ref) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [visibilityMode, setVisibilityMode] = useState('hidden');
@@ -121,8 +121,7 @@ export default function SurveyBuilder({
     };
 
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         if (isLoading) return;
         setIsLoading(true);
 
@@ -181,7 +180,9 @@ export default function SurveyBuilder({
                 });
 
                 const res = await createSurvey(formData);
-                if (onSuccess) onSuccess(res.survey_id);
+                 toast.success(mode === 'edit' ? 'Survey edited successfully.' : 'Survey created successfully.');
+                 closeModal();
+                // if (onSuccess) onSuccess(res.survey_id);
                 await loadSurveys();
             }
         } catch (err) {
@@ -192,11 +193,16 @@ export default function SurveyBuilder({
         }
     };
 
+    useImperativeHandle(ref, () => ({
+        handleSubmit,
+    }));
+
     const handleDeleteSurvey = async () => {
         if (!initialData.id) return;
         try {
             await deleteSurvey(initialData.id);
-            if (onDelete) onDelete(initialData.id);
+             toast.success('Survey deleted succesfully.');
+            // if (onDelete) onDelete(initialData.id);
         } catch (err) {
             console.error(err);
             toast.error('Failed to delete survey.');
@@ -384,49 +390,52 @@ export default function SurveyBuilder({
                 + Add question
             </button>
 
+            {/* <div className="publish-actions flex justify-end gap-4">
+                {mode === 'edit' ? (
+                    <div>
+                        <button
+                            onClick={openAlertModal}
+                            className="text-red-600 border border-red-600 hover:bg-red-50 px-4 py-2 rounded-lg"
+                        >
+                            Delete
+                        </button>
+                        <DeleteModal
+                            isOpen={isAlertModal}
+                            closeModal={closeAlertModal}
+                        >
+                            <button
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
+                                onClick={closeAlertModal}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onClick={handleDeleteSurvey}
+                            >
+                                Delete
+                            </button>
+                        </DeleteModal>
+                    </div>
+                ) :
+                    (
+                        <button
+                            onClick={closeModal}
+                            className="btn-cancel px-4 py-2 border rounded-lg hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+                    )
+                }
 
-    <div className="publish-actions flex justify-end gap-4">
-      {mode === 'edit' ? (
-        <div>
-          <button
-            onClick={openAlertModal}
-            className="text-red-600 border border-red-600 hover:bg-red-50 px-4 py-2 rounded-lg"
-          >
-            Delete
-          </button>
-          <DeleteModal isOpen={isAlertModal} closeModal={closeAlertModal}>
-            <button
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-              onClick={closeAlertModal}
-            >
-              Cancel
-            </button>
-            <button
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-              onClick={handleDeleteSurvey}
-            >
-              Delete
-            </button>
-          </DeleteModal>
+                <button
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    className="btn-publish px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-blue-300 flex items-center gap-2"
+                >
+                    {mode === 'edit' ? 'Update Survey' : 'Publish Survey'}
+                </button>
+            </div> */}
         </div>
-      ) : (
-        <button
-          onClick={closeModal}
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 cursor-pointer"
-        >
-          Cancel
-        </button>
-      )}
-
-      <button
-        onClick={handleSubmit}
-        disabled={isLoading}
-        className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]"
-      >
-        {mode === 'edit' ? 'Update Survey' : 'Publish Survey'}
-      </button>
-    </div>
-  </div>
-);
-
-}
+    );
+})
+export default SurveyBuilder;

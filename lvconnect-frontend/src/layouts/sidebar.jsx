@@ -10,6 +10,7 @@ import { X } from "lucide-react"
 import { toast } from "react-toastify";
 import { switchRole } from "@/services/axios";
 import { roleRedirectMap } from "@/utils/roleRedirectMap";
+import { cn } from "@/lib/utils";
 
 export function Sidebar({ isExpanded, setIsExpanded, isMobileMenuOpen, setIsMobileMenuOpen }) {
   const { user } = useAuthContext()
@@ -25,40 +26,45 @@ export function Sidebar({ isExpanded, setIsExpanded, isMobileMenuOpen, setIsMobi
     setIsMobileMenuOpen(false)
   }
 
-  return (
-    <>
-      {/* Desktop Sidebar */}
-      <div
-        className={`fixed left-0 top-0 z-30 hidden h-screen bg-sidebar-foreground text-white transition-all duration-300 lg:block ${isExpanded ? "w-64" : "w-20"
-          }`}
-      >
-        <SidebarContent
-          isExpanded={isExpanded}
-          setIsExpanded={setIsExpanded}
-          menuItems={menuItems}
-          location={location}
-          onLinkClick={handleLinkClick}
-          showCloseButton={false}
-        />
-      </div>
+ return (
+  <>
+    {/* Desktop Sidebar */}
+    <div
+      className={cn(
+        "fixed top-0 left-0 z-30 hidden h-full bg-sidebar-foreground text-white transition-all duration-300 lg:block",
+        isExpanded ? "w-64" : "w-20"
+      )}
+    >
+      <SidebarContent
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
+        menuItems={menuItems}
+        location={location}
+        onLinkClick={handleLinkClick}
+        showCloseButton={false}
+      />
+    </div>
 
-      {/* Mobile Sidebar */}
-      <div
-        className={`fixed left-0 top-0 z-30 h-screen w-64 bg-sidebar-foreground text-white transition-transform duration-300 lg:hidden ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-      >
-        <SidebarContent
-          isExpanded={true}
-          setIsExpanded={setIsExpanded}
-          menuItems={menuItems}
-          location={location}
-          onLinkClick={handleLinkClick}
-          showCloseButton={true}
-          onClose={() => setIsMobileMenuOpen(false)}
-        />
-      </div>
-    </>
-  )
+    {/* Mobile Sidebar */}
+    <div
+      className={cn(
+        "fixed top-0 left-0 z-40 h-full w-64 bg-sidebar-foreground text-white transition-transform duration-300 lg:hidden",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}
+    >
+      <SidebarContent
+        isExpanded={true}
+        setIsExpanded={setIsExpanded}
+        menuItems={menuItems}
+        location={location}
+        onLinkClick={handleLinkClick}
+        showCloseButton={true}
+        onClose={() => setIsMobileMenuOpen(false)}
+      />
+    </div>
+  </>
+);
+
 }
 
 function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLinkClick, showCloseButton, onClose }) {
