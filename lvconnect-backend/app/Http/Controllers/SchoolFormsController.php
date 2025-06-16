@@ -356,7 +356,7 @@ class SchoolFormsController extends Controller
             return response()->json(['message' => 'Submission not found'], 404);
         }
 
-        if ($user->hasActiveRole('student') && $submission->submitted_by !== $user->id) {
+        if ($user->hasAnyRole(['student', 'superadmin']) && $submission->submitted_by !== $user->id) {
             return response()->json(['message' => 'Unauthorized access to this submission.'], 403);
         }
 

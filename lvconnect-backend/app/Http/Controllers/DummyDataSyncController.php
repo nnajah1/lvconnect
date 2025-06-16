@@ -222,98 +222,99 @@ class DummyDataSyncController extends Controller
                         ]);
                     }
                 }
-
-                if (!empty($applicant['schedules']) && is_array($applicant['schedules'])) {
-                    foreach ($applicant['schedules'] as $scheduleData) {
-                        // Ensure $scheduleData is an array
-                        if (!is_array($scheduleData)) {
-                            \Log::info('Schedule sync: scheduleData is not an array', [
-                                'scheduleData' => $scheduleData
-                            ]);
-                            continue;
-                        }
-
-                        $program = Program::where('program_name', $scheduleData['program'] ?? null)->first();
-
-                        // Handle course as array or string
-                        $courseIdentifier = $scheduleData['course'] ?? null;
-                        if (is_array($courseIdentifier)) {
-                            if (isset($courseIdentifier['id'])) {
-                                $course = Course::find($courseIdentifier['id']);
-                            } elseif (isset($courseIdentifier['course_code'])) {
-                                $course = Course::where('course_code', $courseIdentifier['course_code'])->first();
-                            } elseif (isset($courseIdentifier['course'])) {
-                                $course = Course::where('course', $courseIdentifier['course'])->first();
-                            } else {
-                                $course = null;
-                            }
-                        } else {
-                            $course = Course::where('course', $courseIdentifier)
-                                ->orWhere('course_code', $courseIdentifier)
-                                ->first();
-                        }
-
-                        if (!$program || !$course) {
-                            \Log::info('Schedule sync: Program or Course not found', [
-                                'program' => $scheduleData['program'] ?? null,
-                                'course' => $scheduleData['course'] ?? null
-                            ]);
-                            continue;
-                        }
-
-                        $exists = Schedule::where([
-                            'program_id' => $program->id,
-                            'course_id' => $course->id,
-                            'term' => $scheduleData['term'] ?? null,
-                            'year_level' => $scheduleData['year_level'] ?? null,
-                            'section' => $scheduleData['section'] ?? null,
-                            'day' => $scheduleData['day'] ?? null,
-                            'start_time' => $scheduleData['start_time'] ?? null,
-                            'end_time' => $scheduleData['end_time'] ?? null,
-                        ])->exists();
-
-                        if (!$exists) {
-                            Schedule::create([
-                                'program_id' => $program->id,
-                                'course_id' => $course->id,
-                                'term' => $scheduleData['term'] ?? null,
-                                'year_level' => $scheduleData['year_level'] ?? null,
-                                'section' => $scheduleData['section'] ?? null,
-                                'day' => $scheduleData['day'] ?? null,
-                                'start_time' => $scheduleData['start_time'] ?? null,
-                                'end_time' => $scheduleData['end_time'] ?? null,
-                                'room' => $scheduleData['room'] ?? null,
-                            ]);
-                            \Log::info('Schedule created', [
-                                'program_id' => $program->id,
-                                'course_id' => $course->id,
-                                'term' => $scheduleData['term'] ?? null,
-                                'year_level' => $scheduleData['year_level'] ?? null,
-                                'section' => $scheduleData['section'] ?? null,
-                                'day' => $scheduleData['day'] ?? null,
-                                'start_time' => $scheduleData['start_time'] ?? null,
-                                'end_time' => $scheduleData['end_time'] ?? null
-                            ]);
-                        } else {
-                            \Log::info('Schedule already exists', [
-                                'program_id' => $program->id,
-                                'course_id' => $course->id,
-                                'term' => $scheduleData['term'] ?? null,
-                                'year_level' => $scheduleData['year_level'] ?? null,
-                                'section' => $scheduleData['section'] ?? null,
-                                'day' => $scheduleData['day'] ?? null,
-                                'start_time' => $scheduleData['start_time'] ?? null,
-                                'end_time' => $scheduleData['end_time'] ?? null
-                            ]);
-                        }
-                    }
-                }
             }
 
             return response()->json(['message' => 'Applicants synced successfully.']);
         } catch (\Throwable $e) {
             \Log::error('Sync error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['message' => 'Sync failed.', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function syncSchedules()
+    {
+        try {
+            $academicYear = '2024-2025';
+            $yearLevels = [1, 2, 3, 4];
+            $externalProgramIds = [7, 8, 9];
+
+            $totalInserted = 0;
+            $totalSkipped = 0;
+
+            foreach ($externalProgramIds as $programId) {
+                foreach ($yearLevels as $yearLevel) {
+                    $response = Http::withToken(env('SCHEDULE_API_TOKEN'))
+                        ->get(env('SCHEDULE_API_URL') . '/api/schedule-management/external/uploaded', [
+                            'program_id'    => $programId,
+                            'year_level'    => $yearLevel,
+                            'academic_year' => $academicYear,
+                        ]);
+
+                    if ($response->failed()) {
+                        \Log::warning("Failed to fetch schedule for Program ID $programId, Year Level $yearLevel");
+                        continue;
+                    }
+
+                    $entries = $response->json();
+
+                    foreach ($entries as $entry) {
+                        if (!in_array($entry['status'], ['Uploaded', 'Approved'])) {
+                            continue;
+                        }
+
+                        foreach ($entry['schedule_json'] as $scheduleItem) {
+                            $props = $scheduleItem['extendedProps'] ?? [];
+                            $courseId = $scheduleItem['course_id'] ?? null;
+
+                            if (!$courseId) {
+                                \Log::warning("Course ID missing, skipping.");
+                                continue;
+                            }
+
+                            $exists = Schedule::where([
+                                'course_id'     => $courseId,
+                                'program_id'    => $programId,
+                                'year_level'    => $yearLevel,
+                                'academic_year' => $academicYear,
+                                'day'           => $scheduleItem['day'],
+                                'start_time'    => $scheduleItem['start'],
+                                'end_time'      => $scheduleItem['end'],
+                            ])->exists();
+
+                            if (!$exists) {
+                                Schedule::create([
+                                    'course_id'     => $courseId,
+                                    'program_id'    => $programId,
+                                    'year_level'    => $yearLevel,
+                                    'academic_year' => $academicYear,
+                                    'semester'      => $entry['semester'],
+                                    'day'           => $scheduleItem['day'],
+                                    'start_time'    => Carbon::parse($scheduleItem['start']),
+                                    'end_time'      => Carbon::parse($scheduleItem['end']),
+                                    'room'          => $props['room_name'] ?? null,
+                                    'instructor'    => $props['instructor_name'] ?? null,
+                                    'course_name'   => $props['course_name'] ?? null,
+                                    'course_code'   => $props['course_code'] ?? null,
+                                ]);
+                                $totalInserted++;
+                            } else {
+                                $totalSkipped++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return response()->json([
+                'message'  => 'Schedules synced successfully.',
+                'inserted' => $totalInserted,
+                'skipped'  => $totalSkipped
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error'   => 'An error occurred while syncing schedules.',
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }
