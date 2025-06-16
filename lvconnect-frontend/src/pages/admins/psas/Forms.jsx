@@ -110,7 +110,7 @@ const Forms = () => {
   console.log(submittedForms)
   const navigate = useNavigate();
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 relative">
       <div className="flex justify-between items-center mb-6">
         {/* Title and Subtitle */}
         <div>
@@ -123,7 +123,7 @@ const Forms = () => {
         </div>
       </div>
 
-      <div className="absolute right-10 ml-2">
+      <div className="absolute right-5 ml-2">
         <button
           // onClick={() => {
           //   setIsOpen(true)
