@@ -145,16 +145,17 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
       <IoArrowBack className="text-[#2CA4DD]" />
     </button>
     <h2 className="text-xl font-semibold text-[#2CA4DD] flex-grow text-center">
-      {isEditMode ? "Edit Post" : "Create New Post"}
+      {isEditMode ? "Edit Post" : "Create New School update"}
     </h2>
   </div>
+   <hr className="divider m-1" />
 
   {/* Post type + switches */}
   <div className="flex items-center justify-between gap-4 mt-3.5">
     <select
       value={selectedType}
       onChange={(e) => setSelectedType(e.target.value)}
-      className="flex-1 p-2 border rounded-md "
+      className="flex-1 p-2 border rounded-md"
       disabled={!canEdit}
     >
       <option value="announcement">Announcement</option>

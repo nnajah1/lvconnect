@@ -317,27 +317,50 @@ const FormBuilder = ({ mode = 'create', initialData, initialFields, onSubmit, on
   };
 
   return (
-    <div className="p-4">
+    <div className="w-auto">
 
       <form onSubmit={handleSubmit(handleCreateForm)} className="space-y-4">
-        <div className="flex items-center justify-between">
 
-          <h2 className="text-xl font-semibold mb-4">{mode === 'edit' ? 'Edit Form' : 'Create Form'}</h2>
-          <Controller
-            name="is_visible"
-            control={control}
-            render={({ field }) => (
-              <SwitchComponent
-                label="Visible to Users"
-                checked={!!field.value}
-                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
-              />
-            )}
+        <div className="flex flex-col">
+          <h2 className="text-xl font-bold text-[#2CA4DD] text-center">
+            {mode === 'edit' ? 'Edit Form' : 'Create Form'}
+          </h2>
+
+          
+
+          <div className="flex justify-end mt-2">
+            <Controller
+              name="is_visible"
+              control={control}
+              render={({ field }) => (
+                <SwitchComponent
+                  label="Visible to Users"
+                  checked={!!field.value}
+                  onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
+                />
+              )}
+            />
+          </div>
+        </div>
+        
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Form Title</label>
+          <input
+            {...register('title')}
+            className="w-full p-3 border border-[#2CA4DD] rounded-md bg-white"
+            required
           />
         </div>
 
-        <input {...register('title')} placeholder="Form Title" className="border p-2 w-full rounded" required />
-        <textarea {...register('description')} placeholder="Description" className="border p-2 w-full rounded bg-white" />
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea
+            {...register('description')}
+            className="w-full h-[100px] p-3 border border-gray-200 rounded-md bg-white"
+          />
+        </div>
+
         {mode !== 'edit' && (
           <input type="file" accept="application/pdf" onChange={handlePdfUpload} />
         )}

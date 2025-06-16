@@ -88,11 +88,17 @@ const Forms = () => {
   return (
     <div className="container mx-auto p-4">
       {/* {error && <p>{error}</p>} */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold mb-4">School Forms</h1>
-        {/* Search Input */}
-        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
-      </div>
+        <div className="flex justify-between items-center mb-6">
+                    {/* Title and Subtitle */}
+                    <div>
+                      <h1 className="text-2xl font-bold text-[#253965]">School Forms Management</h1>
+                      <p className="text-[16px] text-gray-600 mt-1">Create, edit and manage school form and templates for student use and submission</p>
+                    </div>
+                    {/* Search Input */}
+                    <div>
+                      <SearchBar value={globalFilter} onChange={setGlobalFilter} />
+                    </div>
+                  </div>
 
       {/* Create Form Button */}
       <div className="relative flex justify-end">
