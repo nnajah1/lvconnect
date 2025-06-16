@@ -13,7 +13,7 @@ class FormSubmissionDataSeeder extends Seeder
     {
         $answers = [
             // Admission Request Form (ARL)
-            'Full Name' => User::where('role', 'student')->inRandomOrder()->first()?->name ?? 'John Doe',
+            'Full Name' => User::role('student')->inRandomOrder()->first()?->name ?? 'John Doe',
             'Date of Birth' => '2005-08-15',
             'Previous School Attended' => 'Springfield High School',
             'Gender' => 'Male',

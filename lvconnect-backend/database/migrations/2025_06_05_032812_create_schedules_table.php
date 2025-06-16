@@ -17,8 +17,8 @@ return new class extends Migration {
             $table->string('year_level');
             $table->string('day');
 
-            $table->timestamp('start_time');
-            $table->timestamp('end_time');
+            $table->timestamp('start_time')->nullable();
+            $table->timestamp('end_time')->nullable();
 
             $table->string('room')->nullable();
             $table->string('instructor')->nullable();
