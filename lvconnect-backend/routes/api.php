@@ -24,7 +24,7 @@ use App\Http\Controllers\OTPController;
 use App\Http\Controllers\DummyDataSyncController;
 
 Route::post('/sync-dummy-data', [DummyDataSyncController::class, 'sync'])->middleware('auth.jwt');
-Route::post('/sync-grades-schedules', [DummyDataSyncController::class, 'syncGradesAndSchedules'])->middleware('auth.jwt');
+Route::post('/sync-schedules', [DummyDataSyncController::class, 'syncSchedules'])->middleware('auth.jwt');
 
 
 Route::post('/login', [AuthController::class, 'login']);

@@ -246,12 +246,44 @@ class DashboardController extends Controller
         $currentAcademicYearId = DB::table('enrollment_schedules')
             ->latest('created_at')
             ->value('id');
+        
+        // Get the visible SOA for that academic year
+        $visibleSOA = DB::table('fee_templates')
+            ->where('academic_year_id', $currentAcademicYearId)
+            ->where('is_visible', true)
+            ->first();
 
         // Count all enrolled students
         $currentEnrolledCount = DB::table('enrollee_records')
             ->where('enrollment_status', 'enrolled')
             ->where('enrollment_schedule_id', $currentAcademicYearId)
             ->count();
+        
+        $tuition = $visibleSOA ? $visibleSOA->tuition_total * $currentEnrolledCount : 0;
+        $misc = $visibleSOA ? $visibleSOA->miscellaneous_total * $currentEnrolledCount : 0;
+
+        $breakdownOfFunds = collect([
+            [
+                'label' => 'Tuition Fee',
+                'amount' => $tuition,
+            ],
+            [
+                'label' => 'Miscellaneous Fee',
+                'amount' => $misc,
+            ],
+            [
+                'label' => 'Free Lunch',
+                'amount' => 25000.00,
+            ],
+            [
+                'label' => 'School Uniform',
+                'amount' => 18000.00,
+            ],
+            [
+                'label' => 'Other Fees',
+                'amount' => 10000.00,
+            ],
+        ]);
 
         $pendingSchoolUpdates = DB::table('school_updates')
             ->where('status', 'pending')
@@ -261,10 +293,8 @@ class DashboardController extends Controller
             ->join('enrollee_records', 'fee_templates.academic_year_id', '=', 'enrollee_records.enrollment_schedule_id')
             ->where('fee_templates.is_visible', true)
             ->where('enrollee_records.enrollment_status', 'enrolled')
-            ->selectRaw('SUM(fee_templates.whole_academic_year) * COUNT(enrollee_records.id) as projected_revenue')
-            ->value('projected_revenue');
-
-
+            ->selectRaw('SUM(fee_templates.whole_academic_year) * COUNT(enrollee_records.id) as total_investment')
+            ->value('total_investment');
 
         // Student Population
         $studentPopulation = DB::table('enrollee_records')
@@ -322,6 +352,7 @@ class DashboardController extends Controller
             'stats' => $stats,
             'student_population' => $studentPopulation,
             'enrolled_status_overview' => $enrolledStatusOverview,
+            'breakdown_of_funds' => $breakdownOfFunds,
         ]);
     }
 
