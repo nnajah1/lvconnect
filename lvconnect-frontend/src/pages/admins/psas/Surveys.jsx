@@ -75,9 +75,19 @@ const location = useLocation();
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Surveys</h1>
+        <div className="flex justify-between items-center mb-6">
+                    {/* Title and Subtitle */}
+                    <div>
+                      <h1 className="text-2xl font-bold text-[#253965]">Survey Management</h1>
+                      <p className="text-[16px] text-gray-600 mt-1">Create survey questionnaires and track responses</p>
+                    </div>
+                    {/* Search Input */}
+                    <div>
+                      <SearchBar value={globalFilter} onChange={setGlobalFilter} />
+                    </div>
+                  </div>
 
-      {/* Create & Search Section */}
+
       <div className="flex justify-between items-center mb-4">
         {/* Create Update Button */}
         <div className="relative">
@@ -92,8 +102,7 @@ const location = useLocation();
           </button>
         </div>
 
-        {/* Search Input */}
-        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
+    
       </div>
 
       <DataTable columns={columns} data={survey} context="Surveys" globalFilter={globalFilter} isLoading={loading}/>

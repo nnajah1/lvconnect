@@ -7,6 +7,7 @@ import { deletePost, getArchivePosts, restorePost } from "@/services/axios";
 import { archiveActionConditions, archiveActions, archiveSchema } from "@/tableSchemas/schoolUpdate";
 import { useUserRole } from "@/utils/userRole";
 import { ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
+import SearchBar from "@/components/dynamic/searchBar"
 import { toast } from "react-toastify";
 import ViewPostModal from "./ViewPost";
 
@@ -97,7 +98,15 @@ const ArchivePosts = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Archive</h1>
+       <div className="flex justify-between items-center mb-6">
+              {/* Title and Subtitle */}
+              <div>
+                <h1 className="text-2xl font-bold text-[#253965]">Archived Updates</h1>
+                <p className="text-[16px] text-gray-600 mt-1">View and manage previously published school updates in the archive</p>
+              </div>
+           
+            
+            </div>
       <DataTable columns={columns} data={archive} context="archives" isLoading={loading} />
 
       {viewItem && (
