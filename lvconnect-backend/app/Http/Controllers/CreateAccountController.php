@@ -31,7 +31,7 @@ class CreateAccountController extends Controller
     {
         $authenticatedUser = JWTAuth::authenticate();
 
-        if (!$authenticatedUser || !$authenticatedUser->hasActiveRole('superadmin')) {
+        if (!$authenticatedUser || !$authenticatedUser->hasRole('superadmin')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
@@ -330,7 +330,7 @@ class CreateAccountController extends Controller
         }
 
         // Registrar admin can only deactivate students
-        if ($authUser->hasActiveRole('registrar') && !$user->hasRole('student')) {
+        if ($authUser->hasRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['error' => 'Registrar can only deactivate student accounts'], 403);
         }
 
@@ -367,7 +367,7 @@ class CreateAccountController extends Controller
         }
 
         // Registrar admin can only reactivate students
-        if ($authUser->hasActiveRole('registrar') && !$user->hasRole('student')) {
+        if ($authUser->hasRole('registrar') && !$user->hasRole('student')) {
             return response()->json(['error' => 'Registrar can only reactivate student accounts'], 403);
         }
 
@@ -437,7 +437,7 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (!$authUser || !$authUser->hasActiveRole('superadmin')) {
+        if (!$authUser || !$authUser->hasRole('superadmin')) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
