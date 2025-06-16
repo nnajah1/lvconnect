@@ -27,7 +27,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -50,13 +50,14 @@ class DashboardController extends Controller
             ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
             ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId) 
             ->select(
                 'programs.id as program_id',
                 'programs.program_name',
                 'student_information.province',
                 'student_information.city_municipality',
                 'student_information.barangay',
-                DB::raw('`student_information`.`house_no/street` as street'),
+                DB::raw('`student_information`.`house_no/street` as house_street'),
                 DB::raw('COUNT(*) as student_count')
             )
             ->groupBy(
@@ -70,15 +71,14 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('program_id')
             ->map(function ($group) {
-                $programName = $group->first()->program_name;
                 return [
-                    'program_name' => $programName,
+                    'program_name' => $group->first()->program_name,
                     'addresses' => $group->map(function ($item) {
                         return [
                             'province' => $item->province,
                             'city_municipality' => $item->city_municipality,
                             'barangay' => $item->barangay,
-                            'street' => $item->street,
+                            'street' => $item->house_street,
                             'student_count' => $item->student_count,
                         ];
                     })->values(),
@@ -142,7 +142,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -238,7 +238,7 @@ class DashboardController extends Controller
         $user = JWTAuth::authenticate();
 
         // Allow only users with the 'scadmin' role
-        if (!$user->hasActiveRole('scadmin')) {
+        if (!$user->hasRole('scadmin')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -253,11 +253,25 @@ class DashboardController extends Controller
             ->where('enrollment_schedule_id', $currentAcademicYearId)
             ->count();
 
+        $pendingSchoolUpdates = DB::table('school_updates')
+            ->where('status', 'pending')
+            ->count();
+
+        $totalScholarshipInvestment = DB::table('fee_templates')
+            ->join('enrollee_records', 'fee_templates.academic_year_id', '=', 'enrollee_records.enrollment_schedule_id')
+            ->where('fee_templates.is_visible', true)
+            ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->selectRaw('SUM(fee_templates.whole_academic_year) * COUNT(enrollee_records.id) as projected_revenue')
+            ->value('projected_revenue');
+
+
+
         // Student Population
         $studentPopulation = DB::table('enrollee_records')
             ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
             ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId)
             ->select(
                 'programs.id as program_id',
                 'programs.program_name',
@@ -292,12 +306,22 @@ class DashboardController extends Controller
                 ];
             })->values();
 
+        $enrolledStatusOverview = DB::table('enrollee_records')
+            ->select('enrollment_status', DB::raw('COUNT(*) as count'))
+            ->where('enrollment_schedule_id', $currentAcademicYearId)
+            ->whereIn('enrollment_status', ['enrolled', 'rejected'])
+            ->groupBy('enrollment_status')
+            ->pluck('count', 'enrollment_status');
+
         $stats = [
             'current_enrolled_students' => $currentEnrolledCount,
+            'pending_school_updates' => $pendingSchoolUpdates,
+            'total_scholarship_investment' => $totalScholarshipInvestment,
         ];
         return response()->json([
             'stats' => $stats,
             'student_population' => $studentPopulation,
+            'enrolled_status_overview' => $enrolledStatusOverview,
         ]);
     }
 
@@ -308,7 +332,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('registrar')) {
+        if (!$user->hasRole('registrar')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -329,17 +353,24 @@ class DashboardController extends Controller
             ->where('enrollment_schedule_id', $currentAcademicYearId)
             ->count();
 
-        // Count temporary enrolled students for that academic year
-        $temporaryEnrolledCount = DB::table('enrollee_records')
-            ->where('enrollment_status', 'rejected')
-            ->where('enrollment_schedule_id', $currentAcademicYearId)
+        // New student Accounts
+        $studentsWithoutInfo = User::whereHas('roles', function ($q) {
+            $q->where('name', 'student');
+            })
+            ->whereDoesntHave('studentInformation')
             ->count();
+        // Count temporary enrolled students for that academic year
+        // $temporaryEnrolledCount = DB::table('enrollee_records')
+        //     ->where('enrollment_status', 'rejected')
+        //     ->where('enrollment_schedule_id', $currentAcademicYearId)
+        //     ->count();
 
         // Student Population
         $studentPopulation = DB::table('enrollee_records')
             ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
             ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId) 
             ->select(
                 'programs.id as program_id',
                 'programs.program_name',
@@ -374,7 +405,7 @@ class DashboardController extends Controller
                 ];
             })->values();
 
-        $enrolledStudentsOverview = DB::table('enrollee_records')
+        $enrolledStatusOverview = DB::table('enrollee_records')
             ->select('enrollment_status', DB::raw('COUNT(*) as count'))
             ->where('enrollment_schedule_id', $currentAcademicYearId)
             ->whereIn('enrollment_status', ['enrolled', 'rejected'])
@@ -384,6 +415,7 @@ class DashboardController extends Controller
         $enrolledPerProgram = DB::table('enrollee_records')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
             ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId) // ✅ filter by current year
             ->select('programs.program_name', DB::raw('COUNT(*) as student_count'))
             ->groupBy('programs.program_name')
             ->get();
@@ -391,13 +423,14 @@ class DashboardController extends Controller
         $stats = [
             'current_enrolled_student' => $currentEnrolledCount,
             'pending_student_count' => $pendingCount,
-            'temporary_enrolled_student_count' => $temporaryEnrolledCount,
+            'students_without_info' => $studentsWithoutInfo,
+            // 'temporary_enrolled_student_count' => $temporaryEnrolledCount,
         ];
 
         return response()->json([
             'stats' => $stats,
             'student_population' => $studentPopulation,
-            'enrolled_students_overview' => $enrolledStudentsOverview,
+            'enrolled_status_overview' => $enrolledStatusOverview,
             'enrolled_per_program' => $enrolledPerProgram,
         ]);
     }
