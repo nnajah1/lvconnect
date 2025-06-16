@@ -110,7 +110,7 @@ export default function CalendarActivities({ onBack, selectedDate, isAdmin }) {
         {isAdmin && (
           <button
             onClick={() => setIsAddEventModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
           >
             Add Event
           </button>
@@ -147,12 +147,14 @@ export default function CalendarActivities({ onBack, selectedDate, isAdmin }) {
       {/* Modals */}
       {isAddEventModalOpen && (
         <AddEventModal
+          isOpen={isAddEventModalOpen}
           onEventAdded={handleEventAdded}
           onClose={() => setIsAddEventModalOpen(false)}
         />
       )}
       {isAdmin && selectedActivity && (
         <EditEventModal
+          isOpen={selectedActivity}
           event={selectedActivity}
           onEventUpdated={handleEventUpdated}
           onClose={() => setSelectedActivity(null)}

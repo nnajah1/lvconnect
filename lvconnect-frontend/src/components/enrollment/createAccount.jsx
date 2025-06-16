@@ -8,7 +8,7 @@ import StudentEditForm from "@/components/school_forms/userSubmitForm";
 import { createBatchAccount, createOneAccount } from "@/services/enrollmentAPI";
 import { toast } from "react-toastify";
 
-const CreateAccountModal = ({loadNewStudents, isOpen, closeModal, showSingleForm, setShowSingleForm, showBatchForm, setShowBatchForm }) => {
+const CreateAccountModal = ({ loadNewStudents, isOpen, closeModal, showSingleForm, setShowSingleForm, showBatchForm, setShowBatchForm }) => {
 
 
     const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +44,27 @@ const CreateAccountModal = ({loadNewStudents, isOpen, closeModal, showSingleForm
         }
     };
 
+        
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        const validTypes = [
+            "text/csv",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ];
+
+        if (!validTypes.includes(file.type)) {
+            toast.error("Invalid file type. Please upload a CSV, Spreadsheet or Excel file.");
+            return;
+        }
+
+        setCsvFile(file);
+    };
+
+
     const handleBatchSubmit = async () => {
         if (!csvFile) {
             toast.info('Please select a CSV or Excel file.');
@@ -56,15 +77,15 @@ const CreateAccountModal = ({loadNewStudents, isOpen, closeModal, showSingleForm
         try {
             setLoading(true);
             const response = await createBatchAccount(formData)
-             if (response.status === 207 && response.data?.details) {
-        const details = Array.isArray(response.data.details)
-            ? response.data.details.join('\n')
-            : response.data.details;
+            if (response.status === 207 && response.data?.details) {
+                const details = Array.isArray(response.data.details)
+                    ? response.data.details.join('\n')
+                    : response.data.details;
 
-        toast.info(`Some entries failed:\n${details}`);
-    } else {
-        toast.success(`Batch Success: ${response.data.message}`);
-    }
+                toast.info(`Some entries failed:\n${details}`);
+            } else {
+                toast.success(`Batch Success: ${response.data.message}`);
+            }
             await loadNewStudents();
             closeModal();
         } catch (error) {
@@ -75,6 +96,7 @@ const CreateAccountModal = ({loadNewStudents, isOpen, closeModal, showSingleForm
         }
     };
 
+
     return (
         <>
             {isLoading ? (
@@ -84,11 +106,13 @@ const CreateAccountModal = ({loadNewStudents, isOpen, closeModal, showSingleForm
                 <DynamicModal isOpen={isOpen}
                     closeModal={closeModal}
                     showCloseButton={false}
-                    title="Create Account"
+                    title={showBatchForm ? "Create Batch Account" : "Create Account"}
+
                     description="Fill out the form below to create account."
-                    showTitle={false}
+                    showTitle={true}
                     showDescription={false}
-                    className="max-w-[60rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                // className="max-w-[30rem]!"
+                >
 
                     {showSingleForm && (
                         <>
@@ -109,13 +133,13 @@ const CreateAccountModal = ({loadNewStudents, isOpen, closeModal, showSingleForm
                             <div className="flex gap-2 justify-end">
                                 <button
                                     onClick={() => setShowSingleForm(false)}
-                                    className="text-sm text-gray-500 hover:underline cursor-pointer"
+                                    className="text-sm text-gray-500 border rounded p-2 cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSingleSubmit}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+                                    className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800 cursor-pointer"
                                     disabled={loading}
                                 >
                                     {loading ? "Creating..." : "Submit"}
@@ -126,22 +150,31 @@ const CreateAccountModal = ({loadNewStudents, isOpen, closeModal, showSingleForm
 
                     {showBatchForm && (
                         <>
-                            <input
-                                type="file"
-                                accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-                                onChange={(e) => setCsvFile(e.target.files[0])}
-                                className="border p-2 w-full"
-                            />
+                            <div className="flex flex-col gap-1">
+                                <label className="text-sm font-medium text-gray-700 mb-2">
+                                    Upload Student File
+                                    <span className="block text-xs text-gray-500">
+                                        Accepted file types: .csv, .xls, .xlsx
+                                    </span>
+                                </label>
+                                <input
+                                    type="file"
+                                    accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                                    onChange={(e) => handleFileChange(e)}
+                                    className="border p-2 w-full"
+                                />
+                            </div>
+
                             <div className="flex gap-2 justify-end">
                                 <button
                                     onClick={() => setShowBatchForm(false)}
-                                    className="text-sm text-gray-500 hover:underline cursor-pointer"
+                                    className="text-sm text-gray-500 border rounded p-2 cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleBatchSubmit}
-                                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+                                    className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800 cursor-pointer"
                                     disabled={loading}
                                 >
                                     {loading ? "Uploading..." : "Submit Batch"}

@@ -54,7 +54,7 @@ export const roleMenus = [
 
   // Comms
   {
-    name: "Comms Dashboard",
+    name: "Dashboard",
     path: "/comms-admin",
     roles: ["comms"],
     solidIcon: HiHome,
@@ -77,7 +77,7 @@ export const roleMenus = [
 
   // School Admin
   {
-    name: "School Admin Dashboard",
+    name: "Dashboard",
     path: "/school-admin",
     roles: ["scadmin"],
     solidIcon: HiHome,
@@ -93,7 +93,7 @@ export const roleMenus = [
 
   // PSAS
   {
-    name: "PSAS Dashboard",
+    name: "Dashboard",
     path: "/psas-admin",
     roles: ["psas"],
     solidIcon: HiHome,
@@ -116,28 +116,28 @@ export const roleMenus = [
 
   // Registrar
   {
-    name: "Registrar Dashboard",
+    name: "Dashboard",
     path: "/registrar",
     roles: ["registrar"],
     solidIcon: HiHome,
     outlineIcon: HiOutlineHome,
   },
   {
-    name: "Enrollment",
+    name: "Enrollment Management",
     path: "/registrar/enrollment",
     roles: ["registrar"],
     solidIcon: FaAddressCard,
     outlineIcon: FaRegAddressCard,
   },
   {
-    name: "Students",
+    name: "Student Management",
     path: "/registrar/student-information-management",
     roles: ["registrar"],
     solidIcon: HiUsers,
     outlineIcon: HiOutlineUsers,
   },
   {
-    name: "SOA",
+    name: "SOA Management",
     path: "/registrar/soa",
     roles: ["registrar"],
     solidIcon: HiClipboardDocumentList,
@@ -146,11 +146,18 @@ export const roleMenus = [
 
   // Superadmin - Dropdowns for each role
   {
+    name: "Dashboard",
+    path: "/system-admin",
+    roles: ["superadmin"],
+    solidIcon: HiHome,
+    outlineIcon: HiOutlineHome,
+  },
+  {
     name: "Student",
     roles: ["superadmin"],
     dropdown: [
       {
-        name: "Dashboard",
+        name: "Student",
         path: "/my",
         solidIcon: HiHome,
         outlineIcon: HiOutlineHome,
@@ -190,7 +197,7 @@ export const roleMenus = [
     outlineIcon: HiOutlineHome,
   },
   {
-    name: "Comms",
+    name: "Communications Officer",
     roles: ["superadmin"],
     dropdown: [
       {
@@ -216,7 +223,7 @@ export const roleMenus = [
     outlineIcon: HiOutlineHome,
   },
   {
-    name: "School Admin",
+    name: "College Chancellor ",
     roles: ["superadmin"],
     dropdown: [
       {
@@ -236,7 +243,7 @@ export const roleMenus = [
     outlineIcon: HiOutlineHome,
   },
   {
-    name: "PSAS",
+    name: "Prefect",
     roles: ["superadmin"],
     dropdown: [
       {
@@ -272,19 +279,19 @@ export const roleMenus = [
         outlineIcon: HiOutlineHome,
       },
       {
-        name: "Enrollment",
+        name: "Enrollment Management",
         path: "/registrar/enrollment",
         solidIcon: FaAddressCard,
         outlineIcon: FaRegAddressCard,
       },
       {
-        name: "Students",
+        name: "Student Management",
         path: "/registrar/student-information-management",
         solidIcon: HiUsers,
         outlineIcon: HiOutlineUsers,
       },
       {
-        name: "SOA",
+        name: "SOA Management",
         path: "/registrar/soa",
         solidIcon: HiClipboardDocumentList,
         outlineIcon: HiOutlineClipboardDocumentList,
@@ -293,11 +300,5 @@ export const roleMenus = [
     solidIcon: HiHome,
     outlineIcon: HiOutlineHome,
   },
-  {
-    name: "System Admin Dashboard",
-    path: "/system-admin",
-    roles: ["superadmin"],
-    solidIcon: HiHome,
-    outlineIcon: HiOutlineHome,
-  },
+  
 ];

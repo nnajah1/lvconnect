@@ -8,9 +8,9 @@ export const useUserRole = () => {
 
 export const roleRename = {
   student: "Student",
-  registrar: "Registrar Administrator",
+  registrar: "Registrar",
   comms: "Communications Officer",
-  psas: "PSAS Officer",
-  scadmin: "School Administrator",
-  superadmin: "System Administrator",
+  psas: "Prefect",
+  scadmin: "College Chancellor",
+  superadmin: "Superadmin",
 };

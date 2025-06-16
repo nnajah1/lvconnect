@@ -10,6 +10,8 @@ const CreateSurveyModal = ({ isOpen, closeModal, loadSurveys }) => {
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const builderRef = useRef();
+    
+    const [visibilityMode, setVisibilityMode] = useState('hidden');
     // const handleSuccess = (formId) => {
     //     setIsLoading(true);
 
@@ -22,7 +24,7 @@ const CreateSurveyModal = ({ isOpen, closeModal, loadSurveys }) => {
     //     }, 2000);
     // };
 
-      const handleOnsubmit = async () => {
+    const handleOnsubmit = async () => {
         if (builderRef.current?.handleSubmit) {
             await builderRef.current.handleSubmit(); // call the submit inside SurveyBuilder
         }
@@ -40,20 +42,38 @@ const CreateSurveyModal = ({ isOpen, closeModal, loadSurveys }) => {
                     closeModal={closeModal}
                     showCloseButton={false}
                     title="Create Survey"
-                    description="Fill out the form below to create a new survey."
+                    description="Create and publish new survey questionnaires for students to answer."
                     showTitle={true}
                     showDescription={true}
                     showFooter={true}
                     headerButtons={
-                        <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">
-                            Survey Visibility
-                        </button>
+                        <div className="flex flex-col items-start w-fit">
+                            <label htmlFor="visibilityMode" className="text-sm font-medium text-slate-700 mb-1">
+                                Survey Visibility
+                            </label>
+                            <Select value={visibilityMode} onValueChange={setVisibilityMode}>
+                                <SelectTrigger
+                                    id="visibilityMode"
+                                    className="sm:w-64 bg-white dark:bg-slate-950 border-[#2CA4DD] dark:border-[#2CA4DD]"
+                                >
+                                    <SelectValue placeholder="Select visibility mode" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white">
+                                    <SelectItem value="hidden" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
+                                        Hidden (Not shown to users)
+                                    </SelectItem>
+                                    <SelectItem value="optional" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
+                                        Visible (Visible in survey list)
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     }
                     onConfirm={handleOnsubmit}
                     confirmText="Publish Survey"
                 >
 
-                    <SurveyBuilder ref={builderRef} closeModal={closeModal} loadSurveys={loadSurveys} />
+                    <SurveyBuilder ref={builderRef} closeModal={closeModal} loadSurveys={loadSurveys} visibilityMode={visibilityMode} setVisibilityMode={setVisibilityMode}/>
 
                 </DynamicModal>
             )}

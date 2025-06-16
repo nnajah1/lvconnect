@@ -1,5 +1,6 @@
+import StatusBadge from "@/components/dynamic/statusBadge";
 import { useUserRole } from "@/utils/userRole";
-import { Archive, Check, Eye, Pencil, X } from "lucide-react";
+import { Archive, Check, ExternalLink, Eye, Pencil, X } from "lucide-react";
 
 export const registrarSchema = {
   full_name: {
@@ -49,13 +50,17 @@ export const registrarSchema = {
     customCell: (value, original) => {
       const status = original?.enrollee_record?.[0]?.enrollment_status;
       const map = {
-        not_enrolled: <span style={{ color: "gray" }}>Not Enrolled</span>,
-        enrolled: <span style={{ color: "green" }}>Enrolled</span>,
-        pending: <span style={{ color: "orange" }}>Pending</span>,
-        rejected: <span style={{ color: "#8B8000" }}>Temporary Enrolled</span>,
-        archived: <span style={{ color: "gray" }}>Archived</span>,
+        not_enrolled: "Not Enrolled",
+        enrolled: "Enrolled",
+        pending: "Pending",
+        rejected: "Temporary Enrolled",
+        archived: "Archived"
       };
-      return map[status];
+
+      return status ? (
+        <StatusBadge status={status} label={map[status]}>
+        </StatusBadge>
+      ) : "-";
     },
     filterFn: (row, columnId, filterValue) => {
       const status = row.original?.enrollee_record?.[0]?.enrollment_status;
@@ -112,8 +117,11 @@ export const archiveSchema = {
     filterable: true,
     customCell: (value, original) => {
       const remarks = original?.enrollee_record?.[0]?.admin_remarks;
-      return remarks;
+      return remarks ? (
+    <StatusBadge status="not_enrolled" label={remarks} />
+  ) : "-";
     },
+    
     filterFn: (row, columnId, filterValue) => {
       const remarks = row.original?.enrollee_record?.[0]?.admin_remarks;
       return remarks?.toLowerCase().includes(filterValue.toLowerCase());
@@ -124,25 +132,20 @@ export const archiveSchema = {
 
 export const smActions = (viewModal, openModal, openArchiveModal) => ({
   view: {
-    icon: () => <Eye size={18} />,
+    label: "View",
+    icon: () => <ExternalLink size={16} />,
     fn: (id, item) => viewModal(item),
-    variant: () => "ghost",
-    className: "hover:bg-blue-100 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+    className: "text-blue-900 hover:bg-blue-100",
   },
   update: {
-    icon: () => <Pencil size={18} />,
+    label: "Update",
+    icon: () => <Pencil size={16} />,
     fn: (id, item) => openModal(item),
-    variant: () => "ghost",
-    className: "hover:bg-blue-100 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
   archive: {
-    icon: (item) => <div className="flex items-center justify-center gap-1.5">
-      <Archive className="h-4 w-4 text-white" />
-      <span className="hidden sm:inline text-white font-medium">Archive</span>
-    </div>,
+    label: "Archive",
+    icon: (item) => <Archive size={16}/>,
     fn: (id, item) => openArchiveModal(item),
-    variant: (item) => "default",
-    className: "hover:bg-blue-300 bg-blue-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
 
 

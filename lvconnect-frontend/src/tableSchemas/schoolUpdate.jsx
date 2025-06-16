@@ -1,8 +1,8 @@
 import StatusBadge from "@/components/dynamic/statusBadge";
 import { formatTitle, toTitleCase } from "@/utils/textFormatter";
-import { Archive, ArchiveRestore, Check, ExternalLink, Eye, Pencil, Trash, Trash2, View, X } from "lucide-react";
+import { Archive, ArchiveRestore, ArchiveRestoreIcon, Check, ExternalLink, Eye, Pencil, Trash, Trash2, Trash2Icon, TrashIcon, View, X } from "lucide-react";
 import { BiPencil, BiTrash } from "react-icons/bi";
-import { BsEye, BsEyeFill } from "react-icons/bs";
+import { BsEye, BsEyeFill, BsTrash } from "react-icons/bs";
 import { FaFacebook } from "react-icons/fa6";
 import { MdArchive, MdPublish, MdRestore, MdRestoreFromTrash } from "react-icons/md";
 
@@ -40,7 +40,7 @@ export const schoolUpdateSchema = {
 
 export const actions = (
   handleViewPost, handlePublish, handleEdit, handleDelete,
-  handleArchive, handlePostFb, handleApprove, handleReject
+  handleArchive, handlePostFb
 ) => ({
   view: {
     label: "View",
@@ -73,7 +73,18 @@ export const actions = (
     icon: () => <FaFacebook size={16} />,
     fn: (id, item) => handlePostFb(item),
   },
-  approve: {
+ 
+});
+
+export const actionsForSchoolAdmin = ( handleViewPost, handleApprove, handleReject
+) => ({
+  view: {
+    label: "View",
+    icon: () => <ExternalLink size={16} />,
+    fn: (id, item) => handleViewPost(item),
+    className: "text-blue-900 hover:bg-blue-100",
+  },
+   approve: {
     label: "Approve",
     icon: () => <Check size={16} />,
     fn: (id, item) => handleApprove(item),
@@ -85,7 +96,6 @@ export const actions = (
   },
 });
 
-
 // Sample action conditions
 export const actionConditions = {
     view: () => true,
@@ -94,27 +104,31 @@ export const actionConditions = {
     publish: (item, userRole) => userRole === "comms" && item.status === "approved",
     archive: (item, userRole) => userRole === "comms" && item.status === "published",
     postFb: (item, userRole) => userRole === "comms" && (item.status === "published" && item.status !== "published & synced"),
-    approve: (item, userRole) =>
+};
+
+export const actionConditionsForSchoolAdmin = {
+   view: () => true,
+   approve: (item, userRole) =>
         userRole === "scadmin" && (item.status === "pending" || item.status === "revision"),
     reject: (item, userRole) =>
         userRole === "scadmin" && (item.status === "pending" || item.status === "revision"),
-
-
-};
+}
 
 export const archiveSchema = {
     title: {
         header: "Updates",
         display: true,
         enableSorting: true,
-        customCell: (value) => {
-            return value.split(" ").slice(0, 3).join(" ");
-        }
+         customCell: (value) => (
+            <span className="font-semibold text-gray-700">
+                {formatTitle(value)}
+            </span>)
     },
     status: {
         header: "Status",
         display: true,
-        enableSorting: true
+        enableSorting: true,
+        customCell: (value) => <StatusBadge status={value} />,
     },
     type: {
         header: "Type",
@@ -138,22 +152,17 @@ export const archiveSchema = {
 
 export const archiveActions = (handleView, handleDelete, handleArchive) => ({
     view: {
-        icon: () => <BsEyeFill size={18} title="View" />,
+        icon: () => <ExternalLink size={16} />,
         fn: (id, item) => handleView(item),
-        variant: () => "ghost",
-        className: "text-blue-600 hover:bg-blue-100 p-1"
+        className: "text-blue-900 hover:bg-blue-100"
     },
     delete: {
-        icon: () => <BiTrash size={18} title="Delete" />,
+        icon: () => <Trash2Icon size={16}/>,
         fn: (id, item) => handleDelete(item),
-        variant: () => "ghost",
-        className: "text-red-600 hover:bg-red-200 p-1"
     },
     restore: {
-        icon: () => <MdRestoreFromTrash size={20} title="Restore" />,
+        icon: () => <ArchiveRestoreIcon size={20}/>,
         fn: (id, item) => handleArchive(item),
-        variant: () => "ghost",
-        className: "text-green-600 hover:bg-green-200 p-1"
     },
 
 });

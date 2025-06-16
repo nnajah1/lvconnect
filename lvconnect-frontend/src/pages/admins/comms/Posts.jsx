@@ -13,7 +13,7 @@ import {
   rejectPost,
   revisionPost,
 } from "@/services/axios"
-import { actionConditions, actions, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate"
+import { actionConditions, actionConditionsForSchoolAdmin, actions, actionsForSchoolAdmin, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate"
 import { CiCirclePlus } from "react-icons/ci"
 import CreatePostModal from "@/pages/admins/comms/CreatePost"
 import ViewPostModal from "./ViewPost"
@@ -278,6 +278,10 @@ const Posts = () => {
     handleDelete,
     handleArchive,
     handlePostFb,
+  )
+
+  const scadminAction = actionsForSchoolAdmin(
+    handleViewPost,
     handleApprove,
     handleReject,
   )
@@ -285,8 +289,8 @@ const Posts = () => {
   const columns = getColumns({
     userRole,
     schema: schoolUpdateSchema,
-    actions: action,
-    actionConditions: actionConditions,
+    actions: userRole === "scadmin" ? scadminAction : action,
+    actionConditions: userRole === "scadmin" ? actionConditionsForSchoolAdmin : actionConditions,
   })
 
   return (
@@ -295,7 +299,7 @@ const Posts = () => {
         <div className="flex justify-between items-center mb-6">
               {/* Title and Subtitle */}
               <div>
-                <h1 className="text-2xl font-bold text-[#253965]">Updates Management</h1>
+                <h1 className="text-2xl font-bold text-[#253965]">Update Management</h1>
                 <p className="text-[16px] text-gray-600 mt-1">Create, manage, and publish school updates such as announcements and events.</p>
               </div>
               {/* Search Input */}

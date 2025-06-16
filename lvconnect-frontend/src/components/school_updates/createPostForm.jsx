@@ -66,7 +66,9 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
   };
 
   const preparePostPayload = async (action, isEditMode = false) => {
-    const newImages = images.filter(img => img.file);
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+    const newImages = images.filter(img => img.file && allowedTypes.includes(img.file.type));
     const existingImages = images
       .filter(img => !img.file && img.url && isEditMode)
       .map((img) => img.path || img.url);
@@ -136,8 +138,8 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
 
   return (
     <div className="flex flex-col gap-4 p-4 w-full h-full">
-  {/* Header outside white box */}
-  <div className="flex justify-between items-center">
+      {/* Header outside white box */}
+      {/* <div className="flex justify-between items-center">
     <button
       onClick={closeModal}
       className="text-xl text-gray-700 hover:text-gray-900 cursor-pointer"
@@ -148,138 +150,137 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
       {isEditMode ? "Edit Post" : "Create New School update"}
     </h2>
   </div>
-   <hr className="divider m-1" />
+   <hr className="divider m-1" /> */}
 
-  {/* Post type + switches */}
-  <div className="flex items-center justify-between gap-4 mt-3.5">
-    <select
-      value={selectedType}
-      onChange={(e) => setSelectedType(e.target.value)}
-      className="flex-1 p-2 border rounded-md"
-      disabled={!canEdit}
-    >
-      <option value="announcement">Announcement</option>
-      <option value="event">Event</option>
-    </select>
-    <div className="flex items-center gap-2">
-      <SwitchComponent
-        label="Urgent"
-        checked={isUrgent}
-        onCheckedChange={() => canEdit && setIsUrgent(!isUrgent)}
+      {/* Post type + switches */}
+      <div className="flex items-center justify-between gap-4 ">
+        <select
+          value={selectedType}
+          onChange={(e) => setSelectedType(e.target.value)}
+          className="flex-1 p-2 border rounded-md"
+          disabled={!canEdit}
+        >
+          <option value="announcement">Announcement</option>
+          <option value="event">Event</option>
+        </select>
+        <div className="flex items-center gap-2">
+          <SwitchComponent
+            label="Urgent"
+            checked={isUrgent}
+            onCheckedChange={() => canEdit && setIsUrgent(!isUrgent)}
+            disabled={!canEdit}
+          />
+          <SwitchComponent
+            label="Notification"
+            checked={isNotified}
+            onCheckedChange={() => canEdit && !isUrgent && setIsNotified(!isNotified)}
+            disabled={!canEdit || isUrgent}
+          />
+        </div>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full h-full-p-3 border border-black rounded-md bg-white"
         disabled={!canEdit}
       />
-      <SwitchComponent
-        label="Notification"
-        checked={isNotified}
-        onCheckedChange={() => canEdit && !isUrgent && setIsNotified(!isNotified)}
-        disabled={!canEdit || isUrgent}
+
+
+      <TextEditor
+        content={content}
+        onContentChange={setContent}
+        images={images}
+        onImagesChange={setImages}
+        disabled={!canEdit}
+
       />
-    </div>
-  </div>
-  
-    <input
-      type="text"
-      placeholder="Title"
-      value={title}
-      onChange={(e) => setTitle(e.target.value)}
-      className="w-full h-full-p-3 border border-[#2CA4DD] rounded-md bg-white"
-      disabled={!canEdit}
-    />
-    
 
-    <TextEditor
-      content={content}
-      onContentChange={setContent}
-      images={images}
-      onImagesChange={setImages}
-      disabled={!canEdit}
-      
-    />
- 
 
-  {/* Buttons */}
-  {canEdit && (
-    <div className="flex flex-wrap gap-2 justify-end mt-2">
-      <button
-        type="button"
-        disabled={status.draft || isLoading}
-        onClick={(e) => handleSubmit(e, "draft")}
-        className={`px-4 py-2 rounded ${status.draft || isLoading
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-gray-600 hover:bg-gray-400 text-white"}`}
-      >
-        {status.draft ? "Saving..." : `${isEditMode ? "Update" : "Save"} as Draft`}
-      </button>
+      {/* Buttons */}
+      {canEdit && (
+        <div className="flex flex-wrap gap-2 justify-end mt-2">
+          <button
+            type="button"
+            disabled={status.draft || isLoading}
+            onClick={(e) => handleSubmit(e, "draft")}
+            className={`px-4 py-2 rounded ${status.draft || isLoading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gray-500 hover:bg-gray-400 text-white"}`}
+          >
+            {status.draft ? "Saving..." : `${isEditMode ? "Update" : "Save"} as Draft`}
+          </button>
 
-      {!isUrgent && (
-        <button
-          type="button"
-          disabled={status.pending || isLoading}
-          onClick={() => {
-            setConfirmAction("pending");
-            setShowConfirmation(true);
-          }}
-          className={`px-4 py-2 rounded ${status.pending || isLoading
-            ? "bg-blue-400 cursor-not-allowed"
-            : "bg-[#2CA4DD] hover:bg-[#7ed0f7] text-white"}`}
-        >
-          {status.pending ? "Submitting..." : `${isEditMode ? "Update &" : ""} Submit`}
-        </button>
+          {!isUrgent && (
+            <button
+              type="button"
+              disabled={status.pending || isLoading}
+              onClick={() => {
+                setConfirmAction("pending");
+                setShowConfirmation(true);
+              }}
+              className={`px-4 py-2 rounded ${status.pending || isLoading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-900 hover:bg-blue-800 text-white"}`}
+            >
+              {status.pending ? "Submitting..." : `${isEditMode ? "Update &" : ""} Submit`}
+            </button>
+          )}
+
+          {isUrgent && (
+            <button
+              type="button"
+              disabled={status.published || isLoading}
+              onClick={() => {
+                setConfirmAction("published");
+                setShowConfirmation(true);
+              }}
+              className={`px-4 py-2 rounded ${status.published || isLoading
+                ? "bg-green-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700 text-white"}`}
+            >
+              {status.published ? "Publishing..." : `${isEditMode ? "Update &" : ""} Publish`}
+            </button>
+          )}
+        </div>
       )}
 
-      {isUrgent && (
-        <button
-          type="button"
-          disabled={status.published || isLoading}
-          onClick={() => {
-            setConfirmAction("published");
-            setShowConfirmation(true);
-          }}
-          className={`px-4 py-2 rounded ${status.published || isLoading
-            ? "bg-green-400 cursor-not-allowed"
-            : "bg-green-600 hover:bg-green-700 text-white"}`}
-        >
-          {status.published ? "Publishing..." : `${isEditMode ? "Update &" : ""} Publish`}
-        </button>
-      )}
-    </div>
-  )}
+      {/* Confirmation Modal */}
+      <InfoModal
+        isOpen={showConfirmation}
+        closeModal={() => setShowConfirmation(false)}
 
-  {/* Confirmation Modal */}
-  <InfoModal
-    isOpen={showConfirmation}
-    closeModal={() => setShowConfirmation(false)}
-    
-    title={
-      confirmAction === "pending"
-        ? `${isEditMode ? "Update & " : ""}Submit for Approval`
-        : `${isEditMode ? "Update & " : ""}Publish Post`
-    }
-    description={`Are you sure you want to ${
-      confirmAction === "pending"
-        ? `${isEditMode ? "update and " : ""}submit this post for approval`
-        : `${isEditMode ? "update and " : ""}publish this post immediately`
-    }?`}
-  >
-    <div className="flex justify-end gap-2 mt-4">
-      <button
-        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-400"
-        onClick={() => setShowConfirmation(false)}
+        title={
+          confirmAction === "pending"
+            ? `${isEditMode ? "Update & " : ""}Submit for Approval`
+            : `${isEditMode ? "Update & " : ""}Publish Post`
+        }
+        description={`Are you sure you want to ${confirmAction === "pending"
+            ? `${isEditMode ? "update and " : ""}submit this post for approval`
+            : `${isEditMode ? "update and " : ""}publish this post immediately`
+          }?`}
       >
-        Cancel
-      </button>
-      <button
-        className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]"
-        onClick={(e) => {
-          handleSubmit(e, confirmAction);
-          setShowConfirmation(false);
-        }}
-      >
-        Confirm
-      </button>
+        <div className="flex justify-end gap-2 mt-4">
+          <button
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-400"
+            onClick={() => setShowConfirmation(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
+            onClick={(e) => {
+              handleSubmit(e, confirmAction);
+              setShowConfirmation(false);
+            }}
+          >
+            Confirm
+          </button>
+        </div>
+      </InfoModal>
     </div>
-  </InfoModal>
-</div>
 
   );
 };

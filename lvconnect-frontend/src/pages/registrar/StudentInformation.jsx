@@ -180,17 +180,17 @@ const StudentInformation = () => {
     }
   };
 
-    const handleSyncGrades = async () => {
+  const handleSyncGrades = async () => {
 
     try {
       await syncGradesSchedules();
-      toast.success("New grades & schedule sync successfully!");
+      toast.success("New class schedule sync successfully!");
       setSyncGrades(false);
       await loadNewStudents();
 
     } catch (error) {
       console.error(error);
-      toast.error("Failed to sync grades & schedule");
+      toast.error("Failed to sync class schedule");
     }
   };
 
@@ -198,7 +198,10 @@ const StudentInformation = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Student Information Management</h1>
+        <div>
+          <h1 className="text-2xl text-secondary font-bold">Student Management</h1>
+          <p className="text-[16px] text-gray-600 mt-1">Create, view, update, and manage student accounts and personal records.</p>
+        </div>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
       <div className="flex itemd-center justify-end p-4 gap-2">
@@ -217,21 +220,21 @@ const StudentInformation = () => {
         {newStudent && activeTab === "new_accounts" && (
           <>
             <button
-            onClick={() => setSyncAccount(true)}
-            className="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700 cursor-pointer"
-          >
-            Sync New Accounts
-          </button>
-          {/* <button
+              onClick={() => setSyncAccount(true)}
+              className="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700 cursor-pointer"
+            >
+              Sync New Accounts
+            </button>
+            <button
             onClick={() => setSyncGrades(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
           >
-            Sync Grades & class schedules
-          </button> */}
+            Sync class schedules
+          </button>
           </>
-          
+
         )}
-        
+
       </div>
 
       <DynamicTabs
@@ -369,7 +372,7 @@ const StudentInformation = () => {
           <button
             className="px-4 py-2 bg-violet-500 text-white rounded hover:bg-violet-600" onClick={handleSyncGrades}
           >
-            Sync Grades & class schedules
+            class schedules
           </button>
         </DataModal>
       )}

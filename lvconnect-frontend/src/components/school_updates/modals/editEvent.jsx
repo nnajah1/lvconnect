@@ -1,11 +1,12 @@
 import { ErrorModal } from '@/components/dynamic/alertModal';
+import DynamicModal from '@/components/dynamic/DynamicModal';
 import api from '@/services/axios';
 import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from 'react-toastify';
 
-const EditEventModal = ({ event, onClose, onEventUpdated }) => {
+const EditEventModal = ({ event, onClose, onEventUpdated, isOpen }) => {
   const [title, setTitle] = useState(event.title || '');
   const [description, setDescription] = useState(event.description || '');
   const [startDate, setStartDate] = useState(event.date || '');
@@ -27,8 +28,24 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title.trim() || !description.trim() || !startDate || !endDate || !color) {
-      toast.error("All fields are required.");
+    if (!title.trim()) {
+      toast.error("Event title is required.");
+      return;
+    }
+    if (!description.trim()) {
+      toast.error("Description is required.");
+      return;
+    }
+    if (!startDate) {
+      toast.error("Start date is required.");
+      return;
+    }
+    if (!endDate) {
+      toast.error("End date is required.");
+      return;
+    }
+    if (!color) {
+      toast.error("Event color is required.");
       return;
     }
     if (endDate < startDate) {
@@ -72,9 +89,16 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 flex items-center justify-center w-auto">
-      <div className="bg-accent rounded-lg p-4 w-[800px]">
-        <h2 className="text-xl font-bold text-[#2CA4DD] flex-grow text-center">Edit Event</h2>
+    <DynamicModal
+      isOpen={isOpen}
+      closeModal={onClose}
+      showCloseButton={false}
+      title="Edit Event"
+      description="Fill out the form below to create a new school form."
+      showTitle={true}
+      showDescription={false}
+    >
+      <div className="rounded-lg">
 
         <div className="grid grid-cols-7 gap-4 items-start p-4">
           {/* Event Title */}
@@ -86,7 +110,7 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter event title"
               maxLength={255}
-              className="w-full h-full-p-3 border border-[#2CA4DD] rounded-md bg-white"
+              className="w-full h-full-p-3 border rounded-md bg-white"
             />
           </div>
 
@@ -143,7 +167,7 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
           </div>
         </div>
 
-        <div className="flex justify-between gap-2 mt-4">
+        <div className="flex justify-between gap-2 mt-4 px-4">
           {/* Left side: Delete Button */}
           <button
             onClick={() => setDeleteItem(event)}
@@ -160,7 +184,7 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
             <button
               onClick={handleSubmit}
               disabled={isSaving}
-              className="px-4 py-2 bg-[#2CA4DD] text-white rounded hover:bg-[#7ed0f7]"
+              className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
             >
               {isSaving ? 'Updating...' : 'Update'}
             </button>
@@ -193,7 +217,8 @@ const EditEventModal = ({ event, onClose, onEventUpdated }) => {
       )}
 
 
-    </div>
+    </DynamicModal>
+
   );
 
 };

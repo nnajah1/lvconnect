@@ -13,7 +13,7 @@ import { DeleteModal, ErrorModal } from '../dynamic/alertModal';
 import { toast } from 'react-toastify';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
- const SurveyBuilder = forwardRef(({
+const SurveyBuilder = forwardRef(({
     mode = 'create',
     initialData = {},
     initialQuestions = [],
@@ -21,11 +21,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
     onSuccess,
     onDelete,
     closeModal,
-    loadSurveys
+    loadSurveys,
+    visibilityMode,
+    setVisibilityMode
 }, ref) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [visibilityMode, setVisibilityMode] = useState('hidden');
     const [questions, setQuestions] = useState([emptyQuestion()]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -180,8 +181,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                 });
 
                 const res = await createSurvey(formData);
-                 toast.success(mode === 'edit' ? 'Survey edited successfully.' : 'Survey created successfully.');
-                 closeModal();
+                toast.success(mode === 'edit' ? 'Survey edited successfully.' : 'Survey created successfully.');
+                closeModal();
                 // if (onSuccess) onSuccess(res.survey_id);
                 await loadSurveys();
             }
@@ -201,7 +202,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
         if (!initialData.id) return;
         try {
             await deleteSurvey(initialData.id);
-             toast.success('Survey deleted succesfully.');
+            toast.success('Survey deleted succesfully.');
             // if (onDelete) onDelete(initialData.id);
         } catch (err) {
             console.error(err);
@@ -209,10 +210,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
         }
         closeAlertModal();
     };
- return (
-  <div className="flex flex-col max-w-4xl mx-auto">
-    {/* Header with title and dropdown */}
-    <div className="flex justify-between items-center mb-4">
+    return (
+        <div className="flex flex-col max-w-4xl mx-auto">
+            {/* Header with title and dropdown */}
+            {/* <div className="flex justify-between items-center mb-4">
       <div>
         <h2 className="text-2xl font-bold text-[#2CA4DD]">
           {mode === 'edit' ? 'Edit Survey' : 'Create New Survey'}
@@ -220,54 +221,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
         <p className="text-sm text-gray-600">Create and publish new survey questionnaires for students to answer.</p>
       </div>
       
-      <div className="flex flex-col items-start w-fit">
-        <label htmlFor="visibilityMode" className="text-sm font-medium text-slate-700 mb-1">
-          Survey Visibility
-        </label>
-        <Select value={visibilityMode} onValueChange={setVisibilityMode}>
-          <SelectTrigger
-            id="visibilityMode"
-            className="sm:w-64 bg-white dark:bg-slate-950 border-[#2CA4DD] dark:border-[#2CA4DD] text-sm"
-          >
-            <SelectValue placeholder="Select visibility mode" />
-          </SelectTrigger>
-          <SelectContent className="bg-white text-sm">
-            <SelectItem value="hidden" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
-              Hidden (Not shown to users)
-            </SelectItem>
-            <SelectItem value="optional" className="hover:bg-[#2CA4DD] hover:text-white focus:text-white">
-              Visible (Visible in survey list)
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    
     </div>
 
-    <hr className="divider mb-5" />
+    <hr className="divider mb-5" /> */}
 
-    {/* Title and Description fields */}
-    <div className="flex flex-col space-y-4 mb-6">
-      <div>
-        <label className="text-sm font-medium text-gray-700 mb-1 block">Title </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="survey-input survey-input-title border border-[#2CA4DD] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2CA4DD] h-10 px-3 w-full"
-        />
-      </div>
+            {/* Title and Description fields */}
+            <div className="flex flex-col space-y-4 mb-6">
+                <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Title </label>
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="survey-input survey-input-title border border-[#2CA4DD] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2CA4DD] h-10 px-3 w-full"
+                    />
+                </div>
 
-      <div>
-        <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="survey-textarea survey-description p-3 border border-gray-200 bg-white rounded-lg  w-full"
-        />
-      </div>
-    </div>
+                <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">Description</label>
+                    <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="survey-textarea survey-description p-3 border border-gray-200 bg-white rounded-lg  w-full"
+                    />
+                </div>
+            </div>
 
-     <div className="space-y-6 mb-6">
+            <div className="space-y-6 mb-6">
                 {questions.map((q, index) => (
                     <div key={q.id} className="question-card p-4 border rounded-lg shadow-sm">
                         <div className="question-header flex items-start gap-4 mb-4">
@@ -293,65 +274,65 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                             </select>
                         </div>
 
-        
 
 
-                            {isChoiceBased(q.type) && (
-            <div className="space-y-1 pl-2">
-                {q.choices.map((choice, i) => (
-                <div key={i} className="flex items-center space-x-3">
-                    <div className="flex-shrink-0 flex items-center justify-center h-6">
-                    {q.type === "Multiple choice" && (
-                        <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
-                    )}
-                    {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
-                    {q.type === "Dropdown" && <RiArrowDropDownLine size={16} className="text-gray-400" />}
-                    </div>
-                    <input
-                    type="text"
-                    value={choice}
-                    onChange={(e) => handleChoiceChange(q.id, i, e.target.value)}
-                    className="flex-1 text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 h-6 leading-6"
-                    placeholder="Option"
-                    />
-                    {q.choices.length > 1 && (
-                    <button
-                        onClick={() => removeChoice(q.id, i)}
-                        className="flex-shrink-0 text-red hover:text-red-500 p-1"
-                    >
-                        ✕
-                    </button>
-                    )}
-                </div>
-                ))}
-                <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0 flex items-center justify-center h-6">
-                    {q.type === "Multiple choice" && (
-                    <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
-                    )}
-                    {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
-                    {q.type === "Dropdown" && <RiArrowDropDownLine className="w-4 h-4 text-gray-400" />}
-                </div>
-                <button onClick={() => addChoice(q.id)} className="text-blue-500 hover:text-blue-600 font-medium h-6 leading-6">
-                    Add option
-                </button>
-                </div>
-            </div>
-            )}
 
-            {q.type === "Short answer" && (
-              <div className="pl-2">
-                <input
-                  type="text"
-                  placeholder="Short answer text"
-                  className="w-full text-gray-600 bg-transparent border-none border-b border-gray-300 outline-none pb-2 placeholder-gray-400"
-                  disabled
-                />
-              </div>
-            )}
+                        {isChoiceBased(q.type) && (
+                            <div className="space-y-1 pl-2">
+                                {q.choices.map((choice, i) => (
+                                    <div key={i} className="flex items-center space-x-3">
+                                        <div className="flex-shrink-0 flex items-center justify-center h-6">
+                                            {q.type === "Multiple choice" && (
+                                                <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
+                                            )}
+                                            {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
+                                            {q.type === "Dropdown" && <RiArrowDropDownLine size={16} className="text-gray-400" />}
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={choice}
+                                            onChange={(e) => handleChoiceChange(q.id, i, e.target.value)}
+                                            className="flex-1 text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 h-6 leading-6"
+                                            placeholder="Option"
+                                        />
+                                        {q.choices.length > 1 && (
+                                            <button
+                                                onClick={() => removeChoice(q.id, i)}
+                                                className="flex-shrink-0 text-red hover:text-red-500 p-1"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                                <div className="flex items-center space-x-3">
+                                    <div className="flex-shrink-0 flex items-center justify-center h-6">
+                                        {q.type === "Multiple choice" && (
+                                            <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
+                                        )}
+                                        {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
+                                        {q.type === "Dropdown" && <RiArrowDropDownLine className="w-4 h-4 text-gray-400" />}
+                                    </div>
+                                    <button onClick={() => addChoice(q.id)} className="text-blue-500 hover:text-blue-600 font-medium h-6 leading-6">
+                                        Add option
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
-            {q.type === "Upload Photo" && <WebcamCapture />}
-                        
+                        {q.type === "Short answer" && (
+                            <div className="pl-2">
+                                <input
+                                    type="text"
+                                    placeholder="Short answer text"
+                                    className="w-full text-gray-600 bg-transparent border-none border-b border-gray-300 outline-none pb-2 placeholder-gray-400"
+                                    disabled
+                                />
+                            </div>
+                        )}
+
+                        {q.type === "Upload Photo" && <WebcamCapture />}
+
 
 
 
@@ -371,11 +352,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                             />
                             <div className="h-5 w-px bg-gray-300" />
                             <button
-                            onClick={() => deleteQuestion(q.id)}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                            disabled={questions.length <= 1}
+                                onClick={() => deleteQuestion(q.id)}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                                disabled={questions.length <= 1}
                             >
-                            Delete
+                                Delete
                             </button>
 
                         </div>

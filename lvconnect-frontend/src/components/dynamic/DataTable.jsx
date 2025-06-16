@@ -52,7 +52,7 @@ export function DataTable({ columns, data, globalFilter, bulkActions = [], showS
           <div key={label} className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 w-full sm:w-auto">
             <span className="text-sm sm:text-base">{message}</span>
             <button
-             className="px-3 py-2 bg-blue-600 text-white rounded text-sm sm:text-base whitespace-nowrap"
+             className="px-3 py-2 bg-blue-600 text-white rounded whitespace-nowrap"
              onClick={() => onClick(selectedRows.map((row) => row.original))}
             >
              {label}

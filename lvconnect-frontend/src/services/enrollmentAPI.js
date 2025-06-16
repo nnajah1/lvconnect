@@ -133,5 +133,5 @@ export const syncAccounts = () => {
 };
 
 export const syncGradesSchedules = () => {
-  return api.post('/sync-grades-schedules');
+  return api.post('/sync-schedules');
 };

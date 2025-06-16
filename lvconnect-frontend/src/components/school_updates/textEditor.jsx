@@ -88,6 +88,8 @@ const TextEditor = ({
   }, [images]);
 
   const MAX_IMAGES = 10;
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   const handleImageUpload = (e) => {
     if (disabled) return;
 
@@ -95,13 +97,21 @@ const TextEditor = ({
     if (files.length === 0) return;
 
     const totalImages = images.length + files.length;
-  if (totalImages > MAX_IMAGES) {
-    toast.error(`You can only upload up to ${MAX_IMAGES} images.`);
-    e.target.value = '';
-    return;
-  }
+    if (totalImages > MAX_IMAGES) {
+      toast.error(`You can only upload up to ${MAX_IMAGES} images.`);
+      e.target.value = '';
+      return;
+    }
 
-    const newImages = files.map(file => ({
+    // Filter valid files
+    const validFiles = files.filter(file => ALLOWED_TYPES.includes(file.type));
+    const rejectedFiles = files.filter(file => !ALLOWED_TYPES.includes(file.type));
+
+    if (rejectedFiles.length > 0) {
+      toast.error("Only JPEG, PNG, and WEBP images are allowed.");
+    }
+
+    const newImages = validFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file)
     }));
@@ -112,6 +122,7 @@ const TextEditor = ({
 
     e.target.value = '';
   };
+
 
   const removeImage = (index) => {
     if (disabled) return;
@@ -172,11 +183,11 @@ const TextEditor = ({
                     <>
                       {imageUrl ? (
                         <img
-                        crossOrigin="anonymous"
+                          crossOrigin="anonymous"
                           src={imageUrl}
                           alt={`Preview ${index}`}
                           className="w-full h-24 object-cover rounded border"
-                         
+
                         />
                       ) : (
                         <div className="w-full h-24 flex items-center justify-center bg-gray-100 text-xs text-gray-500 border rounded">
@@ -219,13 +230,15 @@ const TextEditor = ({
               multiple
               className="hidden"
             />
-            <span className="text-blue-500 hover:text-blue-700 flex items-center">
+            <span className="text-blue-900 hover:text-blue-800 flex items-center">
               <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               Add Photos
             </span>
           </label>
+          
+            <span className=" opacity-55">Accepted file types: PNG, JPG, WEBP</span>
           <div className="text-xs text-gray-500">
             {images.length} {images.length === 1 ? 'photo' : 'photos'} selected
           </div>

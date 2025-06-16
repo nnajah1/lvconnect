@@ -17,14 +17,14 @@ export function Navbar({ user, logout, onMobileMenuToggle }) {
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="pl-4 flex flex-col leading-tight">
+          {/* <div className="pl-4 flex flex-col leading-tight">
             <span className="text-gray-500 text-sm font-normal">Welcome,</span>
             <span className="text-blue-900 text-lg md:text-xl font-bold truncate max-w-xs sm:max-w-sm md:max-w-md">
               {user?.first_name && user?.last_name
                 ? `${user.first_name} ${user.last_name}`
                 : user?.first_name || user?.last_name || "User"}
             </span>
-          </div>
+          </div> */}
 
         </div>
 
