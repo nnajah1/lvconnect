@@ -1,4 +1,4 @@
-import { Eye, Pencil } from "lucide-react";
+import { ExternalLink, Eye, Pencil } from "lucide-react";
 
 //Summary Data
 export const schoolFormTemplateSchema = {
@@ -6,7 +6,7 @@ export const schoolFormTemplateSchema = {
     title: { header: "Form", display: true },
     is_visible: {
         header: "Status",
-        sortable: false,
+        // sortable: false,
         display: true,
         customCell: (value) => (value ? "Published" : "Hidden")
     },
@@ -20,7 +20,7 @@ export const formActions = () => ({
             <Pencil size={18} />,
         fn: (id, item) => openFormModal(item),
         variant: () => "ghost",
-        className: "text-blue-600 hover:bg-blue-200 p-1"
+        className: "text-blue-600 hover:bg-blue-100 p-1"
     },
 
 });
@@ -35,11 +35,12 @@ export const surveySubmittedSchema = {
     name: {
         header: "Name",
         display: true,
-        filterable: true,
+        // filterable: true,
     },
     course: { header: "Program", display: true },
     year: {
-        header: "Year", display: true, sortable: true,
+        header: "Year Level", display: true, 
+        // filterable: true,
         customCell: (value, original) => {
             const year = original?.year;
             const yearMap = {
@@ -68,13 +69,10 @@ export const surveySubmittedSchema = {
 
 export const surveySubmitActions = (openSubmittedModal) => ({
     view: {
-        icon: () => <div className="flex items-center justify-center gap-1.5">
-            <Eye className="h-4 w-4 text-gray-700" />
-            <span className="hidden sm:inline text-gray-700 font-medium">View Details</span>
-        </div>,
+        label: "View Details",
+        icon: () => <ExternalLink size={16} />,
         fn: (id, item) => openSubmittedModal(item),
-        variant: () => "ghost",
-        className: "hover:bg-blue-200 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+        className: "hover:bg-blue-800 bg-blue-900 text-white"
     },
 
 });

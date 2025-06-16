@@ -14,7 +14,7 @@ export const formActions = (openFormModal) => ({
         icon:() => <Pencil size={18} />,
         fn: (id, item) => openFormModal(item), 
         variant:() =>  "ghost",
-        className: "text-blue-600 hover:bg-blue-200 p-1"
+        className: "text-blue-600 hover:bg-blue-100 p-1"
     },
 
 });
@@ -29,7 +29,7 @@ export const formSubmitActions = (openSubmittedModal) => ({
         icon:() =>  <Eye size={20}/>,
         fn: (id, item) =>  openSubmittedModal(item),
         variant:() =>  "ghost",
-        className: "text-blue-600 hover:bg-blue-200 p-1"
+        className: "text-blue-600 hover:bg-blue-100 p-1"
     },
 
 })

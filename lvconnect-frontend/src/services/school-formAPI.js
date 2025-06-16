@@ -3,6 +3,9 @@ import api from "@/services/axios"
 //forms creation
 
 export const createForm = (formData) => api.post('/forms', formData);
+export const changeVisibility = (formId) => {
+  return api.patch(`/forms/${formId}`);
+};
 
 export const saveFormFields = (formId, fields) =>
   api.post(`/forms/${formId}/fields`, { fields });

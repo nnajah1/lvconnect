@@ -15,6 +15,7 @@ import { ChevronLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import SummaryAnalytics from "@/components/dashboards/psas_dashboard/analyticsSummary";
 import { getAnalytics } from "@/services/dashboardAPI";
+import {  Breadcrumbs } from "@/components/dynamic/breadcrumbs";
 
 const SurveyResponses = () => {
   const userRole = useUserRole();
@@ -31,6 +32,7 @@ const SurveyResponses = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const from = location.state?.from || '/';
+  const name = location.state?.name || "Responses";
   const handleBack = () => navigate(from);
 
   const openSubmittedModal = (item) => {
@@ -87,9 +89,11 @@ const SurveyResponses = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <button onClick={handleBack} className="text-black hover:underline bg-white p-1 rounded cursor-pointer">
+      {/* <button onClick={handleBack} className="text-black hover:underline bg-white p-1 rounded cursor-pointer">
         <ChevronLeft />
-      </button>
+      </button> */}
+
+       <Breadcrumbs rootName="Surveys" rootHref="/psas-admin/surveys" name={name} />
 
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-4">Responses</h1>

@@ -5,13 +5,14 @@ import DemographicsChart from '@/components/dashboards/dynamic/demographics';
 import StatsCard from '@/components/dashboards/dynamic/card';
 import { statConfig } from '@/utils/statsDashboard';
 import { useAnalyticsDashboard } from '@/hooks/dashboardAnalytics';
-import { Loader2, Loader3 } from '@/components/dynamic/loader';
+import {  Loader3 } from '@/components/dynamic/loader';
+import { useLoading } from '@/context/LoadingContext';
 
 
 const PsasDashboard = () => {
-  const { stats, demographics, loading } = useAnalyticsDashboard();
-
-  if (loading) return <Loader3 />;
+  const { stats, demographics } = useAnalyticsDashboard();
+  
+  // if (loading) return <Loader3 />;
 
   const enrichedStats = stats.map(stat => {
     const config = statConfig[stat.label] || {};
