@@ -76,7 +76,6 @@ class UserRoleSeeder extends Seeder
         $registrarRole = Role::firstOrCreate(['name' => 'registrar', 'guard_name' => 'api']);
 
         $registrarUsers = [
-            ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'azhellecasimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Carlo', 'last_name' => 'Soleta', 'email' => 'carlosoleta@laverdad.edu.ph'],
             ['first_name' => 'Beverly Anne', 'last_name' => 'Soriano', 'email' => 'annebeverlysoriano@laverdad.edu.ph'],
             ['first_name' => 'Emmanuel', 'last_name' => 'Sunga', 'email' => 'emmanuelsunga@laverdad.edu.ph'],
@@ -106,6 +105,7 @@ class UserRoleSeeder extends Seeder
         $commsRole = Role::firstOrCreate(['name' => 'comms', 'guard_name' => 'api']);
 
         $commsUsers = [
+            ['first_name' => 'Azhelle', 'last_name' => 'Casimiro', 'email' => 'azhellecasimiro@student.laverdad.edu.ph'],
             ['first_name' => 'Jehu', 'last_name' => 'Casimiro', 'email' => 'jehucasimiro@laverdad.edu.ph'],
             ['first_name' => 'Edyssa', 'last_name' => 'Belandres', 'email' => 'edyssabelandres@laverdad.edu.ph'],
             ['first_name' => 'Carl Laurence', 'last_name' => 'Altares', 'email' => 'carllaurence.altares@laverdad.edu.ph'],
