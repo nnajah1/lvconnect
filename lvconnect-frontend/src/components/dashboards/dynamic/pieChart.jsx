@@ -1,77 +1,72 @@
-
 import { Pie, PieChart } from "recharts"
-
+import { Card, CardContent } from "@/components/ui/card"
+import { TrendingUp } from "lucide-react"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
   ChartContainer,
   ChartLegend,
-  ChartLegendContent,
+  // ChartLegendContent,
 } from "@/components/ui/chart"
+import ChartLegendContent from "./pieChartLegend";
 
-export const description = "A pie chart with a legend"
+function ChartPieLegendCard({ stat }) {
+  const Icon = stat?.icon || TrendingUp;
+  const title = stat?.title || "Pie Chart";
+  const subtitle = stat?.subtitle || "Data";
+  const data = stat?.data || [];
+  const labelKey = stat?.labelKey || "label";
+  const valueKey = stat?.valueKey || "value";
 
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
-]
+  const colorPalette = [
+    "var(--chart-1)",
+    "var(--chart-2)",
+    "var(--chart-3)",
+    "var(--chart-4)",
+    "var(--chart-5)",
+    "var(--chart-6)",
+    "var(--chart-7)",
+  ];
 
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "var(--chart-1)",
-  },
-  safari: {
-    label: "Safari",
-    color: "var(--chart-2)",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "var(--chart-3)",
-  },
-  edge: {
-    label: "Edge",
-    color: "var(--chart-4)",
-  },
-  other: {
-    label: "Other",
-    color: "var(--chart-5)",
-  },
-} 
+  const chartData = data.map((item, i) => ({
+    ...item,
+    fill: colorPalette[i % colorPalette.length],
+  }));
 
-export function ChartPieLegend() {
+  const chartConfig = data.reduce((acc, item, i) => {
+    acc[item[labelKey]] = {
+      label: item[labelKey],
+      color: colorPalette[i % colorPalette.length],
+    };
+    return acc;
+  }, {});
+
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Legend</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[300px]"
-        >
+    <Card className="w-full transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-0 shadow-sm bg-gradient-to-br from-white to-gray-50/50">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            <p className="text-sm text-gray-500">{subtitle}</p>
+          </div>
+          <div className="p-3 rounded-xl shadow-lg bg-gradient-to-br from-slate-500 to-slate-700 transform transition-transform duration-200 hover:scale-110">
+            <Icon className="h-6 w-6 text-white drop-shadow-sm" />
+          </div>
+        </div>
+
+        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
           <PieChart>
-            <Pie data={chartData} dataKey="visitors" />
+            <Pie data={chartData} dataKey={valueKey} nameKey={labelKey} />
             <ChartLegend
-              content={<ChartLegendContent nameKey="browser" />}
+              content={<ChartLegendContent nameKey={labelKey} valueKey={valueKey} />}
               className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
             />
           </PieChart>
         </ChartContainer>
+
+        <div className="mt-4 h-1 w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent rounded-full opacity-50" />
       </CardContent>
     </Card>
-  )
+  );
 }
+
+export default ChartPieLegendCard;
+

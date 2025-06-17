@@ -29,6 +29,21 @@ export const statConfig = {
     icon: HiOutlineChartPie,
     color: 'bg-green-500',
   },
+  visible_forms: {
+    label: 'Visible Forms',
+    icon: HiOutlineChartPie,
+    color: 'bg-green-500',
+  },
+   pending_form_submissions: {
+    label: 'Pending Form Submission',
+    icon: HiOutlineChartPie,
+    color: 'bg-blue-500',
+  },
+   students_in_flooded_areas: {
+    label: 'Students in Flooded Areas',
+    icon: HiOutlineChartPie,
+    color: 'bg-yellow-500',
+  },
 };
 
 export const statSchoolAdmin = {

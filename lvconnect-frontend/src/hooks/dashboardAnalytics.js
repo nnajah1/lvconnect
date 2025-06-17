@@ -8,6 +8,7 @@ export const useAnalyticsDashboard = () => {
     const [data, setData] = useState({
         stats: [],
         demographics: [],
+        pie: []
     });
     const [error, setError] = useState(null);
     const { setLoading } = useLoading();
@@ -17,7 +18,7 @@ export const useAnalyticsDashboard = () => {
             setLoading(true);
             try {
                 const res = await getAnalyticsDashboardPsas();
-                const { stats, student_demographics } = res;
+                const { stats, student_population, form_submission_counts  } = res;
 
                 const parsedStats = Object.entries(stats).map(([label, value]) => ({
                     label,
@@ -26,7 +27,8 @@ export const useAnalyticsDashboard = () => {
 
                 setData({
                     stats: parsedStats,
-                    demographics: student_demographics,
+                    demographics: student_population,
+                    pie: form_submission_counts,
                 });
 
                 setLoading(false);
