@@ -177,7 +177,7 @@ export default function Login() {
                 <p className="terms-text">
           <button
             onClick={() => setShowPrivacyPolicy(true)}
-            className="underline text-blue-500"
+            className="underline text-black"
           >
             Privacy Statement
           </button>
