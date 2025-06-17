@@ -13,6 +13,7 @@ import { IoLockClosed } from "react-icons/io5";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import "@/styles/login.css";
 import { toast } from "react-toastify";
+import PrivacyPolicy from "@/layouts/PrivacyPolicy";
 
 
 export default function Login() {
@@ -36,6 +37,7 @@ export default function Login() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(false);
+   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
 
 
   const handleSubmit = async (e) => {
@@ -172,13 +174,21 @@ export default function Login() {
             />
             <span className=" -translate-y-2 ">Remember this device. <a href="#" className="text-blue-500 underline">Learn more</a></span>
           </div>
-          <p className="terms-text">
-          {/* <a href="#" className="underline">Terms of Use</a> and */}
-           <a href="/privacy-policy" target="_blank"
-          rel="noopener noreferrer" className="underline">Privacy Statement</a>
+                <p className="terms-text">
+          <button
+            onClick={() => setShowPrivacyPolicy(true)}
+            className="underline text-blue-500"
+          >
+            Privacy Statement
+          </button>
         </p>
-        </div>
 
+        
+
+        </div>
+{showPrivacyPolicy && (
+        <PrivacyPolicy onClose={() => setShowPrivacyPolicy(false)} />
+      )}
         
       </div>
   );
