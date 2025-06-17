@@ -246,8 +246,20 @@ class DummyDataSyncController extends Controller
             $totalInserted = 0;
             $totalSkipped = 0;
 
+            \Log::info('Starting schedule sync', [
+                'academic_year' => $academicYear,
+                'program_ids' => $externalProgramIds,
+                'year_levels' => $yearLevelLabels,
+            ]);
+
             foreach ($externalProgramIds as $programId) {
                 foreach ($yearLevelLabels as $yearLevelInt => $yearLevelStr) {
+                    \Log::info("Fetching schedule", [
+                        'program_id' => $programId,
+                        'year_level' => $yearLevelStr,
+                        'academic_year' => $academicYear,
+                    ]);
+
                     $response = Http::withToken(env('SCHEDULE_API_TOKEN'))
                         ->get(env('SCHEDULE_API_URL') . '/api/schedule-management/external/uploaded', [
                             'program_id'    => $programId,
@@ -269,6 +281,11 @@ class DummyDataSyncController extends Controller
 
                     foreach ($entries as $entry) {
                         if (!isset($entry['schedule_json']) || !is_array($entry['schedule_json'])) {
+                            \Log::warning("Missing or invalid schedule_json for entry", [
+                                'entry' => $entry,
+                                'program_id' => $programId,
+                                'year_level' => $yearLevelStr,
+                            ]);
                             continue;
                         }
 
@@ -277,7 +294,11 @@ class DummyDataSyncController extends Controller
                             $courseId = $scheduleItem['course_id'] ?? null;
 
                             if (!$courseId) {
-                                \Log::warning("Course ID missing, skipping.");
+                                \Log::warning("Course ID missing, skipping.", [
+                                    'schedule_item' => $scheduleItem,
+                                    'program_id' => $programId,
+                                    'year_level' => $yearLevelStr,
+                                ]);
                                 continue;
                             }
 
@@ -307,13 +328,36 @@ class DummyDataSyncController extends Controller
                                     'course_code'   => $props['course_code'] ?? null,
                                 ]);
                                 $totalInserted++;
+                                \Log::info('Inserted schedule', [
+                                    'course_id' => $courseId,
+                                    'program_id' => $programId,
+                                    'year_level' => $yearLevelStr,
+                                    'academic_year' => $academicYear,
+                                    'day' => $scheduleItem['day'],
+                                    'start_time' => $scheduleItem['start'],
+                                    'end_time' => $scheduleItem['end'],
+                                ]);
                             } else {
                                 $totalSkipped++;
+                                \Log::info('Skipped existing schedule', [
+                                    'course_id' => $courseId,
+                                    'program_id' => $programId,
+                                    'year_level' => $yearLevelStr,
+                                    'academic_year' => $academicYear,
+                                    'day' => $scheduleItem['day'],
+                                    'start_time' => $scheduleItem['start'],
+                                    'end_time' => $scheduleItem['end'],
+                                ]);
                             }
                         }
                     }
                 }
             }
+
+            \Log::info('Schedule sync completed', [
+                'inserted' => $totalInserted,
+                'skipped' => $totalSkipped,
+            ]);
 
             return response()->json([
                 'message'  => 'Schedules synced successfully.',
@@ -321,6 +365,10 @@ class DummyDataSyncController extends Controller
                 'skipped'  => $totalSkipped,
             ]);
         } catch (\Exception $e) {
+            \Log::error('Error during schedule sync', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'error'   => 'An error occurred while syncing schedules.',
                 'message' => $e->getMessage(),
