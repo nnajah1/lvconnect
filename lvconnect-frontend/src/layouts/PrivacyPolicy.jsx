@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import DynamicModal from "@/components/dynamic/DynamicModal";
 
 export default function PrivacyPolicy() {
   const [isOpen, setIsOpen] = useState(true);
-  const navigate = useNavigate();
 
- 
+  const closeModal = () => {
+    setIsOpen(false);
+  };
+
   return (
     <DynamicModal
       isOpen={isOpen}
@@ -73,7 +74,7 @@ export default function PrivacyPolicy() {
             Access and review your personal and academic data
             Request corrections to inaccurate information
             Be informed about how your data is used
-            Report any privacy concerns or unauthorized access.
+            Report any privacy concerns or unauthorized access
           </p>
         </section>
 
