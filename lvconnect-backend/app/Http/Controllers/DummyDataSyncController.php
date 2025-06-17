@@ -335,36 +335,34 @@ class DummyDataSyncController extends Controller
                                 continue;
                             }
 
+                            // Ensure time is in 'H:i:s' format and prepend a valid date for DATETIME columns
                             $dummyDate = '2000-01-01';
                             $startTime = null;
                             $endTime = null;
-                            try {
-                                if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $start)) {
-                                    $startTime = $dummyDate . ' ' . (strlen($start) === 5 ? "{$start}:00" : (string)$start);
-                                } else {
-                                    throw new \Exception('Invalid start time format');
-                                }
-                            } catch (\Exception $e) {
+
+                            // Validate and format start time
+                            if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $start)) {
+                                $startFormatted = strlen($start) === 5 ? $start . ':00' : $start;
+                                $startTime = $dummyDate . ' ' . $startFormatted;
+                            } else {
                                 \Log::warning('Invalid start time format', [
                                     'start' => $start,
-                                    'error' => $e->getMessage(),
-                                ]);
-                                continue;
-                            }
-                            try {
-                                if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $end)) {
-                                    $endTime = $dummyDate . ' ' . (strlen($end) === 5 ? "{$end}:00" : (string)$end);
-                                } else {
-                                    throw new \Exception('Invalid end time format');
-                                }
-                            } catch (\Exception $e) {
-                                \Log::warning('Invalid end time format', [
-                                    'end' => $end,
-                                    'error' => $e->getMessage(),
                                 ]);
                                 continue;
                             }
 
+                            // Validate and format end time
+                            if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $end)) {
+                                $endFormatted = strlen($end) === 5 ? $end . ':00' : $end;
+                                $endTime = $dummyDate . ' ' . $endFormatted;
+                            } else {
+                                \Log::warning('Invalid end time format', [
+                                    'end' => $end,
+                                ]);
+                                continue;
+                            }
+
+                            // Final check for valid datetime format
                             if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $startTime) || !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $endTime)) {
                                 \Log::warning('Invalid datetime format for schedule', [
                                     'start_time' => $startTime,
