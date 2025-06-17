@@ -44,11 +44,11 @@ const CreatePostModal = ({ isOpen, closeModal, loadUpdates }) => {
                     showCloseButton={false}
                     title="Create New Post"
                     description="Fill out the form below to create a new post."
-                    showTitle={false}
-                    showDescription={false}
-                    className="max-w-[50rem]! bg-[#EAF2FD]!">
+                    showTitle={true}
+                    showDescription={true}
+                    >
 
-                    <CreatePostForm closeModal={closeModal} onSuccess={handleSuccess} loadUpdates={loadUpdates} />
+                    <CreatePostForm closeModal={closeModal} loadUpdates={loadUpdates} />
 
                 </DynamicModal>
             )}

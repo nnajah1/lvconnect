@@ -156,33 +156,32 @@ const AcademicYear = ({
     };
 
     // Toggle enrollment open/close
-    const handleToggleEnrollment = async () => {
-        if (!selectedYearObj || !semester) {
-            toast.error("Select academic year and semester first");
-            return;
-        }
-        setLoadingToggle(true);
-        try {
-            const res = await toggleEnrollmentSchedule({
-                academic_year_id: selectedYearObj.id,
-                semester,
-                is_active: !isEnrollmentOpen,
-                id: currentSchedule?.id || null,
+    // const handleToggleEnrollment = async () => {
+    //     if (!selectedYearObj || !semester) {
+    //         toast.error("Select academic year and semester first");
+    //         return;
+    //     }
+    //     setLoadingToggle(true);
+    //     try {
+    //         const res = await toggleEnrollmentSchedule({
+    //             academic_year_id: selectedYearObj.id,
+    //             semester,
+    //             is_active: !isEnrollmentOpen,
+    //             id: currentSchedule?.id || null,
 
-            });
-            const newStatus = res.data.data?.is_active || false;
-            setCurrentSchedule(res.data.data);
-            setIsEnrollmentOpen(newStatus); // Set based on the actual response
-            // *** NEW: Save the updated status to localStorage immediately after toggling ***
-            localStorage.setItem("isEnrollmentOpen", JSON.stringify(newStatus));
-            toast.success(`Enrollment ${newStatus ? "opened" : "closed"}`);
-        } catch (e) {
-            toast.error("Failed to toggle enrollment");
+    //         });
+    //         const newStatus = res.data.data?.is_active || false;
+    //         setCurrentSchedule(res.data.data);
+    //         setIsEnrollmentOpen(newStatus); // Set based on the actual response
+    //         // localStorage.setItem("isEnrollmentOpen", JSON.stringify(newStatus));
+    //         toast.success(`Enrollment ${newStatus ? "opened" : "closed"}`);
+    //     } catch (e) {
+    //         toast.error("Failed to toggle enrollment");
 
-        } finally {
-            setLoadingToggle(false);
-        }
-    };
+    //     } finally {
+    //         setLoadingToggle(false);
+    //     }
+    // };
 
     const handleValidateAndOpenModal = () => {
         if (validateNewYear()) {
@@ -279,15 +278,14 @@ const AcademicYear = ({
     return (
         <div className="bg-white rounded shadow p-4 mb-4 flex justify-evenly items-center">
             {/* All elements in flex-row layout */}
-            <div className="flex flex-row flex-wrap items-end gap-4">
-
+            <div className="flex flex-row flex-wrap items-end gap-4 w-full">
                 {/* Academic Year */}
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1 min-w-[200px]">
                     <label className="text-gray-700 font-semibold mb-1">Academic Year</label>
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(e.target.value)}
-                        className="border border-gray-300 rounded px-3 py-2 w-fit focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="border border-gray-300 rounded px-3 py-2 h-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         disabled={loadingYears}
                     >
                         <option value="">Select Year</option>
@@ -300,12 +298,12 @@ const AcademicYear = ({
                 </div>
 
                 {/* Semester */}
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1 min-w-[150px]">
                     <label className="text-gray-700 font-semibold mb-1">Semester</label>
                     <select
                         value={semester}
                         onChange={(e) => setSemester(e.target.value)}
-                        className="border border-gray-300 rounded px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        className="border border-gray-300 rounded px-3 py-2 h-10 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         disabled={!selectedYear}
                     >
                         <option value="">Select Semester</option>
@@ -313,72 +311,73 @@ const AcademicYear = ({
                         <option value="second_semester">2nd Semester</option>
                     </select>
                 </div>
-                <div className="flex gap-4 border-x-1 p-2">
-                    {!scheduleOpened && (
-                        <div className="text-sm flex gap-2">
-                            {/* Start Date */}
-                            <div className="flex flex-col">
-                                <label className="text-gray-700 font-semibold mb-1">Start Date</label>
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="border border-gray-300 rounded px-3 py-2 w-30 m-auto"
-                                    min={today}
-                                />
-                            </div>
 
-                            {/* End Date */}
-                            <div className="flex flex-col text-sm">
-                                <label className="text-gray-700 font-semibold mb-1">End Date</label>
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="border border-gray-300 rounded px-3 py-2 w-30 m-auto"
-                                    min={startDate || today}
-                                />
-                            </div>
-
-                            {/* Open Button */}
-                            <button
-                                onClick={handleOpen}
-                                disabled={loading}
-                                className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded px-4 py-2 m-auto mt-6"
-                            >
-                                {loading ? 'Opening...' : 'Open Schedule'}
-                            </button>
-                        </div>
-                    )}
-
-                    {scheduleOpened && (
-                        <div className="text-sm flex gap-2">
-                            {/* Schedule Info */}
-                            <div className="text-sm text-gray-700 space-y-1">
-                                <p>📅 <strong>Start Date:</strong> {formatDate(startDate) || 'N/A'}</p>
-                                <p>📅 <strong>End Date:</strong> {formatDate(endDate) || 'N/A'}</p>
-                            </div>
-
-                            {/* Close Button */}
-                            <button
-                                onClick={handleClose}
-                                disabled={loading}
-                                className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded"
-                            >
-                                {loading ? 'Closing...' : 'Close Schedule'}
-                            </button>
+                {/* Start Date */}
+                <div className="flex flex-col flex-1 min-w-[120px]">
+                    <label className="text-gray-700 font-semibold mb-1">Start Date</label>
+                    {!scheduleOpened ? (
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="border border-gray-300 rounded px-3 py-2 h-10 m-auto"
+                            min={today}
+                        />
+                    ) : (
+                        <div className="border border-gray-200 rounded px-3 py-2 h-10 bg-gray-50 flex items-center text-sm">
+                            📅 {formatDate(startDate) || 'N/A'}
                         </div>
                     )}
                 </div>
 
-                {/* Add Academic Year */}
+                {/* End Date */}
+                <div className="flex flex-col flex-1 min-w-[120px]">
+                    <label className="text-gray-700 font-semibold mb-1">End Date</label>
+                    {!scheduleOpened ? (
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="border border-gray-300 rounded px-3 py-2 h-10 m-auto"
+                            min={startDate || today}
+                        />
+                    ) : (
+                        <div className="border border-gray-200 rounded px-3 py-2 h-10 bg-gray-50 flex items-center text-sm">
+                            📅 {formatDate(endDate) || 'N/A'}
+                        </div>
+                    )}
+                </div>
+
+                {/* Schedule Action */}
                 <div className="flex flex-col">
+                    <label className="text-gray-700 font-semibold mb-1">Schedule</label>
+                    {!scheduleOpened ? (
+                        <button
+                            onClick={handleOpen}
+                            disabled={loading}
+                            className="bg-green-600 hover:bg-green-700 text-white font-semibold rounded px-3 py-2 h-10 text-sm whitespace-nowrap"
+                        >
+                            {loading ? 'Opening...' : 'Open'}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleClose}
+                            disabled={loading}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-3 py-2 h-10 rounded text-sm whitespace-nowrap"
+                        >
+                            {loading ? 'Closing...' : 'Close'}
+                        </button>
+                    )}
+                </div>
+
+                {/* Add Academic Year */}
+                <div className="flex flex-col flex-1 min-w-[250px]">
                     <label className="text-gray-700 font-semibold mb-1">Add Academic Year</label>
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-2 items-center h-10">
                         <select
                             value={newYear}
                             onChange={(e) => setNewYear(e.target.value)}
-                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            className="border border-gray-300 rounded px-3 py-2 h-10 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
                             disabled={disableAdd}
                         >
                             <option value="">Select year</option>
@@ -392,7 +391,7 @@ const AcademicYear = ({
                         <button
                             onClick={handleValidateAndOpenModal}
                             disabled={loadingYears || !newYear || disableAdd}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded disabled:opacity-50"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 h-10 rounded disabled:opacity-50 whitespace-nowrap"
                         >
                             {loadingYears ? "Adding..." : "Add"}
                         </button>
@@ -403,6 +402,7 @@ const AcademicYear = ({
                     </div>
                 </div>
             </div>
+
 
             {/* Modals */}
             {isOpenAddModal && (

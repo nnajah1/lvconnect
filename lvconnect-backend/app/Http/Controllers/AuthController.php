@@ -58,15 +58,6 @@ class AuthController extends Controller
             return response()->json(['message' => 'Account is deactivated. Please contact administrator.'], 403);
         }
 
-        // Set default active role if not set
-        if (!$user->active_role) {
-            $firstRole = $user->getRoleNames()->first();
-            if ($firstRole) {
-                $user->active_role = $firstRole;
-                $user->save();
-            }
-        }
-
         // Hash device ID for security
         $hashedDeviceId = hash('sha256', $request->device_id);
 
@@ -91,9 +82,7 @@ class AuthController extends Controller
         }
 
         // If device is trusted or no OTP or no password change needed, login immediately and generate JWT
-        $customClaims = [
-            'role' => $user->active_role,
-        ];
+        $customClaims = [];
 
         $token = JWTAuth::fromUser($user, $customClaims);
         $refreshToken = JWTAuth::fromUser($user, ['refresh' => true]);
@@ -102,13 +91,9 @@ class AuthController extends Controller
             'message' => 'Login successful',
             // 'must_change_password' => $user->must_change_password,
             'user_id' => encrypt($user->id),
-            'active_role' => $user->active_role,
         ])
             ->cookie('auth_token', $token, 60, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'))
             ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'));
-
-        // ->cookie('auth_token', $token, 60, '/', null, false, true)
-        // ->cookie('refresh_token', $refreshToken, 43200, '/', null, false, true);
     }
 
     // Get Authenticated User
@@ -138,15 +123,6 @@ class AuthController extends Controller
             //get permissions
             $permissions = $user->getAllPermissions()->pluck('name');
 
-            // Ensure active_role is set in case it's missing
-            if (!$user->active_role) {
-                $firstRole = $user->getRoleNames()->first();
-                if ($firstRole) {
-                    $user->active_role = $firstRole;
-                    $user->save();
-                }
-            }
-
             // Return the user data
             return response()->json([
                 // 'user' => [
@@ -159,7 +135,6 @@ class AuthController extends Controller
                 // ],
                 'user' => $user,
                 // 'permissions' => $permissions,
-                'active_role' => $user->active_role,
                 'message' => 'login successfully'
             ], 200);  // 200 OK
         } catch (TokenExpiredException $e) {
@@ -174,38 +149,38 @@ class AuthController extends Controller
     }
 
     // Switch Role
-    public function switchRole(Request $request)
-    {
-        $request->validate([
-            'role' => 'required|string',
-        ]);
+    // public function switchRole(Request $request)
+    // {
+    //     $request->validate([
+    //         'role' => 'required|string',
+    //     ]);
 
-        $user = auth()->user();
+    //     $user = auth()->user();
 
-        // Check if the user has the requested role
-        if (!$user->hasRole($request->role)) {
-            return response()->json(['error' => 'You do not have this role.'], 403);
-        }
+    //     // Check if the user has the requested role
+    //     if (!$user->hasRole($request->role)) {
+    //         return response()->json(['error' => 'You do not have this role.'], 403);
+    //     }
 
-        // Update active_role in DB
-        $user->active_role = $request->role;
-        $user->save();
+    //     // Update active_role in DB
+    //     $user->active_role = $request->role;
+    //     $user->save();
 
-        // Regenerate JWT with updated custom claims
-        $customClaims = [
-            'role' => $request->role,
-        ];
-        $token = JWTAuth::fromUser($user, $customClaims);
-        $refreshToken = JWTAuth::fromUser($user, array_merge($customClaims, ['refresh' => true]));
+    //     // Regenerate JWT with updated custom claims
+    //     $customClaims = [
+    //         'role' => $request->role,
+    //     ];
+    //     $token = JWTAuth::fromUser($user, $customClaims);
+    //     $refreshToken = JWTAuth::fromUser($user, array_merge($customClaims, ['refresh' => true]));
 
-        return response()->json([
-            'message' => 'Role switched successfully.',
-            'user_id' => encrypt($user->id),
-            'role' => $request->role,
-        ])
-            ->cookie('auth_token', $token, 60, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'))
-            ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'));
-    }
+    //     return response()->json([
+    //         'message' => 'Role switched successfully.',
+    //         'user_id' => encrypt($user->id),
+    //         'role' => $request->role,
+    //     ])
+    //         ->cookie('auth_token', $token, 60, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'))
+    //         ->cookie('refresh_token', $refreshToken, 43200, '/', config('session.cookie_domain'), config('session.secure'), true, false, config('session.same_site'));
+    // }
 
     // Logout
     public function logout(Request $request)

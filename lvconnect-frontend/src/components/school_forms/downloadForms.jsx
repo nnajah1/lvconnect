@@ -1,7 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
-import html2pdf from 'html2pdf.js'; 
+import { useRef, useState } from 'react';
+import html2pdf from 'html2pdf.js';
 
-export default function FormPDFGenerator({ submissionId, content, data, loading, reviewedBy, title }) {
+export default function FormPDFGenerator({
+  submissionId,
+  content,
+  data,
+  loading,
+  reviewedBy,
+  title,
+  headerImageUrl,
+  footerImageUrl
+}) {
   const [error, setError] = useState('');
   const contentRef = useRef();
 
@@ -9,19 +18,10 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
   const escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const renderContentWithAnswers = (content, data) => {
-    // Ensure content is a string
-    if (!content || typeof content !== 'string') {
-      console.warn('Content is not a valid string:', content);
-      return '';
-    }
+    if (!content || typeof content !== 'string') return '';
+    if (!Array.isArray(data)) return content;
 
-    // Ensure data is an array
-    if (!Array.isArray(data)) {
-      console.warn('Data is not an array:', data);
-      return content;
-    }
-
-    let updatedContent = String(content); // Ensure it's a string
+    let updatedContent = String(content);
 
     data.forEach(field => {
       try {
@@ -31,15 +31,11 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
         const fieldType = field.form_field_data?.type || field.form_field?.field_data?.type;
 
         let formattedAnswer = `<span style="
-          color: #9ca3af;
-          font-style: italic;
-          text-decoration: underline;
-          text-decoration-style: dashed;
-          text-decoration-color: #cbd5e1;
-          padding: 2px 4px;
-          background: #f8fafc;
-          border-radius: 2px;
-        ">[Not answered]</span>`;
+          display: inline-block;
+          min-width: 180px;
+          border-bottom: 1px solid #cbd5e1;
+          height: 24px;
+        "></span>`;
 
         if (fieldType === '2x2_image' && rawAnswer) {
           const imageURL = data[0]?.image_urls?.[0];
@@ -57,11 +53,9 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
                onerror="this.outerHTML='<span style=&quot;color: #9ca3af; font-style: italic;&quot;>[Image not available]</span>'"/>`;
         } else if (rawAnswer && String(rawAnswer).trim()) {
           formattedAnswer = `<span style="
+            font-size: 16px;
+            font-weight: 500;
             color: #1f2937;
-            font-weight: 400;
-            padding: 2px 4px;
-            background: #f0f9ff;
-            border-radius: 3px;
           ">${String(rawAnswer)}</span>`;
         }
 
@@ -72,17 +66,13 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
       }
     });
 
-    // Replace any remaining placeholders
+    // Replace any remaining placeholders with blank lines
     updatedContent = updatedContent.replace(/{{[^}]+}}/g, `<span style="
-      color: #9ca3af;
-      font-style: italic;
-      text-decoration: underline;
-      text-decoration-style: dashed;
-      text-decoration-color: #cbd5e1;
-      padding: 2px 4px;
-      background: #f8fafc;
-      border-radius: 3px;
-    ">[Not answered]</span>`);
+      display: inline-block;
+      min-width: 180px;
+      border-bottom: 1px solid #cbd5e1;
+      height: 24px;
+    "></span>`);
 
     return updatedContent;
   };
@@ -90,16 +80,14 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
   const downloadPDF = () => {
     try {
       const element = contentRef.current;
-
       if (!element || !element.innerHTML) {
         setError('No content available for PDF generation');
         return;
       }
 
-      // Add beautiful styling to the PDF content
       const styledContent = `
         <div style="
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: 'Segoe UI', sans-serif;
           max-width: 800px;
           margin: 0 auto;
           padding: 40px;
@@ -107,64 +95,35 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
           color: #1f2937;
           line-height: 1.6;
         ">
-          <div style="
-            text-align: center;
-            border-bottom: 3px solid #3b82f6;
-            padding-bottom: 24px;
-            margin-bottom: 20px;
-          ">
-            <h1 style="
-              font-size: 28px;
-              font-weight: 700;
-              color: #1e40af;
-              margin: 0 0 12px 0;
-              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            ">Form Submission</h1>
-            <p style="
-              color: #6b7280;
-              font-size: 16px;
-              margin: 0;
-              font-weight: 500;
-            ">Generated on ${new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })}</p>
-       <p style="
-              color: #000000;
-              font-size: 16px;
-              margin: 0;
-              font-weight: 500;
-                text-transform: uppercase;
-            ">${title}</p>
+
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="font-size: 26px; font-weight: 700; color: #1e40af;">${title}</h1>
+            <p style="color: #6b7280; font-size: 14px;">Generated on ${new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}</p>
           </div>
-          <div style="
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
-            font-size: 16px;
-            line-height: 1.8;
-          ">
+
+          <div style="font-size: 15px; padding: 10px 0 30px 0;">
             ${element.innerHTML}
           </div>
-          
+
           <div style="
-            margin-top: 40px;
-            padding-top: 24px;
-            border-top: 2px solid #f1f5f9;
+            border-top: 2px solid #e5e7eb;
+            padding-top: 12px;
+            font-size: 14px;
             text-align: center;
             color: #6b7280;
-            font-size: 14px;
           ">
-            <p style="margin: 0; font-weight: 500;">
-              Submission ID: ${submissionId} • Approved by PSAS Officer ID: ${reviewedBy} 
-            </p>
+            <p>Submission ID: ${submissionId} • Approved by PSAS Officer ID: ${reviewedBy}</p>
           </div>
+
         </div>
       `;
 
-      // Create temporary element for PDF generation
+          // ${headerImageUrl ? `<img src="${headerImageUrl}" style="max-width: 100%; margin-bottom: 24px;" />` : ''}
+          // ${footerImageUrl ? `<img src="${footerImageUrl}" style="max-width: 100%; margin-top: 24px;" />` : ''}
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = styledContent;
       document.body.appendChild(tempDiv);
@@ -173,17 +132,8 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
         margin: 0.3,
         filename: `form-submission-${submissionId}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: {
-          unit: 'in',
-          format: 'letter',
-          orientation: 'portrait',
-          compress: true
-        }
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait', compress: true }
       }).save().then(() => {
         document.body.removeChild(tempDiv);
       }).catch((pdfError) => {
@@ -198,39 +148,15 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="flex items-center space-x-3">
-          <svg className="animate-spin h-6 w-6 text-blue-600" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-          <span className="text-blue-600 font-medium">Loading form data...</span>
-        </div>
-      </div>
-    );
+    return <div className="text-center py-8 text-blue-600 font-medium">Loading form data...</div>;
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex items-center space-x-2">
-          <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-          <span className="text-red-700 font-medium">{error}</span>
-        </div>
-      </div>
-    );
+    return <div className="text-red-600 bg-red-100 p-4 rounded">{error}</div>;
   }
 
-  // Don't render if content or data is not available
   if (!content || !data) {
-    return (
-      <div className="text-gray-500 text-center p-4">
-        No available data for PDF generation
-      </div>
-    );
+    return <div className="text-gray-500 text-center p-4">No available data for PDF generation</div>;
   }
 
   return (
@@ -238,16 +164,11 @@ export default function FormPDFGenerator({ submissionId, content, data, loading,
       <div className="flex justify-center">
         <button
           onClick={downloadPDF}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center space-x-3 transform hover:scale-105"
+          className="bg-blue-900 hover:bg-blue-800 text-white font-semibold p-2 rounded shadow-md transition"
         >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <span>Download PDF</span>
+          Download PDF
         </button>
       </div>
-
-      {/* Hidden content for PDF generation */}
       <div
         ref={contentRef}
         className="hidden"

@@ -1,123 +1,133 @@
+"use client"
 
-import React, { useEffect, useRef, useState } from "react";
-import { DataTable } from "@/components/dynamic/DataTable";
-import { getColumns } from "@/components/dynamic/getColumns";
-import { approvePost, archivePost, deletePost, fbPost, getPosts, publishPost, rejectPost, restorePost, revisionPost } from "@/services/axios";
-import { actionConditions, actions, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate";
-import { CiCirclePlus, CiSearch } from "react-icons/ci";
-import CreatePostModal from "@/pages/admins/comms/CreatePost";
-import ViewPostModal from "./ViewPost";
-import SearchBar from "@/components/dynamic/searchBar";
-import { useUserRole } from "@/utils/userRole";
-import { ConfirmationModal, ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
-import EditPostForm from "@/components/school_updates/editPostForm";
-import EditPostModal from "./EditPost";
-import { toast } from "react-toastify";
-import { loadNotifications } from "@/hooks/notification";
+import { useEffect, useState } from "react"
+import { DataTable } from "@/components/dynamic/DataTable"
+import { getColumns } from "@/components/dynamic/getColumns"
+import {
+  approvePost,
+  archivePost,
+  deletePost,
+  fbPost,
+  getPosts,
+  publishPost,
+  rejectPost,
+  revisionPost,
+} from "@/services/axios"
+import { actionConditions, actionConditionsForSchoolAdmin, actions, actionsForSchoolAdmin, schoolUpdateSchema } from "@/tableSchemas/schoolUpdate"
+import { CiCirclePlus } from "react-icons/ci"
+import CreatePostModal from "@/pages/admins/comms/CreatePost"
+import ViewPostModal from "./ViewPost"
+import SearchBar from "@/components/dynamic/searchBar"
+import { useUserRole } from "@/utils/userRole"
+import { ConfirmationModal, ErrorModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal"
+import EditPostModal from "./EditPost"
+import { toast } from "react-toastify"
+import { loadNotifications } from "@/hooks/notification"
 
 const Posts = () => {
-  const userRole = useUserRole();
-  const [schoolUpdates, setSchoolUpdates] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const userRole = useUserRole()
+  const [schoolUpdates, setSchoolUpdates] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [viewItem, setViewItem] = useState(null);
-  const [editItem, setEditItem] = useState(null);
-  const [deleteItem, setDeleteItem] = useState(null);
-  const [archiveItem, setArchiveItem] = useState(null);
-  const [postItem, setPostItem] = useState(null);
-  const [publishItem, setPublishItem] = useState(null);
-  const [approveItem, setApproveItem] = useState(null);
-  const [rejectItem, setRejectItem] = useState(null);
-  const [remarks, setRemarks] = useState("");
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [selectedPost, setSelectedPost] = useState(null)
+  const [globalFilter, setGlobalFilter] = useState("")
+  const [viewItem, setViewItem] = useState(null)
+  const [editItem, setEditItem] = useState(null)
+  const [deleteItem, setDeleteItem] = useState(null)
+  const [archiveItem, setArchiveItem] = useState(null)
+  const [postItem, setPostItem] = useState(null)
+  const [publishItem, setPublishItem] = useState(null)
+  const [approveItem, setApproveItem] = useState(null)
+  const [rejectItem, setRejectItem] = useState(null)
+  const [remarks, setRemarks] = useState("")
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
-  const [revisionItem, setRevisionItem] = useState(null);
+  const [revisionItem, setRevisionItem] = useState(null)
 
   const loadUpdates = async () => {
     setLoading(true)
     try {
-      const data = await getPosts();
-      setSchoolUpdates(data);
+      const data = await getPosts()
+      setSchoolUpdates(data)
     } catch (err) {
-      console.error("Failed to load posts", err);
-      toast.error("Failed to load posts.");
+      console.error("Failed to load posts", err)
+      toast.error("Failed to load posts.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    loadUpdates();
-  }, []);
+    loadUpdates()
+  }, [])
 
   const handleViewPost = (item) => {
-    setViewItem(item);
-  };
+    setViewItem(item)
+  }
 
   const handleEdit = (item) => {
-    setEditItem(item);
-  };
+    setEditItem(item)
+  }
 
   const handleDelete = (item) => {
-    setDeleteItem(item);
-  };
+    setDeleteItem(item)
+  }
 
   const handlePublish = (item) => {
-    setPublishItem(item);
-  };
+    setPublishItem(item)
+  }
 
   const handleApprove = (item) => {
-    setApproveItem(item);
-  };
+    setApproveItem(item)
+  }
 
   const handleReject = (item) => {
-    setRejectItem(item);
-  };
+    setRejectItem(item)
+  }
 
   const handleRevision = (item) => {
-    setRevisionItem(item);
-  };
+    setRevisionItem(item)
+  }
 
   const handleDeletePost = async () => {
     setLoading(true)
     try {
-      await deletePost(deleteItem.id);
-      toast.success('Post deleted successfully!');
+      await deletePost(deleteItem.id)
+      toast.success("Post deleted successfully!")
       setDeleteItem(null)
-      await loadUpdates();
+      await loadUpdates()
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to delete post');
+      console.error(error)
+      toast.error("Failed to delete post")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleArchive = (item) => {
-    setArchiveItem(item);
-  };
+    setArchiveItem(item)
+  }
 
   const handleArchivePost = async () => {
     setLoading(true)
     try {
-      await archivePost(archiveItem.id);
-      await loadUpdates();
-      toast.success('Post archived successfully!');
+      await archivePost(archiveItem.id)
+      await loadUpdates()
+      toast.success("Post archived successfully!")
       setArchiveItem(null)
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to archive post');
+      console.error(error)
+      toast.error("Failed to archive post")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handlePostFb = (item) => {
-    setPostItem(item);
-  };
+    setPostItem(item)
+  }
 
   const handleFbPost = async () => {
     setLoading(true)
@@ -127,176 +137,201 @@ const Posts = () => {
         title: postItem.title,
         content: postItem.content,
         image_url: postItem.image_url || [],
-      });
-      await loadUpdates();
-      toast.success('Post synced to Facebook successfully!');
+      })
+      await loadUpdates()
+      toast.success("Post synced to Facebook successfully!")
       setPostItem(null)
-      console.log('FB Response:', response.data);
+      console.log("FB Response:", response.data)
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to sync to Facebook');
+      console.error(error)
+      toast.error("Failed to sync to Facebook")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handlePublishPost = async () => {
     setLoading(true)
     try {
-      await publishPost(publishItem.id);
-      await loadUpdates();
-      await loadNotifications();
-      toast.success('Post published successfully!');
+      await publishPost(publishItem.id)
+      await loadUpdates()
+      await loadNotifications()
+      toast.success("Post published successfully!")
       setPublishItem(null)
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to publish post');
+      console.error(error)
+      toast.error("Failed to publish post")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleApprovePost = async () => {
     setLoading(true)
     try {
-      await approvePost(approveItem.id);
-      await loadUpdates();
-      await loadNotifications();
-      toast.success('Post approved successfully!');
+      await approvePost(approveItem.id)
+      await loadUpdates()
+      await loadNotifications()
+      toast.success("Post approved successfully!")
       setApproveItem(null)
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to approve post');
+      console.error(error)
+      toast.error("Failed to approve post")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleRejectPost = async () => {
     if (!rejectItem.id) {
-      toast.info("No valid post found.");
-      console.log("rejectItem:", rejectItem);
-      return;
+      toast.info("No valid post found.")
+      console.log("rejectItem:", rejectItem)
+      return
     }
     if (!remarks) {
-      toast.error("Input admin remarks");
-      console.log("rejectItem:", rejectItem);
-      return;
+      toast.error("Input admin remarks")
+      console.log("rejectItem:", rejectItem)
+      return
     }
     setLoading(true)
     try {
-      await rejectPost(rejectItem.id, { revision_remarks: remarks });
-      await loadUpdates();
-      await loadNotifications();
-      toast.success('Post rejected successfully!');
+      await rejectPost(rejectItem.id, { revision_remarks: remarks })
+      await loadUpdates()
+      await loadNotifications()
+      toast.success("Post rejected successfully!")
       setRejectItem(null)
-      setRemarks("");
+      setRemarks("")
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to reject post');
+      console.error(error)
+      toast.error("Failed to reject post")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleRevisionPost = async (e) => {
     if (!revisionItem.id) {
-      toast.info("No valid post found.");
-      console.log("revisionItem:", revisionItem);
-      return;
+      toast.info("No valid post found.")
+      console.log("revisionItem:", revisionItem)
+      return
     }
     if (!remarks) {
-      toast.error("Input admin remarks");
-      console.log("revisionItem:", revisionItem);
-      return;
+      toast.error("Input admin remarks")
+      console.log("revisionItem:", revisionItem)
+      return
     }
     setLoading(true)
     try {
-      await revisionPost(revisionItem.id, { revision_remarks: remarks });
-      await loadUpdates();
-      toast.success('Post submitted for revision!');
-      setRevisionItem(null);
-      setRemarks("");
+      await revisionPost(revisionItem.id, { revision_remarks: remarks })
+      await loadUpdates()
+      toast.success("Post submitted for revision!")
+      setRevisionItem(null)
+      setRemarks("")
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to submit post for revision');
+      console.error(error)
+      toast.error("Failed to submit post for revision")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Modal handlers that will be passed to ViewPostModal
   const modalHandlers = {
     onEdit: (item) => {
-      setViewItem(null);
-      setEditItem(item);
+      setViewItem(null)
+      setEditItem(item)
     },
     onDelete: (item) => {
-      setViewItem(null);
-      setDeleteItem(item);
+      setViewItem(null)
+      setDeleteItem(item)
     },
     onArchive: (item) => {
-      setViewItem(null);
-      setArchiveItem(item);
+      setViewItem(null)
+      setArchiveItem(item)
     },
     onPublish: (item) => {
-      setViewItem(null);
-      setPublishItem(item);
+      setViewItem(null)
+      setPublishItem(item)
     },
     onPostFb: (item) => {
-      setViewItem(null);
-      setPostItem(item);
+      setViewItem(null)
+      setPostItem(item)
     },
     onApprove: (item) => {
-      setViewItem(null);
-      setApproveItem(item);
+      setViewItem(null)
+      setApproveItem(item)
     },
     onReject: (item) => {
-      setViewItem(null);
-      setRejectItem(item);
+      setViewItem(null)
+      setRejectItem(item)
     },
     onRevision: (item) => {
-      setViewItem(null);
-      setRevisionItem(item);
-    }
+      setViewItem(null)
+      setRevisionItem(item)
+    },
+  }
 
-  };
+  const action = actions(
+    handleViewPost,
+    handlePublish,
+    handleEdit,
+    handleDelete,
+    handleArchive,
+    handlePostFb,
+  )
 
-  const action = actions(handleViewPost, handlePublish, handleEdit, handleDelete, handleArchive, handlePostFb, handleApprove, handleReject,);
+  const scadminAction = actionsForSchoolAdmin(
+    handleViewPost,
+    handleApprove,
+    handleReject,
+  )
 
   const columns = getColumns({
     userRole,
     schema: schoolUpdateSchema,
-    actions: action,
-    actionConditions: actionConditions
-  });
+    actions: userRole === "scadmin" ? scadminAction : action,
+    actionConditions: userRole === "scadmin" ? actionConditionsForSchoolAdmin : actionConditions,
+  })
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Posts</h1>
+      {/* Header Section */}
+        <div className="flex justify-between items-center mb-6">
+              {/* Title and Subtitle */}
+              <div>
+                <h1 className="text-2xl font-bold text-[#253965]">Update Management</h1>
+                <p className="text-[16px] text-gray-600 mt-1">Create, manage, and publish school updates such as announcements and events.</p>
+              </div>
+              {/* Search Input */}
+              <div>
+                <SearchBar value={globalFilter} onChange={setGlobalFilter} />
+              </div>
+            </div>
 
-      {/* Create & Search Section */}
-      <div className="flex justify-between items-center mb-4">
-        {/* Create Update Button - Show for both comms and admin */}
-        <div className="relative">
-          {(userRole === "comms") && (
-            <button
-              onClick={() => {
-                setIsOpen(true)
-              }}
-              className="flex items-center space-x-2 bg-[#2CA4DD] text-white px-3 py-2 rounded-md cursor-pointer"
-            >
-              <CiCirclePlus size={25} />
-              <span>Create Update</span>
-            </button>
-          )}
-        </div>
+    
 
-        {/* Search Input */}
-        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
+      {/* Create Update Button */}
+      <div className="mb-6">
+        {userRole === "comms" && (
+          <button
+            onClick={() => {
+              setIsOpen(true)
+            }}
+            className="flex items-center space-x-2 bg-[#1F3463] text-white px-4 py-3 rounded-md  transition-colors cursor-pointer"
+          >
+            <CiCirclePlus size={20} />
+            <span>Create Update</span>
+          </button>
+        )}
       </div>
 
-      <DataTable columns={columns} data={schoolUpdates} context="Posts" globalFilter={globalFilter} isLoading={loading} />
+      <DataTable
+        columns={columns}
+        data={schoolUpdates}
+        context="Posts"
+        globalFilter={globalFilter}
+        isLoading={loading}
+      />
 
       {/* Modals */}
       <CreatePostModal isOpen={isOpen} closeModal={() => setIsOpen(false)} loadUpdates={loadUpdates} />
@@ -341,7 +376,7 @@ const Posts = () => {
             onClick={handleDeletePost}
             disabled={loading}
           >
-            {loading ? 'Deleting...' : 'Delete'}
+            {loading ? "Deleting..." : "Delete"}
           </button>
         </ErrorModal>
       )}
@@ -364,7 +399,7 @@ const Posts = () => {
             onClick={handleArchivePost}
             disabled={loading}
           >
-            {loading ? 'Archiving...' : 'Archive'}
+            {loading ? "Archiving..." : "Archive"}
           </button>
         </WarningModal>
       )}
@@ -387,7 +422,7 @@ const Posts = () => {
             onClick={handleFbPost}
             disabled={loading}
           >
-            {loading ? 'Syncing...' : 'Sync To Facebook'}
+            {loading ? "Syncing..." : "Sync To Facebook"}
           </button>
         </InfoModal>
       )}
@@ -410,7 +445,7 @@ const Posts = () => {
             onClick={handlePublishPost}
             disabled={loading}
           >
-            {loading ? 'Publishing...' : 'Publish'}
+            {loading ? "Publishing..." : "Publish"}
           </button>
         </ConfirmationModal>
       )}
@@ -433,7 +468,7 @@ const Posts = () => {
             onClick={handleApprovePost}
             disabled={loading}
           >
-            {loading ? 'Approving...' : 'Approve'}
+            {loading ? "Approving..." : "Approve"}
           </button>
         </ConfirmationModal>
       )}
@@ -441,7 +476,10 @@ const Posts = () => {
       {rejectItem && (
         <ErrorModal
           isOpen={!!rejectItem}
-          closeModal={() => { setRejectItem(null); setRemarks(""); }}
+          closeModal={() => {
+            setRejectItem(null)
+            setRemarks("")
+          }}
           title="Reject Post"
           description="Are you sure you want to reject this post?"
         >
@@ -459,7 +497,10 @@ const Posts = () => {
             <div className="flex justify-end">
               <button
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-                onClick={() => { setRejectItem(null); setRemarks(""); }}
+                onClick={() => {
+                  setRejectItem(null)
+                  setRemarks("")
+                }}
               >
                 Cancel
               </button>
@@ -469,7 +510,7 @@ const Posts = () => {
                 onClick={handleRejectPost}
                 disabled={loading}
               >
-                {loading ? 'Rejecting...' : 'Reject'}
+                {loading ? "Rejecting..." : "Reject"}
               </button>
             </div>
           </div>
@@ -479,7 +520,10 @@ const Posts = () => {
       {revisionItem && (
         <WarningModal
           isOpen={!!revisionItem}
-          closeModal={() => { setRevisionItem(null); setRemarks(""); }}
+          closeModal={() => {
+            setRevisionItem(null)
+            setRemarks("")
+          }}
           title="For Revision Post"
           description="Are you sure you want to submit this post for revision?"
         >
@@ -497,7 +541,10 @@ const Posts = () => {
             <div className="flex justify-end">
               <button
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 mr-2"
-                onClick={() => { setRevisionItem(null); setRemarks(""); }}
+                onClick={() => {
+                  setRevisionItem(null)
+                  setRemarks("")
+                }}
               >
                 Cancel
               </button>
@@ -507,15 +554,14 @@ const Posts = () => {
                 onClick={handleRevisionPost}
                 disabled={loading}
               >
-                {loading ? 'Submitting...' : 'For Revision'}
+                {loading ? "Submitting..." : "For Revision"}
               </button>
             </div>
           </div>
         </WarningModal>
       )}
-
     </div>
-  );
+  )
 }
 
-export default Posts;
+export default Posts

@@ -31,7 +31,7 @@ class StudentManagementController extends Controller
             ]);
         }
 
-        if ($user->hasRole('registrar')) {
+        if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             $students = StudentInformation::with('familyInformation')->get();
 
             return response()->json([
@@ -60,7 +60,7 @@ class StudentManagementController extends Controller
         $user = JWTAuth::authenticate();
 
         // If registrar
-        if ($user->hasRole('registrar')) {
+        if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             $students = StudentInformation::with([
                 'guardian',
                 'enrolleeRecords' => function ($query) {
@@ -129,7 +129,7 @@ class StudentManagementController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -271,7 +271,7 @@ class StudentManagementController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -285,7 +285,7 @@ class StudentManagementController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -318,7 +318,7 @@ class StudentManagementController extends Controller
 
         $user = JWTAuth::authenticate();
 
-        if ($user->hasActiveRole('registrar')) {
+        if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             $activeYear = AcademicYear::where('is_active', true)->first();
 
             if (!$activeYear) {
@@ -345,7 +345,7 @@ class StudentManagementController extends Controller
     public function newStudents()
     {
         $user = JWTAuth::authenticate();
-        if ($user->hasRole('registrar')) {
+        if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             return User::role('student')
                 ->whereDoesntHave('studentInformation')
                 ->get()

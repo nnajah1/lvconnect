@@ -1,18 +1,14 @@
-
+"use client"
 
 import { Menu } from "lucide-react"
 import { NotificationDropdown } from "./Notification"
 import { ProfileDropdown } from "./Profile"
 
-export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) {
+export function Navbar({ user, logout, onMobileMenuToggle }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 bg-secondary text-white shadow-base transition-all duration-300 w-full">
-      <div
-        className={`flex flex-wrap items-center justify-between px-4 py-3 md:px-6 transition-all duration-300 ${
-          isSidebarExpanded ? "lg:pl-64" : "lg:pl-20"
-        }`}
-      >
-        {/* Left: Menu + Title */}
+    <header className="sticky top-0 z-10 w-full bg-white shadow-md transition-all duration-300">
+      <div className="flex items-center justify-between px-4 py-3 md:px-6">
+        {/* Left: Mobile Menu + Title */}
         <div className="flex items-center space-x-3 min-w-0">
           <button
             onClick={onMobileMenuToggle}
@@ -21,17 +17,24 @@ export function Navbar({ user, logout, isSidebarExpanded, onMobileMenuToggle }) 
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="pl-6 text-base sm:text-lg md:text-xl font-semibold truncate max-w-xs sm:max-w-sm md:max-w-md">
-            Welcome, {user?.first_name || "User"}
-          </h1>
+          {/* <div className="pl-4 flex flex-col leading-tight">
+            <span className="text-gray-500 text-sm font-normal">Welcome,</span>
+            <span className="text-blue-900 text-lg md:text-xl font-bold truncate max-w-xs sm:max-w-sm md:max-w-md">
+              {user?.first_name && user?.last_name
+                ? `${user.first_name} ${user.last_name}`
+                : user?.first_name || user?.last_name || "User"}
+            </span>
+          </div> */}
+
         </div>
 
         {/* Right: Dropdowns */}
-        <div className="mt-2 flex items-center space-x-2 sm:mt-0 sm:space-x-4 flex-shrink-0">
+        <div className="flex items-center sm:space-x-4 mt-2 sm:mt-0 flex-shrink-0">
           <NotificationDropdown />
           <ProfileDropdown user={user} logout={logout} />
         </div>
       </div>
     </header>
   );
+
 }

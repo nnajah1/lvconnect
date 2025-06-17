@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from "react"
-import { Bell } from "lucide-react"
+import { IoMdNotifications } from "react-icons/io";
 import { markOneAsRead, markAllAsRead } from "@/services/axios";
 import { loadNotifications } from "@/hooks/notification";
 
@@ -48,29 +48,29 @@ export function NotificationDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    let interval = setInterval(() => {
-      loadNotifications(setUnread, setRead, setNotifications);
-    }, 10000);
+  // useEffect(() => {
+  //   let interval = setInterval(() => {
+  //     loadNotifications(setUnread, setRead, setNotifications);
+  //   }, 10000);
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        clearInterval(interval);
-      } else {
-        loadNotifications(setUnread, setRead, setNotifications);
-        interval = setInterval(() => {
-          loadNotifications(setUnread, setRead, setNotifications);
-        }, 10000);
-      }
-    };
+  //   const handleVisibilityChange = () => {
+  //     if (document.hidden) {
+  //       clearInterval(interval);
+  //     } else {
+  //       loadNotifications(setUnread, setRead, setNotifications);
+  //       interval = setInterval(() => {
+  //         loadNotifications(setUnread, setRead, setNotifications);
+  //       }, 10000);
+  //     }
+  //   };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
+  //   return () => {
+  //     clearInterval(interval);
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //   };
+  // }, []);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -83,10 +83,10 @@ export function NotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={toggleDropdown}
-        className="relative rounded p-1.5 hover:bg-blue-800"
+        className="relative rounded p-1.5 hover:bg-blue-100 text-secondary"
         aria-label="Notifications"
       >
-        <Bell className="h-5 w-5" />
+        <IoMdNotifications className="h-6 w-6 text-[#1F3463]" />
         {unreadCount > 0 && (
           <span className="absolute right-1 top-1 flex h-2 w-2 rounded-full bg-red-500" />
         )}

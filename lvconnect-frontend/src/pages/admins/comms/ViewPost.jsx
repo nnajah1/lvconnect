@@ -105,19 +105,18 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
           showTitle={true}
           showDescription={false}
           showCloseButton={true}
-          className="w-[60rem]! max-h-[70vh]! rounded-lg overflow-hidden"
         >
           {post ? (
             <div className="flex flex-col space-y-4 p-4 overflow-y-auto w-full h-full justify-around rounded-lg">
             
                 <h1 className="text-sm text-gray-500 capitalize">{post.type}</h1>
-              <div className="min-h-[30vh] bg-white m-4 p-10 rounded-md">
+              <div className="min-h-[30vh] bg-white px-10 rounded-md">
                 <div>
                   <h2 className="text-2xl font-bold text-center text-gray-900">{post.title}</h2>
 
                   {/* Post Content */}
                   <div
-                    className="m-4 text-gray-800 text-center whitespace-pre-line"
+                    className="m-4 text-gray-800 text-left"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
                   />
                 </div>
@@ -227,7 +226,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
                 <div className="gap-2 space-x-2">
                   {shouldShowButton('edit', post) && modalHandlers?.onEdit && (
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+                      className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 cursor-pointer"
                       onClick={() => modalHandlers.onEdit(post)}
                     >
                       Edit
@@ -254,7 +253,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
 
                   {shouldShowButton('postFb', post) && modalHandlers?.onPostFb && (
                     <button
-                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer"
+                      className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 cursor-pointer"
                       onClick={() => modalHandlers.onPostFb(post)}
                     >
                       Sync to Facebook
@@ -272,7 +271,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
 
                   {shouldShowButton('restore', post) && (
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+                      className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 cursor-pointer"
                       onClick={() => handleRestore(post)}
                     >
                       Restore
@@ -290,7 +289,7 @@ const ViewPostModal = ({ isOpen, closeModal, postId, loadUpdates, userRole, moda
 
                   {shouldShowButton('revision', post) && modalHandlers?.onRevision && (
                     <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+                      className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 cursor-pointer"
                       onClick={() => modalHandlers.onRevision(post)}
                     >
                       For Revision

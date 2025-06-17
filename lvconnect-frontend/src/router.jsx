@@ -39,6 +39,7 @@ import SchoolAdminDashboard from "./pages/admins/scadmin/AdminDashboard";
 import RoleManagement from "./pages/admins/systemAdmin/RoleManagement";
 import PageError from "./layouts/Error";
 import StudentHandbook from "./components/school_forms/studentHandbook";
+import FormBuilder from "./components/school_forms/FormBuilder";
 
 
 const router = createBrowserRouter([
@@ -87,7 +88,7 @@ const router = createBrowserRouter([
                 children: [
                     {
                         path: "my",
-                        handle: { roles: ['student'] },
+                        handle: { roles: ['student', 'superadmin'] },
                         children: [
                             { index: true, element: <UserDashboard /> },
                             { path: "enrollment", element: <UserEnrollment mode="edit" editType="partial" /> },
@@ -100,7 +101,7 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "comms-admin",
-                        handle: { roles: ['comms'] },
+                        handle: { roles: ['comms', 'superadmin'] },
                         children: [
                             { index: true, element: <CommsDashboard /> },
                             { path: "posts", element: <Posts /> },
@@ -110,7 +111,7 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "school-admin",
-                        handle: { roles: ['scadmin'] },
+                        handle: { roles: ['scadmin', 'superadmin'] },
                         children: [
                             { index: true, element: <SchoolAdminDashboard /> },
                             { path: "posts", element: <Posts /> },
@@ -120,10 +121,11 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "psas-admin",
-                        handle: { roles: ['psas'] },
+                        handle: { roles: ['psas', 'superadmin'] },
                         children: [
                             { index: true, element: <PsasDashboard /> },
                             { path: "forms", element: <Forms /> },
+                            { path: "forms/create-form", element: <FormBuilder /> },
                             { path: "surveys", element: <Surveys /> },
                             { path: "surveys/survey-responses/:surveyId", element: <SurveyResponses /> },
 
@@ -131,7 +133,7 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "registrar",
-                        handle: { roles: ['registrar'] },
+                        handle: { roles: ['registrar', 'superadmin'] },
                         children: [
                             { index: true, element: <RegistrarDashboard /> },
                             { path: "enrollment", element: <Enrollment /> },

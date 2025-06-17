@@ -20,7 +20,7 @@ class SOAController extends Controller
         $user = JWTAuth::authenticate();
 
 
-        if ($user->hasRole('registrar')) {
+        if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             return FeeTemplate::with('fees', 'academicYear')
                 ->whereHas('academicYear', function ($query) {
                     $query->where('is_active', 0);
@@ -34,7 +34,7 @@ class SOAController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('student')) {
+        if ($user->hasAnyRole(['student', 'superadmin'])) {
             // Active Academic Year
             $activeTemplates = FeeTemplate::where('is_visible', true)
                 ->with('fees', 'academicYear')
@@ -105,7 +105,7 @@ class SOAController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -172,7 +172,7 @@ class SOAController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user->hasRole('registrar') && !$user->hasRole('student')) {
+        if (!$user->hasAnyRole(['registrar', 'student', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -226,7 +226,7 @@ class SOAController extends Controller
         $user = JWTAuth::authenticate();
 
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized to view SOAs'], 403);
         }
 
@@ -249,7 +249,7 @@ class SOAController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -319,7 +319,7 @@ class SOAController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

@@ -12,13 +12,16 @@ class Schedule extends Model
     protected $fillable = [
         'program_id',
         'course_id',
-        'term',
+        'semester',
+        'academic_year',
         'year_level',
-        'section',
         'day',
         'start_time',
         'end_time',
         'room',
+        'instructor',
+        'course_name',
+        'course_code',
     ];
 
     /**

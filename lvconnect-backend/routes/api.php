@@ -24,7 +24,7 @@ use App\Http\Controllers\OTPController;
 use App\Http\Controllers\DummyDataSyncController;
 
 Route::post('/sync-dummy-data', [DummyDataSyncController::class, 'sync'])->middleware('auth.jwt');
-Route::post('/sync-grades-schedules', [DummyDataSyncController::class, 'syncGradesAndSchedules'])->middleware('auth.jwt');
+Route::post('/sync-schedules', [DummyDataSyncController::class, 'syncSchedules'])->middleware('auth.jwt');
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -92,6 +92,7 @@ Route::middleware('auth.jwt')->group(function () {
   Route::get('/approved-form-data/{submissionId}', [SchoolFormsController::class, 'getApprovedFormData']);
 
 
+  Route::patch('/forms/{id}', [SchoolFormsController::class, 'toggleVisibility']);
   Route::put('/forms/{id}', [SchoolFormsController::class, 'update']);
   Route::put('/forms/{formTypeId}/fields', [SchoolFormsController::class, 'updateFields']);
   Route::put('/forms/submissions/{id}', [SchoolFormsController::class, 'reviewSubmission']);
@@ -112,6 +113,7 @@ Route::middleware('auth.jwt')->group(function () {
 
   Route::put('/surveys/{id}', [SurveyController::class, 'updateSurveyWithQuestions']);
 
+  Route::patch('/surveys/{id}', [SurveyController::class, 'toggleVisibility']);
   Route::delete('/surveys/{id}', [SurveyController::class, 'destroy']);
 
 

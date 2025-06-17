@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('middle_name');
             $table->string('last_name');
             $table->string('Suffix')->nullable();
-            $table->enum('civil_status', ['single', 'married', 'divorced', 'widowed']);
+            $table->enum('civil_status', ['single', 'married', 'widowed']);
             $table->enum('gender',['male', 'female']);
             $table->date('birth_date');
             $table->string('birth_place');

@@ -1,4 +1,5 @@
-import { Check, Eye, Pencil, X } from "lucide-react";
+import StatusBadge from "@/components/dynamic/statusBadge";
+import { Check, ExternalLink, Eye, Pencil, X } from "lucide-react";
 import { PiExclamationMark } from "react-icons/pi";
 
 export const registrarSchema = {
@@ -9,7 +10,7 @@ export const registrarSchema = {
     filterable: true,
   },
   student_id_number: { header: "ID", display: true, },
-  program: { header: "Program", display: true, filterable:true },
+  program: { header: "Program", display: true, filterable: true },
   year: {
     header: "Year", display: true, sortable: true,
     customCell: (value, original) => {
@@ -42,12 +43,16 @@ export const registrarSchema = {
     customCell: (value, original) => {
       const status = original?.enrollee_record?.[0]?.enrollment_status;
       const map = {
-        not_enrolled: <span style={{ color: "gray" }}>Not Enrolled</span>,
-        enrolled: <span style={{ color: "green" }}>Enrolled</span>,
-        pending: <span style={{ color: "orange" }}>Pending</span>,
-        rejected: <span style={{ color: "#8B8000" }}>Temporary Enrolled</span>
+        not_enrolled: "Not Enrolled",
+        enrolled: "Enrolled",
+        pending: "Pending",
+        rejected: "Temporary Enrolled",
       };
-      return map[status] || "-";
+
+      return status ? (
+        <StatusBadge status={status} label={map[status]}>
+        </StatusBadge>
+      ) : "-";
     },
     filterFn: (row, columnId, filterValue) => {
       const status = row.original?.enrollee_record?.[0]?.enrollment_status;
@@ -57,70 +62,65 @@ export const registrarSchema = {
   },
 };
 
-export const actions = (openModal, openAcceptModal, openRejectModal, openDirectModal, tab) => ({
+export const actions = (openModal, openAcceptModal, openRejectModal, tab) => ({
 
   view: {
-    icon: () => <Eye size={18} />,
+    label: "View",
+    icon: () => <ExternalLink size={16} />,
     fn: (id, item) => openModal(item),
-    variant: () => "ghost",
-    className: "hover:bg-blue-200 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+    className: "text-blue-900 hover:bg-blue-100",
   },
   accept: {
-    icon: (item) => {
-      if (item.enrollee_record?.[0]?.enrollment_status === "pending" && tab === "pending" || tab === "all" || tab === "rejected") {
-        return (
-          <div className="flex items-center justify-center gap-1.5">
-            <Check className="h-4 w-4 text-white" />
-          </div>
-        )
-      }
-      return null;
-    },
+    label: "Accept",
+    icon: (item) => <Check size={16} />,
+    // {
+    // if (item.enrollee_record?.[0]?.enrollment_status === "pending" && tab === "pending" || tab === "all" || tab === "rejected") {
+    //   return (
+
+    //   )
+    // }
+    // return null;
+    // },
     fn: (id, item) => openAcceptModal(item),
-    variant: (item) => "default",
-    className: "hover:bg-green-300 bg-green-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
   reject: {
-    icon: (item) => {
-      if (item.enrollee_record?.[0]?.enrollment_status === "pending" && tab === "pending" || tab === "all") {
-        return (
-          <div className="flex items-center justify-center gap-1.5 ">
-            <PiExclamationMark className="h-4 w-4 text-white" />
-          </div>
-        )
-      }
-    },
+    label: "Temporary Enrolled",
+    icon: (item) => <X size={16} />,
+    //   {
+    //   if (item.enrollee_record?.[0]?.enrollment_status === "pending" && tab === "pending" || tab === "all") {
+    //     return (
+
+    //     )
+    //   }
+    // },
     fn: (id, item) => openRejectModal(item),
-    variant: (item) => "default",
-    className: "hover:bg-yellow-300 bg-yellow-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
+})
+
+export const actionNotEnrolled = (openDirectModal, tab) => ({
   enroll: {
+    label: "Direct Enroll",
     icon: (item) => {
       if (item.enrollee_record?.[0]?.enrollment_status === "not_enrolled" && tab === "not_enrolled" || tab === "all") {
         return (
-          <div className="flex items-center justify-center gap-1.5">
-            <Pencil className="h-4 w-4 text-white" />
-            <span className="hidden sm:inline text-white font-medium">Direct Enroll</span>
-          </div>
+          <Pencil size={16} />
         )
       }
       return null;
     },
     fn: (id, item) => openDirectModal(item),
-    variant: (item) => "default",
-    className: "hover:bg-blue-300 bg-blue-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
   },
-
 })
-
 
 export const actionConditions = {
   view: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status !== 'not_enrolled',
   accept: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'pending' || item.enrollee_record?.[0]?.enrollment_status === 'rejected',
   reject: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'pending',
-  enroll: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'not_enrolled',
 };
 
+export const actionConditionsNotEnrolled = {
+  enroll: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'not_enrolled',
+}
 
 export const registrarNotEnrolledSchema = {
 
@@ -150,10 +150,10 @@ export const registrarNotEnrolledSchema = {
     display: true,
     customCell: (value, original) => {
       const formattedStatus = value
-        .replace(/_/g, ' ')                      // Replace underscores with spaces
-        .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize each word
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
 
-      return formattedStatus;
+      return <StatusBadge status={formattedStatus} />;
     }
 
   },
@@ -162,15 +162,16 @@ export const registrarNotEnrolledSchema = {
 export const enrollActions = (openDirectModal) => ({
 
   enroll: {
+    label: "Direct Enroll",
     icon: (item) =>
-      <div className="flex items-center justify-center gap-1.5">
-        <Pencil className="h-4 w-4 text-white" />
-        <span className="hidden sm:inline text-white font-medium">Direct Enroll</span>
-      </div>,
+      <Pencil size={14} />,
+    // {/* <div className="flex items-center justify-center gap-1.5">
+    //   <Pencil size={16} />
+    //   <span className="hidden sm:inline text-white font-medium">Direct Enroll</span>
+    // </div>, */}
 
     fn: (id, item) => openDirectModal(item),
-    variant: (item) => "default",
-    className: "hover:bg-blue-300 bg-blue-500 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+    className: "text-white hover:bg-blue-800 bg-blue-900",
   },
 
 })

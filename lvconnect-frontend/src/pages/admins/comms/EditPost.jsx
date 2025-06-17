@@ -35,17 +35,17 @@ const EditPostModal = ({ isOpen, closeModal, postId, loadUpdates }) => {
         <DynamicModal
           isOpen={isOpen}
           closeModal={closeModal}
-          title="View School Update"
+          title="Edit School Update"
           description="View school updates"
-          showTitle={false}
+          showTitle={true}
           showDescription={false}
           showCloseButton={true}
-          className="w-[60rem]! h-[50rem]! bg-[#EAF2FD]!"
+          // className="w-[60rem]! h-[50rem]! bg-[#EAF2FD]!"
         >
           <CreatePostForm
             closeModal={closeModal}
             existingPost={postId}
-            onSuccess={handleSuccess}
+            // onSuccess={handleSuccess}
             loadUpdates={loadUpdates}
           />
         </DynamicModal>

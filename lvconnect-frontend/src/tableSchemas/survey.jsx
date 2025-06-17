@@ -1,8 +1,16 @@
-import { Eye, Pencil } from "lucide-react";
+import StatusBadge from "@/components/dynamic/statusBadge";
+import { formatTitle } from "@/utils/textFormatter";
+import { ExternalLink, Eye, PenBoxIcon } from "lucide-react";
 
 export const surveySchema = {
     // id: { header: "#", display: true },
-    title: { header: "Surveys", display: true },
+    title: {
+        header: "Surveys", display: true,
+        customCell: (value) => (
+            <span className="font-semibold text-gray-700">
+                {formatTitle(value)}
+            </span>)
+    },
     visibility_mode: {
         header: "Status",
         sortable: false,
@@ -10,33 +18,34 @@ export const surveySchema = {
         customCell: (value) => {
             const map = {
                 hidden: "Hidden",
-                optional: "Visible",
-                mandatory: "Visible",
+                optional: "Published",
+                mandatory: "Published",
             };
-            return map[value] || "Unknown";
+            return (
+                <StatusBadge status={map[value] || "Unknown"} />
+            );
         },
 
     },
-    created_at: { header: "Date Created", display: true, format: "date", sortable:true },
+    created_at: { header: "Date Created", display: true, format: "date", sortable: true },
 };
 
-export const actions = (openModal, openResponseModal) => ({
+export const actions = (openModal, openResponseModal, openPreviewModal) => ({
     update: {
-        icon: () => <Pencil size={18} />,
+        label: "Change visibility",
+        icon: () => <PenBoxIcon size={16} />,
         fn: (id, item) => openModal(item),
-        variant: () => "ghost",
-        className: "hover:bg-blue-200 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
+        className: "hover:bg-blue-800 bg-blue-900 text-white"
+    },
+    preview: {
+        label: "Preview Survey",
+        icon: (item) => <ExternalLink size={16} />,
+        fn: (id, item) => openPreviewModal(item),
     },
     view: {
-        icon: (item) => 
-            <div className="flex items-center justify-center gap-1.5">
-                <Eye className="h-4 w-4 text-white" />
-                <span className="hidden sm:inline text-white font-medium">View Responses</span>
-            </div>
-        ,
+        label: "View Responses",
+        icon: (item) => <ExternalLink size={16} />,
         fn: (id, item) => openResponseModal(item),
-        variant: (item) => "default",
-        className: "hover:bg-blue-200 flex px-2 py-1 text-xs sm:text-sm max-w-xs"
     },
 })
 
@@ -44,5 +53,6 @@ export const actions = (openModal, openResponseModal) => ({
 // Sample action conditions
 export const actionConditions = {
     update: (item, context, userRole) => true,
+    preview: (item, context, userRole) => true,
     view: (item, context, userRole) => true,
 };

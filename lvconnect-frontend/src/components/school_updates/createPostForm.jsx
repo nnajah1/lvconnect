@@ -66,7 +66,9 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
   };
 
   const preparePostPayload = async (action, isEditMode = false) => {
-    const newImages = images.filter(img => img.file);
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+    const newImages = images.filter(img => img.file && allowedTypes.includes(img.file.type));
     const existingImages = images
       .filter(img => !img.file && img.url && isEditMode)
       .map((img) => img.path || img.url);
@@ -135,28 +137,23 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
   const canEdit = !isEditMode || !existingPost?.status || ['draft', 'revision', 'rejected'].includes(existingPost.status);
 
   return (
-    <div className="flex flex-col gap-4 p-4 max-w-2xl mx-auto bg-white rounded-lg shadow">
-      <div className="flex justify-between items-center">
-        <button
-          onClick={closeModal}
-          className="text-xl text-gray-700 hover:text-gray-900 cursor-pointer"
-        >
-          <IoArrowBack />
-        </button>
-        <h2 className="text-xl font-semibold text-blue-500 flex-grow text-center">
-          {isEditMode ? "Edit Post" : "Create New Post"}
-        </h2>
-      </div>
+    <div className="flex flex-col gap-4 p-4 w-full h-full">
+      {/* Header outside white box */}
+      {/* <div className="flex justify-between items-center">
+    <button
+      onClick={closeModal}
+      className="text-xl text-gray-700 hover:text-gray-900 cursor-pointer"
+    >
+      <IoArrowBack className="text-[#2CA4DD]" />
+    </button>
+    <h2 className="text-xl font-semibold text-[#2CA4DD] flex-grow text-center">
+      {isEditMode ? "Edit Post" : "Create New School update"}
+    </h2>
+  </div>
+   <hr className="divider m-1" /> */}
 
-      {isEditMode && !canEdit && (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-          This post cannot be edited as it has already been submitted or published.
-        </div>
-      )}
-
-      {/* {error && <p className="text-red-500 text-center">{error}</p>} */}
-
-      <div className="flex items-center justify-between gap-4">
+      {/* Post type + switches */}
+      <div className="flex items-center justify-between gap-4 ">
         <select
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value)}
@@ -187,9 +184,10 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full p-3 border rounded-md"
+        className="w-full h-full-p-3 border border-black rounded-md bg-white"
         disabled={!canEdit}
       />
+
 
       <TextEditor
         content={content}
@@ -197,17 +195,20 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
         images={images}
         onImagesChange={setImages}
         disabled={!canEdit}
+
       />
 
+
+      {/* Buttons */}
       {canEdit && (
-        <div className="flex flex-wrap gap-2 justify-end mt-4">
+        <div className="flex flex-wrap gap-2 justify-end mt-2">
           <button
             type="button"
             disabled={status.draft || isLoading}
             onClick={(e) => handleSubmit(e, "draft")}
             className={`px-4 py-2 rounded ${status.draft || isLoading
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gray-500 hover:bg-gray-600 text-white"}`}
+              : "bg-gray-500 hover:bg-gray-400 text-white"}`}
           >
             {status.draft ? "Saving..." : `${isEditMode ? "Update" : "Save"} as Draft`}
           </button>
@@ -222,7 +223,7 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
               }}
               className={`px-4 py-2 rounded ${status.pending || isLoading
                 ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                : "bg-blue-900 hover:bg-blue-800 text-white"}`}
             >
               {status.pending ? "Submitting..." : `${isEditMode ? "Update &" : ""} Submit`}
             </button>
@@ -246,25 +247,30 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
         </div>
       )}
 
+      {/* Confirmation Modal */}
       <InfoModal
         isOpen={showConfirmation}
         closeModal={() => setShowConfirmation(false)}
-        title={confirmAction === "pending"
-          ? `${isEditMode ? "Update & " : ""}Submit for Approval`
-          : `${isEditMode ? "Update & " : ""}Publish Post`}
+
+        title={
+          confirmAction === "pending"
+            ? `${isEditMode ? "Update & " : ""}Submit for Approval`
+            : `${isEditMode ? "Update & " : ""}Publish Post`
+        }
         description={`Are you sure you want to ${confirmAction === "pending"
-          ? `${isEditMode ? "update and " : ""}submit this post for approval`
-          : `${isEditMode ? "update and " : ""}publish this post immediately`}?`}
+            ? `${isEditMode ? "update and " : ""}submit this post for approval`
+            : `${isEditMode ? "update and " : ""}publish this post immediately`
+          }?`}
       >
         <div className="flex justify-end gap-2 mt-4">
           <button
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-400"
             onClick={() => setShowConfirmation(false)}
           >
             Cancel
           </button>
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
             onClick={(e) => {
               handleSubmit(e, confirmAction);
               setShowConfirmation(false);
@@ -275,6 +281,7 @@ const CreatePostForm = ({ closeModal, existingPost, loadUpdates, onSuccess }) =>
         </div>
       </InfoModal>
     </div>
+
   );
 };
 

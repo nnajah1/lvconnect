@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Survey;
 use App\Models\SurveyAnswer;
 use App\Models\EnrolleeRecord;
+use App\Models\FormSubmission;
 use DB;
 
 class DashboardController extends Controller
@@ -26,7 +27,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -41,25 +42,22 @@ class DashboardController extends Controller
             ->where('enrollment_schedule_id', $currentAcademicYearId)
             ->count();
 
-        // Visible and mandatory surveys
+        // Visible surveys
         $visibleSurveys = Survey::where('visibility_mode', 'optional')->count();
-        // $mandatorySurveys = Survey::where('visibility_mode', 'mandatory')->count();
 
-        // Total survey answers submitted
-        $totalAnswers = SurveyAnswer::count();
-
-        // Student Demographics
-        $demographics = DB::table('enrollee_records')
+        // Student Population
+        $studentPopulation = DB::table('enrollee_records')
             ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
             ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId) 
             ->select(
                 'programs.id as program_id',
                 'programs.program_name',
                 'student_information.province',
                 'student_information.city_municipality',
                 'student_information.barangay',
-                DB::raw('`student_information`.`house_no/street` as street'),
+                DB::raw('`student_information`.`house_no/street` as house_street'),
                 DB::raw('COUNT(*) as student_count')
             )
             ->groupBy(
@@ -73,33 +71,68 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('program_id')
             ->map(function ($group) {
-                $programName = $group->first()->program_name;
                 return [
-                    'program_name' => $programName,
+                    'program_name' => $group->first()->program_name,
                     'addresses' => $group->map(function ($item) {
                         return [
                             'province' => $item->province,
                             'city_municipality' => $item->city_municipality,
                             'barangay' => $item->barangay,
-                            'street' => $item->street,
+                            'street' => $item->house_street,
                             'student_count' => $item->student_count,
                         ];
                     })->values(),
                 ];
             })->values();
-            
+
+        // Forms pie chart
+        $formSubmissionCounts = FormSubmission::select('form_type_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('form_type_id')
+            ->with('formType:id,title') 
+            ->get()
+            ->map(function ($submission) {
+                return [
+                    'form_type' => $submission->formType?->title ?? 'Unknown Form',
+                    'count' => $submission->count,
+                ];
+            });
+
+        // Visible Forms
+        $visibleForms = DB::table('form_types')
+            ->where('is_visible', true)
+            ->count();
+
+        // Pending form submissions
+        $pendingFormCount = FormSubmission::where('status', 'pending')->count();
+
+        // Flooded Area Stats
+        $floodedStreets = [
+            '123 St.',
+            '456 St.',
+            '111 Malolos St.',
+            '303 Sampaloc St.',
+            '202 Sulipan Road',
+            '333 MacArthur Highway',
+        ];
+
+        $studentsInFloodedAreas = DB::table('student_information')
+            ->whereIn('`house_no/street`', $floodedStreets)
+            ->count();
+
+
         $stats = [
             'current_enrolled_students' => $currentEnrolledCount,
             'visible_surveys' => $visibleSurveys,
-            // 'mandatory_surveys' => $mandatorySurveys,
-            'total_answers_submitted' => $totalAnswers,
+            'visible_forms' => $visibleForms,
+            'pending_form_submissions' => $pendingFormCount,
+            'students_in_flooded_areas' => $studentsInFloodedAreas,
         ];
 
         return response()->json([
             'stats' => $stats,
-            'student_demographics' => $demographics,
+            'student_population' => $studentPopulation,
+            'form_submission_counts' => $formSubmissionCounts, 
         ]);
-
     }
 
     /**
@@ -109,7 +142,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasRole('psas')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -205,36 +238,77 @@ class DashboardController extends Controller
         $user = JWTAuth::authenticate();
 
         // Allow only users with the 'scadmin' role
-        if (!$user->hasActiveRole('scadmin')) {
+        if (!$user->hasRole('scadmin')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Count all enrolled students from past to present
-        $totalEnrolled = DB::table('enrollee_records')
+        // Get current academic year using latest created_at
+        $currentAcademicYearId = DB::table('enrollment_schedules')
+            ->latest('created_at')
+            ->value('id');
+        
+        // Get the visible SOA for that academic year
+        $visibleSOA = DB::table('fee_templates')
+            ->where('academic_year_id', $currentAcademicYearId)
+            ->where('is_visible', true)
+            ->first();
+
+        // Count all enrolled students
+        $currentEnrolledCount = DB::table('enrollee_records')
             ->where('enrollment_status', 'enrolled')
+            ->where('enrollment_schedule_id', $currentAcademicYearId)
+            ->count();
+        
+        $tuition = $visibleSOA ? $visibleSOA->tuition_total * $currentEnrolledCount : 0;
+        $misc = $visibleSOA ? $visibleSOA->miscellaneous_total * $currentEnrolledCount : 0;
+
+        $breakdownOfFunds = collect([
+            [
+                'label' => 'Tuition Fee',
+                'amount' => $tuition,
+            ],
+            [
+                'label' => 'Miscellaneous Fee',
+                'amount' => $misc,
+            ],
+            [
+                'label' => 'Free Lunch',
+                'amount' => 25000.00,
+            ],
+            [
+                'label' => 'School Uniform',
+                'amount' => 18000.00,
+            ],
+            [
+                'label' => 'Other Fees',
+                'amount' => 10000.00,
+            ],
+        ]);
+
+        $pendingSchoolUpdates = DB::table('school_updates')
+            ->where('status', 'pending')
             ->count();
 
-        // Get the academic year total from the visible, saved fee template
-        $academicYearFee = DB::table('fee_templates')
-            ->where('status', 'saved')
-            ->where('is_visible', true)
-            ->value('whole_academic_year');
+        $totalScholarshipInvestment = DB::table('fee_templates')
+            ->join('enrollee_records', 'fee_templates.academic_year_id', '=', 'enrollee_records.enrollment_schedule_id')
+            ->where('fee_templates.is_visible', true)
+            ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->selectRaw('SUM(fee_templates.whole_academic_year) * COUNT(enrollee_records.id) as total_investment')
+            ->value('total_investment');
 
-        // Compute the total investment
-        $totalInvestment = $totalEnrolled * $academicYearFee;
-
-        // Student Demographics
-        $demographics = DB::table('enrollee_records')
+        // Student Population
+        $studentPopulation = DB::table('enrollee_records')
             ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
             ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId)
             ->select(
                 'programs.id as program_id',
                 'programs.program_name',
                 'student_information.province',
                 'student_information.city_municipality',
                 'student_information.barangay',
-                DB::raw('`student_information`.`house_no/street` as street'),
+                DB::raw('`student_information`.`house_no/street` as house_street'),
                 DB::raw('COUNT(*) as student_count')
             )
             ->groupBy(
@@ -248,43 +322,37 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('program_id')
             ->map(function ($group) {
-                $programName = $group->first()->program_name;
                 return [
-                    'program_name' => $programName,
+                    'program_name' => $group->first()->program_name,
                     'addresses' => $group->map(function ($item) {
                         return [
                             'province' => $item->province,
                             'city_municipality' => $item->city_municipality,
                             'barangay' => $item->barangay,
-                            'street' => $item->street,
+                            'street' => $item->house_street,
                             'student_count' => $item->student_count,
                         ];
                     })->values(),
                 ];
             })->values();
 
-        // Get current academic year using latest created_at
-        $currentAcademicYearId = DB::table('enrollment_schedules')
-            ->latest('created_at')
-            ->value('id');
-
-        // Get population of enrolled students grouped by program for the present academic year
-        $higherEdPopulation = DB::table('enrollee_records')
-            ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
-            ->where('enrollee_records.enrollment_status', 'enrolled')
-            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId)
-            ->select('programs.program_name', DB::raw('COUNT(*) as student_count'))
-            ->groupBy('programs.program_name')
-            ->get();
+        $enrolledStatusOverview = DB::table('enrollee_records')
+            ->select('enrollment_status', DB::raw('COUNT(*) as count'))
+            ->where('enrollment_schedule_id', $currentAcademicYearId)
+            ->whereIn('enrollment_status', ['enrolled', 'rejected'])
+            ->groupBy('enrollment_status')
+            ->pluck('count', 'enrollment_status');
 
         $stats = [
-            'total_enrolled_students' => $totalEnrolled,
-            'total_investment' => $totalInvestment,
+            'current_enrolled_students' => $currentEnrolledCount,
+            'pending_school_updates' => $pendingSchoolUpdates,
+            'total_scholarship_investment' => $totalScholarshipInvestment,
         ];
         return response()->json([
             'stats' => $stats,
-            'student_demographics' => $demographics,
-            'higher_ed_population' => $higherEdPopulation,
+            'student_population' => $studentPopulation,
+            'enrolled_status_overview' => $enrolledStatusOverview,
+            'breakdown_of_funds' => $breakdownOfFunds,
         ]);
     }
 
@@ -295,7 +363,7 @@ class DashboardController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('registrar')) {
+        if (!$user->hasRole('registrar')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -316,17 +384,69 @@ class DashboardController extends Controller
             ->where('enrollment_schedule_id', $currentAcademicYearId)
             ->count();
 
-        // Count temporary enrolled students for that academic year
-        $temporaryEnrolledCount = DB::table('enrollee_records')
-            ->where('enrollment_status', 'rejected')
-            ->where('enrollment_schedule_id', $currentAcademicYearId)
+        // New student Accounts
+        $studentsWithoutInfo = User::whereHas('roles', function ($q) {
+            $q->where('name', 'student');
+            })
+            ->whereDoesntHave('studentInformation')
             ->count();
+        // Count temporary enrolled students for that academic year
+        // $temporaryEnrolledCount = DB::table('enrollee_records')
+        //     ->where('enrollment_status', 'rejected')
+        //     ->where('enrollment_schedule_id', $currentAcademicYearId)
+        //     ->count();
 
-        // Get population of enrolled students grouped by program for the present academic year
-        $higherEdPopulation = DB::table('enrollee_records')
+        // Student Population
+        $studentPopulation = DB::table('enrollee_records')
+            ->join('student_information', 'enrollee_records.student_information_id', '=', 'student_information.id')
             ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
             ->where('enrollee_records.enrollment_status', 'enrolled')
-            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId)
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId) 
+            ->select(
+                'programs.id as program_id',
+                'programs.program_name',
+                'student_information.province',
+                'student_information.city_municipality',
+                'student_information.barangay',
+                DB::raw('`student_information`.`house_no/street` as house_street'),
+                DB::raw('COUNT(*) as student_count')
+            )
+            ->groupBy(
+                'programs.id',
+                'programs.program_name',
+                'student_information.province',
+                'student_information.city_municipality',
+                'student_information.barangay',
+                DB::raw('`student_information`.`house_no/street`')
+            )
+            ->get()
+            ->groupBy('program_id')
+            ->map(function ($group) {
+                return [
+                    'program_name' => $group->first()->program_name,
+                    'addresses' => $group->map(function ($item) {
+                        return [
+                            'province' => $item->province,
+                            'city_municipality' => $item->city_municipality,
+                            'barangay' => $item->barangay,
+                            'street' => $item->house_street,
+                            'student_count' => $item->student_count,
+                        ];
+                    })->values(),
+                ];
+            })->values();
+
+        $enrolledStatusOverview = DB::table('enrollee_records')
+            ->select('enrollment_status', DB::raw('COUNT(*) as count'))
+            ->where('enrollment_schedule_id', $currentAcademicYearId)
+            ->whereIn('enrollment_status', ['enrolled', 'rejected'])
+            ->groupBy('enrollment_status')
+            ->pluck('count', 'enrollment_status');
+
+        $enrolledPerProgram = DB::table('enrollee_records')
+            ->join('programs', 'enrollee_records.program_id', '=', 'programs.id')
+            ->where('enrollee_records.enrollment_status', 'enrolled')
+            ->where('enrollee_records.enrollment_schedule_id', $currentAcademicYearId) // ✅ filter by current year
             ->select('programs.program_name', DB::raw('COUNT(*) as student_count'))
             ->groupBy('programs.program_name')
             ->get();
@@ -334,12 +454,15 @@ class DashboardController extends Controller
         $stats = [
             'current_enrolled_student' => $currentEnrolledCount,
             'pending_student_count' => $pendingCount,
-            'temporary_enrolled_student_count' => $temporaryEnrolledCount,
+            'students_without_info' => $studentsWithoutInfo,
+            // 'temporary_enrolled_student_count' => $temporaryEnrolledCount,
         ];
 
         return response()->json([
             'stats' => $stats,
-            'higher_ed_population' => $higherEdPopulation,
+            'student_population' => $studentPopulation,
+            'enrolled_status_overview' => $enrolledStatusOverview,
+            'enrolled_per_program' => $enrolledPerProgram,
         ]);
     }
 

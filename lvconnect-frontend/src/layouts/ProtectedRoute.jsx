@@ -5,20 +5,20 @@ import { roleRedirectMap } from "@/utils/roleRedirectMap";
 import { toast } from "react-toastify";
 
 export default function ProtectedRoute() {
-    const { user, loading } = useAuthContext();
-    const location = useLocation();
-    const matches = useMatches();
+  const { user, loading } = useAuthContext();
+  const location = useLocation();
+  const matches = useMatches();
 
-    if (loading) {
-        return <p>Loading...</p>;  // Show loading until authentication check is complete
-    }
+  if (loading) {
+    return <p>Loading...</p>;  // Show loading until authentication check is complete
+  }
 
-    // If user is not logged in, redirect to login
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
-
-   if (location.pathname === "/") {
+  // If user is not logged in, redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (location.pathname === "/") {
     const primaryRole = user.active_role || user.roles?.[0]?.name;
     const redirectPath = roleRedirectMap[primaryRole];
     if (redirectPath) {
@@ -37,11 +37,12 @@ export default function ProtectedRoute() {
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
-  const currentPath = location.pathname;
-  if (!currentPath.startsWith(roleRedirectMap[user.active_role])) {
-  toast.warning("You are on a different role's page. Switch role to match access.");
-}
+
+  //   const currentPath = location.pathname;
+  //   if (!currentPath.startsWith(roleRedirectMap[user.active_role])) {
+  //   toast.warning("You are on a different role's page. Switch role to match access.");
+  // }
 
 
-    return <Outlet />;
+  return <Outlet />;
 }

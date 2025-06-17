@@ -79,7 +79,7 @@ class EnrollmentController extends Controller
         $academicYear = $request->input('academic_year_id');
         $semester = $request->input('semester');
 
-        if ($user->hasRole('registrar')) {
+        if ($user->hasRole(['registrar', 'superadmin'])) {
             $students = StudentInformation::with([
                 'enrolleeRecord.enrollmentSchedule' => function ($query) use ($academicYear, $semester) {
                     if ($academicYear) {
@@ -116,7 +116,7 @@ class EnrollmentController extends Controller
 
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('registrar')) {
+        if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             return StudentInformation::with('enrolleeRecord')
                 ->whereHas('enrolleeRecord', function ($query) {
                     $query->where('enrollment_status', 'enrolled');
@@ -132,8 +132,8 @@ class EnrollmentController extends Controller
         try {
             $user = JWTAuth::authenticate();
 
-            if (!$user->hasRole('registrar')) {
-                return response()->json(['message' => 'Unauthorized. Only registrars can access this data.'], 403);
+            if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
+                return response()->json(['message' => 'Unauthorized. Only registrars or superadmins can access this data.'], 403);
             }
 
             $request->validate([
@@ -212,8 +212,8 @@ class EnrollmentController extends Controller
         try {
             $user = JWTAuth::authenticate();
 
-            if (!$user->hasRole('student')) {
-                return response()->json(['message' => 'Unauthorized. Only students can enroll.'], 403);
+            if (!$user->hasAnyRole(['student', 'superadmin'])) {
+                return response()->json(['message' => 'Unauthorized. Only students or superadmins can enroll.'], 403);
             }
 
             $isEnrollmentOpen = EnrollmentSchedule::where('is_active', true)->exists();
@@ -353,8 +353,8 @@ class EnrollmentController extends Controller
         try {
             $user = JWTAuth::authenticate();
 
-            if (!$user->hasRole('registrar')) {
-                return response()->json(['message' => 'Unauthorized. Only registrars can access this data.'], 403);
+            if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
+                return response()->json(['message' => 'Unauthorized. Only registrars or superadmins can access this data.'], 403);
             }
 
             $request->validate([
@@ -386,9 +386,9 @@ class EnrollmentController extends Controller
 
         $targetUserId = $user->id;
 
-        if ($user->hasRole('registrar')) {
+        if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             $validated = $request->validate([
-                'user_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id',
             ]);
 
             $targetUserId = $validated['user_id'];
@@ -415,8 +415,8 @@ class EnrollmentController extends Controller
         try {
             $user = JWTAuth::authenticate();
 
-            if (!$user->hasRole('registrar')) {
-                return response()->json(['message' => 'Unauthorized. Only registrars can perform this action.'], 403);
+            if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
+                return response()->json(['message' => 'Unauthorized. Only registrars or superadmins can perform this action.'], 403);
             }
 
             $validated = $request->validate([
@@ -850,7 +850,7 @@ class EnrollmentController extends Controller
         $user = JWTAuth::authenticate();
         $studentRecord = StudentInformation::with(['studentFamilyInfo', 'user:id,email,avatar', 'enrolleeRecord.program'])->findOrFail($id);
 
-        if (!$user->hasRole(['student', 'registrar'])) {
+        if (!$user->hasAnyRole(['student', 'registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -879,7 +879,7 @@ class EnrollmentController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -915,7 +915,7 @@ class EnrollmentController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasRole('registrar')) {
+        if (!$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

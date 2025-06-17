@@ -51,7 +51,7 @@ class SurveyController extends Controller
         }
 
         // Check if the user has the 'psas' role
-        if ($user->hasActiveRole('psas')) {
+        if ($user->hasAnyRole(['psas', 'superadmin'])) {
             $psasSurveys = Survey::with('questions')
                 ->orderBy('updated_at', 'desc')
                 ->get();
@@ -74,7 +74,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -138,7 +138,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole(['student', 'psas'])) {
+        if (!$user->hasActiveRole(['student', 'psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -198,7 +198,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -270,7 +270,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -334,7 +334,7 @@ class SurveyController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -600,6 +600,24 @@ class SurveyController extends Controller
         ], 200);
     }
 
+       public function toggleVisibility(Request $request, $id)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('psas')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $survey = Survey::findOrFail($id);
+
+        $survey->visibility_mode = $survey->visibility_mode === 'hidden' ? 'optional' : 'hidden';
+        $survey->save();
+
+        return response()->json([
+            'message' => 'Visibility updated successfully.',
+        ]);
+    }
+
     /**
      * Remove the specified survey from storage.
      */
@@ -608,7 +626,7 @@ class SurveyController extends Controller
         $user = JWTAuth::authenticate();
         $survey = Survey::findOrFail($id);
 
-        if (!$user->hasActiveRole('psas')) {
+        if (!$user->hasAnyRole(['psas', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -617,6 +635,7 @@ class SurveyController extends Controller
         return response()->json(['message' => 'Survey deleted successfully.']);
     }
 }
+
 /**$mandatorySurveys = Survey::where('visibility_mode', 'mandatory')->get();
 
 $incomplete = $mandatorySurveys->filter(function ($survey) use ($user) {

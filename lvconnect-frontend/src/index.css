@@ -14,6 +14,7 @@
 /* 2. Full height for layout containers */
 html, body, #root, #guestLayout {
   min-height: 100vh;
+  background-color: white;
 }
 
 /* 3. Remove default margins from text elements */
@@ -26,7 +27,7 @@ body {
   font-family: 'Open Sans', sans-serif;
   margin: 0;
   padding: 0;
-  font-size: 14px;
+  font-size: 12px;
   color: #212121;
   background-color: #f6f6f6;
   line-height: 1.5;
@@ -191,6 +192,20 @@ table > tbody > tr > td {
     color: black;
     background-color: white;
   }
+
+  .fc .fc-daygrid-day-number {
+  @apply text-xs font-semibold text-gray-600;
+}
+
+.fc-event {
+  @apply text-xs px-2 py-1 rounded cursor-pointer text-white;
+}
+
+.fc .fc-daygrid-day:hover {
+  background-color: #eff6ff; /* light blue */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
 
 @keyframes fadeInDown {
     0% {
