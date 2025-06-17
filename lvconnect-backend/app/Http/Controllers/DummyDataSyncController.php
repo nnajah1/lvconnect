@@ -262,8 +262,13 @@ class DummyDataSyncController extends Controller
 
                     $entries = $response->json();
 
+                    if (!is_array($entries)) {
+                        \Log::warning("Unexpected response format for Program ID $programId, Year Level $yearLevelStr");
+                        continue;
+                    }
+
                     foreach ($entries as $entry) {
-                        if (!in_array($entry['status'], ['Uploaded', 'Approved'])) {
+                        if (!isset($entry['schedule_json']) || !is_array($entry['schedule_json'])) {
                             continue;
                         }
 
@@ -294,8 +299,8 @@ class DummyDataSyncController extends Controller
                                     'academic_year' => $academicYear,
                                     'semester'      => $entry['semester'],
                                     'day'           => $scheduleItem['day'],
-                                    'start_time'    => \Carbon\Carbon::parse($scheduleItem['start']),
-                                    'end_time'      => \Carbon\Carbon::parse($scheduleItem['end']),
+                                    'start_time'    => Carbon::parse($scheduleItem['start']),
+                                    'end_time'      => Carbon::parse($scheduleItem['end']),
                                     'room'          => $props['room_name'] ?? null,
                                     'instructor'    => $props['instructor_name'] ?? null,
                                     'course_name'   => $props['course_name'] ?? null,
