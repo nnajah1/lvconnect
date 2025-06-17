@@ -68,48 +68,38 @@ class EnrollmentController extends Controller
     }
 
     public function AdminView(Request $request)
-    {
-        $user = JWTAuth::authenticate();
+{
+    $user = JWTAuth::authenticate();
 
-        $request->validate([
-            'academic_year_id' => 'required|exists:academic_years,id',
-            'semester' => 'required|in:first_semester,second_semester',
-        ]);
+    $request->validate([
+        'academic_year_id' => 'required|exists:academic_years,id',
+        'semester' => 'required|in:first_semester,second_semester',
+    ]);
 
-        $academicYear = $request->input('academic_year_id');
-        $semester = $request->input('semester');
+    $academicYear = $request->input('academic_year_id');
+    $semester = $request->input('semester');
 
-        if ($user->hasRole(['registrar', 'superadmin'])) {
-            $students = StudentInformation::with([
-                'enrolleeRecord.enrollmentSchedule' => function ($query) use ($academicYear, $semester) {
-                    if ($academicYear) {
-                        $query->where('academic_year_id', $academicYear);
-                    }
-                    if ($semester) {
-                        $query->where('semester', $semester);
-                    }
-                },
-                'enrolleeRecord.program',
-            ])
-                ->whereHas('enrolleeRecord', function ($query) {
-                    $query->where('enrollment_status', '!=', 'archived');
-                })
-                ->whereHas('enrolleeRecord.enrollmentSchedule', function ($query) use ($academicYear, $semester) {
-                    if ($academicYear) {
-                        $query->where('academic_year_id', $academicYear);
-                    }
-                    if ($semester) {
-                        $query->where('semester', $semester);
-                    }
-                })
-                ->get();
+    if ($user->hasRole(['registrar', 'superadmin'])) {
+        $students = StudentInformation::whereHas('enrolleeRecord.enrollmentSchedule', function ($query) use ($academicYear, $semester) {
+            $query->where('academic_year_id', $academicYear)
+                  ->where('semester', $semester);
+        })
+        ->with(['enrolleeRecord' => function ($query) use ($academicYear, $semester) {
+            $query->where('enrollment_status', '!=', 'archived')
+                  ->whereHas('enrollmentSchedule', function ($subQuery) use ($academicYear, $semester) {
+                      $subQuery->where('academic_year_id', $academicYear)
+                               ->where('semester', $semester);
+                  })
+                  ->with(['enrollmentSchedule', 'program']);
+        }])
+        ->get();
 
-            return response()->json($students);
-        }
-
-        return response()->json(['message' => 'Unauthorized'], 403);
-
+        return response()->json($students);
     }
+
+    return response()->json(['message' => 'Unauthorized'], 403);
+}
+
 
     public function showEnrolled()
     {

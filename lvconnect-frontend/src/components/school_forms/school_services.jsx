@@ -104,7 +104,7 @@ const InstitutionalSystems = () => {
 
   {/* Third Card */}
   <a
-    href="/coming-soon"
+    href="https://tpes.vercel.app/login"
     className="box-border flex flex-col justify-between items-center py-3 px-2.5 gap-2.5 w-full sm:w-[230px] border border-solid border-[#CED4DA] rounded-[4px] transition-all hover:shadow-md"
   >
     <div className="flex flex-col items-center p-[1px] gap-2.5 w-auto h-auto">

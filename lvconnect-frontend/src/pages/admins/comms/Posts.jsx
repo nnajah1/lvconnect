@@ -300,7 +300,7 @@ const Posts = () => {
               {/* Title and Subtitle */}
               <div>
                 <h1 className="text-2xl font-bold text-[#253965]">Update Management</h1>
-                <p className="text-[16px] text-gray-600 mt-1">Create, manage, and publish school updates such as announcements and events.</p>
+                <p className="text-sm text-gray-600 mt-1">Create, manage, and publish school updates such as announcements and events.</p>
               </div>
               {/* Search Input */}
               <div>
@@ -550,7 +550,7 @@ const Posts = () => {
               </button>
 
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
                 onClick={handleRevisionPost}
                 disabled={loading}
               >

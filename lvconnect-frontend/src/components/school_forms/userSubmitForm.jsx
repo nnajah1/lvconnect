@@ -518,7 +518,7 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
         ? 'Form saved as draft successfully!'
         : 'Form submitted successfully!';
       toast.success(message);
-
+      closeModal();
       if (onSuccess) {
         onSuccess(formId);
       }
@@ -549,32 +549,33 @@ const StudentEditForm = ({ formId, onSuccess, draftId = null, initialData = {}, 
   };
 
   return (
-    <div className="mx-auto p-6 space-y-6 bg-white rounded shadow">
+    <div className="mx-auto p-6 space-y-6 ">
       <form onSubmit={handleSubmit((data) => onSubmit(data, 'pending'))}>
         <h2 className="text-2xl font-semibold text-center">{title}</h2>
         <p className="text-gray-600 text-center">{description}</p>
 
-        <div className='ql-editor border-1 mt-2'>
+        <div className='ql-editor border border-gray-200 rounded mt-2'>
           {generateFormFromContent(content, fields, control)}
         </div>
 
         <div className="flex mt-4 gap-4 justify-end">
-          <Button
-            className="bg-gray-500"
+          <button
+            className="px-4 py-2 bg-gray-500 text-white rounded"
             type="button"
             disabled={loading}
             onClick={handleSubmit((data) => onSubmit(data, "draft"))}
           >
             {loading ? 'Saving...' : 'Save as Draft'}
-          </Button>
+          </button>
 
-          <Button
+          <button
+          className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
             type="button"
             disabled={loading}
             onClick={handleSubmit((data) => onSubmit(data, "pending"))}
           >
             {loading ? 'Submitting...' : 'Submit for Review'}
-          </Button>
+          </button>
         </div>
       </form>
     </div>

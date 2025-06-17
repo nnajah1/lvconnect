@@ -49,7 +49,7 @@ const SchoolAdminDashboard = () => {
       </div> */}
 
       <div className="py-4">
-        <DemographicsChart demographics={demographics} />
+        {/* <DemographicsChart demographics={demographics} /> */}
       </div>
     </div>
   )

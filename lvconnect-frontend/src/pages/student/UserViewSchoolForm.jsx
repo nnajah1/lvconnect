@@ -155,7 +155,7 @@ const UserViewFormModal = ({ isOpen, closeModal, submittedItem, fetchSubmitted }
                             />
                         )
                     }
-                    showFooter={form?.status === "pending"}
+                    showFooter={form?.status === "pending" && userRole === "psas"}
                     footerButtons={
                         <>
                             <button

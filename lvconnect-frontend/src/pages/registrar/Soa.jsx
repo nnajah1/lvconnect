@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Loader3 } from "@/components/dynamic/loader";
 import { SOADetailsView } from "@/components/enrollment/soaManager";
 import { useUserRole } from "@/utils/userRole";
+import DynamicModal from "@/components/dynamic/DynamicModal";
+import { SOACard } from "@/components/enrollment/soaCard";
+import html2pdf from 'html2pdf.js';
+import { useRef } from 'react';
+import SOAPrintView from "@/components/enrollment/soaPrintView";
+
 
 const AdminSoa = () => {
   const UserRole = useUserRole();
@@ -21,6 +27,10 @@ const AdminSoa = () => {
   const [currentSoaCollapsed, setCurrentSoaCollapsed] = useState(false);
   const [collapsedSoas, setCollapsedSoas] = useState({});
   const [otherSoas, setOtherSoas] = useState([]);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   const [formData, setFormData] = useState({
     schoolYear: "",
@@ -210,22 +220,44 @@ const AdminSoa = () => {
   };
 
   const handleEdit = () => {
+    if (!currentSoaData) return;
+
+    setFormData({
+      schoolYear: currentSoaData.school_year,
+      tuition_per_unit: currentSoaData.tuition_per_unit || "",
+      total_units: currentSoaData.total_units || "",
+      miscFees: currentSoaData.fees || [],
+      is_visible: currentSoaData.is_visible !== undefined ? currentSoaData.is_visible : 1,
+    });
+
+    setCurrentTemplateId(currentSoaData.id);
+    setIsEditing(true);
     setShowForm(true);
+    setIsModalOpen(false); // close SOADetails modal
+    setIsOpen(true);       // open edit form modal
   };
 
+
   const handleCancelEdit = () => {
-    if (currentSoaData) {
-      // Reset form data to current SOA data - preserve schoolYear
-      setFormData(prev => ({
-        schoolYear: prev.schoolYear, // Keep the schoolYear from formData
-        tuition_per_unit: currentSoaData.tuition_per_unit || "",
-        total_units: currentSoaData.total_units || "",
-        miscFees: currentSoaData.fees || [],
-        is_visible: currentSoaData.is_visible !== undefined ? currentSoaData.is_visible : true,
-      }));
+    if (!currentSoaData) {
       setShowForm(false);
+      setIsEditing(false);
+      return;
     }
+
+    setFormData({
+      schoolYear: currentSoaData.school_year || "",
+      tuition_per_unit: currentSoaData.tuition_per_unit || "",
+      total_units: currentSoaData.total_units || "",
+      miscFees: currentSoaData.fees || [],
+      is_visible: currentSoaData.is_visible !== undefined ? currentSoaData.is_visible : 1,
+    });
+
+    setIsEditing(false);
+    setShowForm(false);
+    setIsModalOpen(true);
   };
+
 
   const toggleCurrentSoa = () => {
     setCurrentSoaCollapsed(!currentSoaCollapsed);
@@ -304,6 +336,7 @@ const AdminSoa = () => {
       };
       setCurrentSoaData(updatedSoaData);
       setShowForm(false);
+      setIsOpen(false);
 
     } catch (error) {
       console.error("Failed to submit SOA", error);
@@ -325,17 +358,53 @@ const AdminSoa = () => {
 
   const { tuitionTotal, miscTotal, termTotal, yearTotal } = calculateTotals();
 
+  const printRef = useRef();
+
+  const handleDownload = async () => {
+    const element = printRef.current;
+    if (!element) return;
+
+    const html2pdf = (await import('html2pdf.js')).default;
+
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: 'soa.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      })
+      .from(element)
+      .save();
+  };
+
+
   if (loading) {
     return <Loader3 />
   }
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Statement of Account Management</h1>
+
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-[#253965]">SOA Management</h1>
+          <p className="text-sm text-gray-600 mt-1">Input, update, and manage students’ fee breakdowns and statements of account.</p>
+        </div>
+        <div className="">
+          <button
+            onClick={() => setIsOpen(true)}
+            className="px-6 py-3 bg-blue-900 text-white rounded hover:bg-blue-800 transition-colors font-medium"
+          >
+            Create New SOA
+          </button>
+        </div>
+
+      </div>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
 
         {/* Current SOA Section - Collapsible */}
-        {!loading && currentSoaData && !showForm && (
+        {/* {!loading && currentSoaData && (
           <SOADetailsView
             soaData={currentSoaData}
             isCollapsed={currentSoaCollapsed}
@@ -343,28 +412,64 @@ const AdminSoa = () => {
             title={`Current SOA for ${currentSoaData.school_year || formData.schoolYear}`}
             handleEdit={handleEdit}
             userRole={UserRole}
+            isModalOpen={isModalOpen}
+            closeModal={() => { setIsModalOpen(false) }}
           />
-        )}
+        )} */}
 
         {/* Other SOAs Section */}
-        {!loading && !showForm && otherSoas.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Previous SOAs</h2>
-            <div className="space-y-4">
-              {otherSoas.map((soa) => (
-                <SOADetailsView
-                  key={soa.id}
-                  soaData={soa}
-                  isCollapsed={collapsedSoas[soa.id] || false}
-                  onToggle={() => toggleSoa(soa.id)}
-                  title={`SOA for ${soa.school_year}`}
-                  isOther={true}
-                  userRole={UserRole}
-                />
-              ))}
-            </div>
-          </div>
+        <div className="flex gap-4 ">
+          {otherSoas.map((soa) => (
+            <SOACard
+              key={soa.id}
+              soaData={soa}
+              onView={() => {
+                setCurrentSoaData(soa);
+                setIsModalOpen(true);
+              }}
+              // onDownload={() => {
+              //   setCurrentSoaData(soa);
+              //   setTimeout(() => {
+              //     handleDownload();
+              //   }, 200); // delay ensures printRef updates
+              // }}
+            />
+          ))}
+        </div>
+        {currentSoaData && (
+          <SOADetailsView
+            soaData={currentSoaData}
+            isCollapsed={false}
+            onToggle={() => { }}
+            title={`SOA for ${currentSoaData.school_year}`}
+            handleEdit={handleEdit}
+            userRole={UserRole}
+            isModalOpen={isModalOpen}
+            closeModal={() => setIsModalOpen(false)}
+          />
         )}
+        {/* <div
+          id="soa-print-container"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '800px', 
+            zIndex: -1,
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+        >
+          <SOAPrintView
+            ref={printRef}
+            soaData={otherSoas}
+            userRole={UserRole}
+            title={`SOA for ${otherSoas?.school_year}`}
+          />
+        </div> */}
+
+
+
 
         {/* Create New SOA Button */}
         {/* {!loading && !showForm && (
@@ -379,7 +484,16 @@ const AdminSoa = () => {
         )} */}
 
         {/* Form Section */}
-        {!loading && showForm && (
+        <DynamicModal
+          isOpen={isOpen}
+          closeModal={() => { setIsOpen(false) }}
+          showCloseButton={false}
+          title={isEditing ? "Edit Statement of Account" : "Create New Statement of Account"}
+          description="Fill out the form below to create a new SOA."
+          showTitle={true}
+          showDescription={false}
+        >
+          {/* {!loading && showForm && ( */}
           <div className="space-y-6">
             {/* Header with Visibility Toggle */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -480,7 +594,7 @@ const AdminSoa = () => {
                             name="fee_category_id"
                             value={fee.fee_category_id}
                             onChange={(e) => handleMiscFeeChange(index, e)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-2 py-1 border rounded text-sm focus:ring-1 focus:ring-blue-500"
                           >
                             <option value="">Select Category</option>
                             {feeCategories.map((category) => (
@@ -496,7 +610,7 @@ const AdminSoa = () => {
                             name="fee_name"
                             value={fee.fee_name}
                             onChange={(e) => handleMiscFeeChange(index, e)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 m-auto"
                           />
                         </td>
                         <td className="py-2 px-3">
@@ -505,7 +619,7 @@ const AdminSoa = () => {
                             name="amount"
                             value={fee.amount}
                             onChange={(e) => handleMiscFeeChange(index, e)}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 m-auto"
                             min="0"
                             step="0.01"
                           />
@@ -522,13 +636,13 @@ const AdminSoa = () => {
                       </tr>
                     ))}
                     {/* Add New Fee Row */}
-                    <tr className="border-b bg-blue-50">
+                    <tr className="border-b bg-gray-100">
                       <td className="py-2 px-3">
                         <select
                           name="fee_category_id"
                           value={newFee.fee_category_id}
                           onChange={handleNewFeeChange}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 bg-white"
                         >
                           <option value="">Select Category</option>
                           {feeCategories.map((category) => (
@@ -545,7 +659,7 @@ const AdminSoa = () => {
                           value={newFee.fee_name}
                           onChange={handleNewFeeChange}
                           placeholder="New fee name"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 m-auto"
                         />
                       </td>
                       <td className="py-2 px-3">
@@ -555,7 +669,7 @@ const AdminSoa = () => {
                           value={newFee.amount}
                           onChange={handleNewFeeChange}
                           placeholder="Amount"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 m-auto"
                           min="0"
                           step="0.01"
                         />
@@ -591,7 +705,7 @@ const AdminSoa = () => {
                         ₱{termTotal.toLocaleString()}.00
                       </td>
                     </tr>
-                  
+
                   </tfoot>
                 </table>
               </div>
@@ -602,15 +716,15 @@ const AdminSoa = () => {
               <h3 className="font-semibold text-gray-700 mb-3">Summary</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
-                
+
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Academic Year Total Per Student:</span>
                     <span>₱{yearTotal.toLocaleString()}.00</span>
                   </div>
-          
-                  
+
+
                 </div>
               </div>
             </div>
@@ -622,7 +736,8 @@ const AdminSoa = () => {
               </Button>
             </div>
           </div>
-        )}
+          {/* )} */}
+        </DynamicModal>
       </div>
     </div>
   );

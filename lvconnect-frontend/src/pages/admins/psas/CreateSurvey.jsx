@@ -4,6 +4,7 @@ import { Loader } from "@/components/dynamic/loader";
 import ConfirmationModal, { InfoModal } from "@/components/dynamic/alertModal";
 import SurveyBuilder from "@/components/survey/SurveyBuilder";
 import { useRef, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const CreateSurveyModal = ({ isOpen, closeModal, loadSurveys }) => {
 
@@ -47,10 +48,7 @@ const CreateSurveyModal = ({ isOpen, closeModal, loadSurveys }) => {
                     showDescription={true}
                     showFooter={true}
                     headerButtons={
-                        <div className="flex flex-col items-start w-fit">
-                            <label htmlFor="visibilityMode" className="text-sm font-medium text-slate-700 mb-1">
-                                Survey Visibility
-                            </label>
+                        <div className="flex flex-col items-center w-fit">
                             <Select value={visibilityMode} onValueChange={setVisibilityMode}>
                                 <SelectTrigger
                                     id="visibilityMode"

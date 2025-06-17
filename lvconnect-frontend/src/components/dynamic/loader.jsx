@@ -17,7 +17,7 @@ export function Loader2() {
 
 export function Loader3() {
   return (
-     <div className="text-center flex items-center justify-center h-full bg-muted">
+     <div className="text-center flex items-center justify-center h-full bg-white">
         <div className="w-12 h-12 border-4 border-t-transparent border-blue-500 border-solid rounded-full animate-spin bg-transparent"></div>
       </div>
   );
@@ -25,7 +25,7 @@ export function Loader3() {
 
 export function Loader4() {
   return (
-     <div className="text-center flex items-center justify-center h-full bg-muted">
+     <div className="text-center flex items-center justify-center h-full bg-white">
         <div className="w-5 h-5 border-4 border-t-transparent border-gray-500 border-solid rounded-full animate-spin bg-transparent"></div>
       </div>
   );

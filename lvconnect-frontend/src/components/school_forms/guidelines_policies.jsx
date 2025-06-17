@@ -17,7 +17,7 @@ const StudentResources = () => {
       <div className="flex flex-col sm:flex-row items-stretch p-2.5 gap-2.5 w-full">
         {/* Student Handbook */}
         <a
-          href="/student-handbook"
+          href="/my/student-services/student-handbook"
           className="box-border flex flex-col justify-between items-center py-3 px-2.5 gap-2 w-full sm:w-[200px] h-fit border border-solid border-[#CED4DA] rounded-[4px] transition-all hover:shadow-md"
         >
           <FaFileLines className="text-[35px] text-[#1F3463] mb-2.5" />
@@ -30,7 +30,7 @@ const StudentResources = () => {
 
         {/* Data Privacy Policy */}
         <a
-          href="/data-privacy"
+          href="/privacy-policy"
           className="box-border flex flex-col justify-between items-center py-3 px-2.5 gap-2 w-full sm:w-[200px] h-fit border border-solid border-[#CED4DA] rounded-[4px] transition-all hover:shadow-md"
         >
           <FaUserShield className="text-[35px] text-[#1F3463] mb-2.5" />

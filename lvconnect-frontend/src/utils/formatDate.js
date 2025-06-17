@@ -23,6 +23,7 @@ export const formatDateTime = (dateString) => {
 };
 
 export const formatLabel = (value) =>
-  value
-    .replace(/_/g, ' ')                      // Replace underscores with spaces
-    .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize first letter of each word
+  (value || "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+// Capitalize first letter of each word
