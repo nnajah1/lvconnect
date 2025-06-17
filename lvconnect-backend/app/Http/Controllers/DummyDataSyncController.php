@@ -253,11 +253,9 @@ class DummyDataSyncController extends Controller
             ]);
 
             foreach ($externalProgramIds as $programId) {
-                foreach ($yearLevelLabels as $yearNumber => $yearLevelStr) {
-
+                foreach ($yearLevelLabels as $yearLevel => $yearLevelStr) {
 
                     \Log::info('Fetching schedule', [
-
                         'program_id' => $programId,
                         'year_level' => $yearLevelStr,
                         'academic_year' => $academicYear,
@@ -281,7 +279,6 @@ class DummyDataSyncController extends Controller
                     }
 
                     $responseData = $response->json();
-
                     $scheduleGroups = $responseData['schedules'] ?? null;
 
                     if (!is_array($scheduleGroups)) {
@@ -308,7 +305,6 @@ class DummyDataSyncController extends Controller
                             continue;
                         }
 
-
                         \Log::info('Processing schedule group', [
                             'program_id' => $programId,
                             'year_level' => $yearLevelStr,
@@ -317,7 +313,6 @@ class DummyDataSyncController extends Controller
                             'item_count' => count($scheduleItems),
                         ]);
 
-
                         foreach ($scheduleItems as $itemIdx => $item) {
                             $props = $item['extendedProps'] ?? [];
 
@@ -325,7 +320,6 @@ class DummyDataSyncController extends Controller
                             $day = $item['day'] ?? null;
                             $start = $item['start'] ?? null;
                             $end = $item['end'] ?? null;
-
 
                             if (!$courseId || !$day || !$start || !$end) {
                                 \Log::warning("Missing required schedule data", [
@@ -341,13 +335,52 @@ class DummyDataSyncController extends Controller
                                 continue;
                             }
 
-                            $startTime = \Carbon\Carbon::parse($start)->format('H:i:s');
-                            $endTime = \Carbon\Carbon::parse($end)->format('H:i:s');
+                            $dummyDate = '2000-01-01';
+                            $startTime = null;
+                            $endTime = null;
+                            try {
+                                if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $start)) {
+                                    $startTime = $dummyDate . ' ' . (strlen($start) === 5 ? "{$start}:00" : (string)$start);
+                                } else {
+                                    throw new \Exception('Invalid start time format');
+                                }
+                            } catch (\Exception $e) {
+                                \Log::warning('Invalid start time format', [
+                                    'start' => $start,
+                                    'error' => $e->getMessage(),
+                                ]);
+                                continue;
+                            }
+                            try {
+                                if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $end)) {
+                                    $endTime = $dummyDate . ' ' . (strlen($end) === 5 ? "{$end}:00" : (string)$end);
+                                } else {
+                                    throw new \Exception('Invalid end time format');
+                                }
+                            } catch (\Exception $e) {
+                                \Log::warning('Invalid end time format', [
+                                    'end' => $end,
+                                    'error' => $e->getMessage(),
+                                ]);
+                                continue;
+                            }
+
+                            if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $startTime) || !preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $endTime)) {
+                                \Log::warning('Invalid datetime format for schedule', [
+                                    'start_time' => $startTime,
+                                    'end_time' => $endTime,
+                                    'program_id' => $programId,
+                                    'year_level' => $yearLevelStr,
+                                    'course_id' => $courseId,
+                                    'day' => $day,
+                                ]);
+                                continue;
+                            }
 
                             $exists = Schedule::where([
                                 'course_id'     => $courseId,
                                 'program_id'    => $programId,
-                                'year_level'    => $yearLevelStr,
+                                'year_level'    => $yearLevel,
                                 'academic_year' => $academicYear,
                                 'day'           => $day,
                                 'start_time'    => $startTime,
@@ -358,7 +391,7 @@ class DummyDataSyncController extends Controller
                                 Schedule::create([
                                     'course_id'     => $courseId,
                                     'program_id'    => $programId,
-                                    'year_level'    => $yearLevelStr,
+                                    'year_level'    => $yearLevel,
                                     'academic_year' => $academicYear,
                                     'semester'      => $semester,
                                     'day'           => $day,
@@ -372,7 +405,7 @@ class DummyDataSyncController extends Controller
                                 $totalInserted++;
                                 \Log::info('Inserted new schedule', [
                                     'program_id' => $programId,
-                                    'year_level' => $yearLevelStr,
+                                    'year_level' => $yearLevel,
                                     'semester' => $semester,
                                     'course_id' => $courseId,
                                     'day' => $day,
@@ -387,7 +420,7 @@ class DummyDataSyncController extends Controller
                                 $totalSkipped++;
                                 \Log::info('Skipped existing schedule', [
                                     'program_id' => $programId,
-                                    'year_level' => $yearLevelStr,
+                                    'year_level' => $yearLevel,
                                     'semester' => $semester,
                                     'course_id' => $courseId,
                                     'day' => $day,

@@ -24,6 +24,11 @@ class Schedule extends Model
         'course_code',
     ];
 
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
+
     /**
      * Get the course associated with the schedule.
      */
