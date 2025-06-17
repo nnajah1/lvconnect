@@ -77,9 +77,9 @@ const AccountForm = ({
             onSubmit={handleSubmit}
             className="space-y-4 p-4 bg-white shadow rounded"
         >
-            <h2 className="text-lg font-semibold">
+            {/* <h2 className="text-lg font-semibold">
                 {mode === "create" ? "Create New User" : "Edit Roles"}
-            </h2>
+            </h2> */}
 
             {mode === "create" && (
                 <div>

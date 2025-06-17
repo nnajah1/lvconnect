@@ -193,7 +193,7 @@ const Grades = () => {
                           {subject.remarks === 'passed'
                             ? 'Passed'
                             : subject.remarks === 'not_passed'
-                              ? 'Not Passed'
+                              ? 'Failed'
                               : subject.remarks}
                         </Badge>
 

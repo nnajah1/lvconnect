@@ -47,13 +47,19 @@ export const statConfig = {
 };
 
 export const statSchoolAdmin = {
-  total_enrolled_students: {
+  current_enrolled_students: {
     label: 'Total Enrolled Students',
     icon: HiOutlineUsers,
     color: 'bg-blue-500',
   },
 
-  total_investment: {
+  pending_school_updates: {
+    label: 'Total Institutional Investment in Scholarship',
+    icon: HiOutlineChartPie,
+    color: 'bg-yellow-500',
+  },
+
+  total_scholarship_investment: {
     label: 'Total Institutional Investment in Scholarship',
     icon: HiOutlineChartPie,
     color: 'bg-green-500',
@@ -63,19 +69,19 @@ export const statSchoolAdmin = {
 
 export const statRegistrarAdmin = {
   current_enrolled_student: {
-    label: 'Current Enrolled Students',
+    label: 'Total Enrolled Students',
     icon: HiOutlineUsers,
     color: 'bg-blue-500',
   },
 
   pending_student_count: {
-    label: 'Pending Enrollment',
+    label: 'Total Pending Enrollment',
     icon: HiOutlineClipboardDocument,
     color: 'bg-green-500',
   },
 
-  temporary_enrolled_student_count: {
-    label: 'Temporary Enrolled Student',
+  students_without_info: {
+    label: 'New Student Accounts',
     icon: HiOutlineQuestionMarkCircle,
     color: 'bg-orange-500',
   },

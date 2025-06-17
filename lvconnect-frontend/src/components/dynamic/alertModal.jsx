@@ -21,32 +21,32 @@ const AlertColors = {
   [AlertTypes.SUCCESS]: {
     bg: "bg-white",
     border: "border-gray-200",
-    icon: "text-blue-900",
-    title: "text-blue-900",
+    icon: "text-gray-500",
+    title: "text-gray-500",
   },
   [AlertTypes.ERROR]: {
     bg: "bg-white",
     border: "border-gray-200",
-    icon: "text-blue-900",
-    title: "text-blue-900",
+    icon: "text-gray-500",
+    title: "text-gray-500",
   },
   [AlertTypes.WARNING]: {
     bg: "bg-white",
     border: "border-gray-200",
-    icon: "text-blue-900",
-    title: "text-blue-9000",
+    icon: "text-gray-500",
+    title: "text-gray-500",
   },
   [AlertTypes.INFO]: {
     bg: "bg-white",
     border: "border-gray-200",
-    icon: "text-blue-900",
-    title: "text-blue-900",
+    icon: "text-gray-500",
+    title: "text-gray-500",
   },
   [AlertTypes.DATA]: {
     bg: "bg-white",
     border: "border-gray-200",
-    icon: "text-yellow-500",
-    title: "text-blue-900",
+    icon: "text-gray-500",
+    title: "text-gray-500",
   },
 }
 

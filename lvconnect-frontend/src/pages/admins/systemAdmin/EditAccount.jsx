@@ -24,11 +24,12 @@ const EditAccountModal = ({ isOpen, closeModal, availableRoles, fetchData, initi
                 <DynamicModal isOpen={isOpen}
                     closeModal={closeModal}
                     showCloseButton={false}
-                    title="Edit Account"
-                    description="Fill out the form below to edit an account."
-                    showTitle={false}
+                    title="Edit Roles"
+                    description="Fill out the form below to edit role."
+                    showTitle={true}
                     showDescription={false}
-                    className="max-w-[45rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                    // className="max-w-[45rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!"
+                    >
 
                     <AccountForm
                         isOpen={isOpen}
