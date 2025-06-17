@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from "react";
 import { FaFileLines, FaUserShield } from "react-icons/fa6";
+import PrivacyPolicy from "@/layouts/PrivacyPolicy";
 
-const StudentResources = () => {
+export default function StudentResources() {
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
   return (
     <div className="box-border flex flex-col items-start p-2.5 gap-5 w-full max-w-full border border-solid border-[#CED4DA] rounded-lg mx-auto">
       <div className="flex flex-col items-start w-full">
@@ -17,7 +20,7 @@ const StudentResources = () => {
       <div className="flex flex-col sm:flex-row items-stretch p-2.5 gap-2.5 w-full">
         {/* Student Handbook */}
         <a
-          href="/student-handbook"
+          href="/my/student-services/student-handbook"
           className="box-border flex flex-col justify-between items-center py-3 px-2.5 gap-2 w-full sm:w-[200px] h-fit border border-solid border-[#CED4DA] rounded-[4px] transition-all hover:shadow-md"
         >
           <FaFileLines className="text-[35px] text-[#1F3463] mb-2.5" />
@@ -28,9 +31,10 @@ const StudentResources = () => {
           </div>
         </a>
 
-        {/* Data Privacy Policy */}
-        <a
-          href="/data-privacy"
+        {/* Data Privacy Policy (button to open modal) */}
+        <button
+          type="button"
+          onClick={() => setShowPrivacyModal(true)}
           className="box-border flex flex-col justify-between items-center py-3 px-2.5 gap-2 w-full sm:w-[200px] h-fit border border-solid border-[#CED4DA] rounded-[4px] transition-all hover:shadow-md"
         >
           <FaUserShield className="text-[35px] text-[#1F3463] mb-2.5" />
@@ -39,10 +43,13 @@ const StudentResources = () => {
               Data Privacy Policy
             </div>
           </div>
-        </a>
+        </button>
       </div>
+
+      {/* Show modal if triggered */}
+      {showPrivacyModal && (
+        <PrivacyPolicy onClose={() => setShowPrivacyModal(false)} />
+      )}
     </div>
   );
-};
-
-export default StudentResources;
+}

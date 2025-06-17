@@ -182,8 +182,8 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
       await load();
       setIsSubmitted(true);
       setSubmittedAt(new Date().toISOString());
-      onSuccess();
-      // closeModal();
+      // onSuccess();
+      closeModal();
       toast.success('Survey submitted successfully!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -205,7 +205,7 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
     )
 
   return (
-      <div className="w-[50vw] flex flex-col items-center p-2 md:p-8">
+      <div className=" flex flex-col items-center">
 
       {isSubmitted && (
         <Alert className="mb-8 bg-green-50 border-green-200 text-green-800">
@@ -219,7 +219,7 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
       )}
 
       <div className="text-center mb-8 bg-white rounded-xl p-2 w-full">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{survey.title}</h1>
+        <h1 className="text-xl font-bold text-gray-800">{survey.title}</h1>
         <p className="mt-2 text-gray-600">{survey.description}</p>
       </div>
 
@@ -237,7 +237,7 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
                   <div className="flex items-start gap-2">
                     <span className="text-sm font-medium text-gray-500 mt-1">{index + 1}.</span>
                     <div className="flex-1">
-                      <label className="text-lg font-medium text-gray-800">
+                      <label className="text-base font-medium text-gray-800">
                         {q.question}
                         {q.is_required ? (<span className="text-red-500 ml-1">*</span>) : null}
                       </label>
@@ -273,7 +273,7 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
                   {q.survey_question_type === 'Short answer' && (
                     <input
                       type="text"
-                      className={`border ${q.is_required && !answers[index]?.answer && !formDisabled ? 'border-red-300' : 'border-gray-300'} rounded px-3 py-2 w-full`}
+                      className={`border ${q.is_required && !answers[index]?.answer && !formDisabled ? 'border-gray-300' : 'border-gray-300'} rounded px-3 py-2 w-full`}
                       onChange={e => handleTextAnswer(index, e.target.value)}
                       value={answers[index]?.answer || ''}
                       disabled={formDisabled}
@@ -406,17 +406,17 @@ const SurveyAnswerView = ({ surveyId, load, onSuccess, closeModal }) => {
         )
         } */}
 
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-right">
           {!isSubmitted ? (
             <Button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+              className="bg-blue-900 hover:bg-blue-800 text-white px-6 py-2 rounded-md"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Submitting..." : "Submit"}
             </Button>
           ) : (
-            <div className="p-4 bg-gray-50 rounded-md text-gray-600 border border-gray-200">
+            <div className="p-4 bg-gray-50 rounded-md text-center text-gray-600 border border-gray-200">
               <p>This survey has been completed and cannot be edited.</p>
             </div>
           )}

@@ -202,7 +202,7 @@ const StudentInformation = () => {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h1 className="text-2xl text-secondary font-bold">Student Management</h1>
-          <p className="text-[16px] text-gray-600 mt-1">Create, view, update, and manage student accounts and personal records.</p>
+          <p className="text-sm text-gray-600 mt-1">Create, view, update, and manage student accounts and personal records.</p>
         </div>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>

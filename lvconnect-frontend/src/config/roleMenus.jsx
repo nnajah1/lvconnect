@@ -1,11 +1,11 @@
-import { HiHome, HiOutlineHome, HiClipboardDocumentList, HiOutlineClipboardDocumentList, HiOutlineUsers, HiUsers, HiMiniShieldCheck} from "react-icons/hi2";
+import { HiHome, HiOutlineHome, HiClipboardDocumentList, HiOutlineClipboardDocumentList, HiOutlineUsers, HiUsers, HiMiniShieldCheck } from "react-icons/hi2";
 import { FaAddressCard, FaRegAddressCard, FaFileAlt, FaRegFileAlt } from "react-icons/fa";
 import { RiGraduationCapFill, RiGraduationCapLine, RiArchiveFill, RiFileCopy2Fill, RiFileCopy2Line } from "react-icons/ri";
-import { IoNewspaperOutline, IoNewspaper} from "react-icons/io5";
+import { IoNewspaperOutline, IoNewspaper } from "react-icons/io5";
 import { GoArchive } from "react-icons/go";
-import { MdOutlineFileCopy, MdFileCopy} from "react-icons/md";
+import { MdOutlineFileCopy, MdFileCopy } from "react-icons/md";
 import { BiSolidFolderOpen, BiFolderOpen } from "react-icons/bi";
-import { HiOutlineShieldCheck } from "react-icons/hi"
+import { HiFolder, HiOutlineFolder, HiOutlineShieldCheck } from "react-icons/hi"
 
 export const roleMenus = [
   // Student
@@ -36,6 +36,13 @@ export const roleMenus = [
     roles: ["student"],
     solidIcon: HiClipboardDocumentList,
     outlineIcon: HiOutlineClipboardDocumentList,
+  },
+  {
+    name: "School Forms",
+    path: "/my/school-forms",
+    roles: ["student"],
+    solidIcon: HiFolder,
+    outlineIcon: HiOutlineFolder,
   },
   {
     name: "Student Services",
@@ -181,6 +188,12 @@ export const roleMenus = [
         outlineIcon: HiOutlineClipboardDocumentList,
       },
       {
+        name: "School Forms",
+        path: "/my/school-forms",
+        solidIcon: HiFolder,
+        outlineIcon: HiOutlineFolder,
+      },
+      {
         name: "Student Services",
         path: "/my/student-services",
         solidIcon: RiGraduationCapFill,
@@ -300,5 +313,5 @@ export const roleMenus = [
     solidIcon: HiHome,
     outlineIcon: HiOutlineHome,
   },
-  
+
 ];

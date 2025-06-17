@@ -38,7 +38,7 @@ class SchoolUpdateController extends Controller
                 ->get();
         }
         if ($user->hasAnyRole(['student', 'superadmin'])) {
-            return SchoolUpdate::where('status', SchoolUpdate::STATUS_PUBLISHED)->get();
+            return SchoolUpdate::whereIn('status', [SchoolUpdate::STATUS_PUBLISHED, SchoolUpdate::STATUS_SYNCED])->get();
         }
 
         if ($user->hasAnyRole(['scadmin', 'superadmin'])) {

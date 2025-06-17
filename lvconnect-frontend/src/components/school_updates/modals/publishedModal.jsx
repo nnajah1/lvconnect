@@ -16,7 +16,7 @@ const PublishedModal = ({ isOpen, closeModal }) => {
         >
             <button
                 onClick={closeModal}
-                className="mt-4 px-4 py-2 bg-[#1F3463] text-white rounded"
+                className="mt-4 px-4 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded"
             >
                 Manage Your Posts 
             </button>

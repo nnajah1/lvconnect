@@ -255,7 +255,9 @@ class DummyDataSyncController extends Controller
             foreach ($externalProgramIds as $programId) {
                 foreach ($yearLevelLabels as $yearNumber => $yearLevelStr) {
 
+
                     \Log::info('Fetching schedule', [
+
                         'program_id' => $programId,
                         'year_level' => $yearLevelStr,
                         'academic_year' => $academicYear,
@@ -279,6 +281,7 @@ class DummyDataSyncController extends Controller
                     }
 
                     $responseData = $response->json();
+
                     $scheduleGroups = $responseData['schedules'] ?? null;
 
                     if (!is_array($scheduleGroups)) {
@@ -305,6 +308,7 @@ class DummyDataSyncController extends Controller
                             continue;
                         }
 
+
                         \Log::info('Processing schedule group', [
                             'program_id' => $programId,
                             'year_level' => $yearLevelStr,
@@ -313,6 +317,7 @@ class DummyDataSyncController extends Controller
                             'item_count' => count($scheduleItems),
                         ]);
 
+
                         foreach ($scheduleItems as $itemIdx => $item) {
                             $props = $item['extendedProps'] ?? [];
 
@@ -320,6 +325,7 @@ class DummyDataSyncController extends Controller
                             $day = $item['day'] ?? null;
                             $start = $item['start'] ?? null;
                             $end = $item['end'] ?? null;
+
 
                             if (!$courseId || !$day || !$start || !$end) {
                                 \Log::warning("Missing required schedule data", [

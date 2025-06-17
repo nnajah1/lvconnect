@@ -90,7 +90,7 @@ const VisibleForms = () => {
              {/* Title and Subtitle */}
              <div>
                <h1 className="text-2xl font-bold text-[#253965]">School Forms</h1>
-               <p className="text-[16px] text-gray-600 mt-1">Submit, track and download school forms for various student request and services</p>
+               <p className="text-sm text-gray-600 mt-1">Submit, track and download school forms for various student request and services</p>
              </div>
              {/* Search Input */}
              <div>
@@ -100,36 +100,9 @@ const VisibleForms = () => {
 
 
 
-      <div className="student-service-school-forms-container">
-        <div className="student-service-school-forms-header">
-          School Forms
-        </div>
-
         <DynamicTabs tabs={tabs} activeTab={activeTab}
           onTabChange={setActiveTab}
           className="p-6" />
-      </div>
-
-      {/* School Services Section */}
-      <div className="student-service-school-services-section">
-        <div className="flex justify-between items-center mb-6">
-                {/* Title and Subtitle */}
-                <div>
-                  <h1 className="text-2xl font-bold text-[#253965]">Student Services</h1>
-                  <p className="text-[16px] text-gray-600 mt-1">Explore and access external systems, guidelines, and policies</p>
-                </div>
-                {/* Search Input */}
-                <div>
-                  <SearchBar value={globalFilter} onChange={setGlobalFilter} />
-                </div>
-              </div>
-        <SchoolServices />
-      </div>
-
-      {/* Guidelines and Policies Section */}
-      <div className="student-service-guidelines-policies-section">
-        <GuidelinesAndPolicies />
-      </div>
 
 
       {/* Modals */}
@@ -160,7 +133,7 @@ const VisibleForms = () => {
         description="The School Form has been successfully updated."
       >
         <button
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          className="px-4 py-2  bg-blue-900 hover:bg-blue-800 text-white "
           onClick={() => setIsSuccessModalOpen(false)}
         >
           Back to School Forms

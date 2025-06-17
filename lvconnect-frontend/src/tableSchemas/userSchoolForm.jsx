@@ -1,4 +1,5 @@
-import { Eye, Pencil } from "lucide-react";
+import StatusBadge from "@/components/dynamic/statusBadge";
+import { ExternalLink, Eye, PenBoxIcon, Pencil } from "lucide-react";
 
 export const schoolFormTemplateSchema = {
     title: { header: "Form", display: true, },
@@ -6,15 +7,17 @@ export const schoolFormTemplateSchema = {
 
 export const schoolFormSubmittedSchema = {
     form_type_title: { header: "Form", display: true },
-    status: { header: "Status", display: true },
+    status: { header: "Status", display: true, 
+        customCell: (value) => <StatusBadge status={value} />,
+     },
 };
 
 export const formActions = (openFormModal) => ({
     update: {
-        icon:() => <Pencil size={18} />,
+        label: "Update",
+        icon:() => <PenBoxIcon size={16} />,
         fn: (id, item) => openFormModal(item), 
-        variant:() =>  "ghost",
-        className: "text-blue-600 hover:bg-blue-100 p-1"
+        className: "bg-blue-900 hover:bg-blue-100 text-white",
     },
 
 });
@@ -26,10 +29,10 @@ export const formActionConditions = {
 
 export const formSubmitActions = (openSubmittedModal) => ({
     view: {
-        icon:() =>  <Eye size={20}/>,
+        label: "View",
+        icon: () => <ExternalLink size={16} />,
         fn: (id, item) =>  openSubmittedModal(item),
-        variant:() =>  "ghost",
-        className: "text-blue-600 hover:bg-blue-100 p-1"
+        className: "text-blue-900 hover:bg-blue-100",
     },
 
 })

@@ -158,7 +158,7 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
                     onClick={() => setOpenDropdown(openDropdown === item.name ? null : item.name)}
                     className={`w-full flex items-center rounded-lg p-3 transition-all duration-200 ease-in-out group ${isExpanded ? "space-x-3" : "justify-center"
                       } ${isAnyChildActive
-                        ? "bg-gradient-to-r bg-[#1BA3D6] text-white shadow-lg shadow-[#20C1FB]/25"
+                        ? "bg-[#1BA3D6] text-white "
                         : "hover:bg-white/10 hover:shadow-md hover:scale-[1.02] text-white/90 hover:text-white"
                       }`}
                   >
@@ -196,8 +196,8 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
                               to={child.path}
                               onClick={onLinkClick}
                               className={`flex items-center rounded-lg p-2.5 space-x-3 transition-all duration-200 ease-in-out group relative ${isActive
-                                  ? "bg-gradient-to-r from-[#20C1FB] to-[#1BA3D6] text-white shadow-md shadow-[#20C1FB]/20 scale-[1.02]"
-                                  : "hover:bg-white/8 hover:shadow-sm hover:scale-[1.01] text-white/80 hover:text-white"
+                                ? "bg-gradient-to-r from-[#20C1FB] to-[#1BA3D6] text-white shadow-md shadow-[#20C1FB]/20 scale-[1.02]"
+                                : "hover:bg-white/8 hover:shadow-sm hover:scale-[1.01] text-white/80 hover:text-white"
                                 }`}
                             >
                               {isActive && (
@@ -230,18 +230,25 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
                   onClick={onLinkClick}
                   className={`flex items-center rounded-lg p-3 transition-all duration-200 ease-in-out group relative ${isExpanded ? "space-x-3" : "justify-center"
                     } ${isActive
-                      ? "bg-gradient-to-r from-[#20C1FB] to-[#1BA3D6] text-white shadow-lg shadow-[#20C1FB]/25 scale-[1.02]"
+                      ? "bg-[#1BA3D6] text-white"
                       : "hover:bg-white/10 hover:shadow-md hover:scale-[1.02] text-white/90 hover:text-white"
                     }`}
                 >
-                  {isActive && isExpanded && (
+                  {/* {isActive && isExpanded && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
                   )}
                   <Icon
                     size={21}
                     className={`transition-colors duration-200 ${isActive ? "text-white" : "text-white/90 group-hover:text-white"
                       }`}
-                  />
+                  /> */}
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <Icon
+                      size={21}
+                      className={`transition-colors duration-200
+                      ${isActive ? "text-white" : "text-white/90 group-hover:text-white"}`}
+                    />
+                  </div>
                   {isExpanded && <span className="font-medium text-sm tracking-wide">{item.name}</span>}
                 </Link>
               </li>

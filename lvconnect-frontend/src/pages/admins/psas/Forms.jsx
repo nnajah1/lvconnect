@@ -115,7 +115,7 @@ const Forms = () => {
         {/* Title and Subtitle */}
         <div>
           <h1 className="text-2xl font-bold text-[#253965]">School Form Management</h1>
-          <p className="text-[16px] text-gray-600 mt-1">Create, edit and manage school forms and templates for student use and submission</p>
+          <p className="text-sm text-gray-600 mt-1">Create, edit and manage school forms and templates for student use and submission</p>
         </div>
         {/* Search Input */}
         <div>
