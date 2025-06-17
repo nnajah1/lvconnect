@@ -42,7 +42,7 @@ class DatabaseSeeder extends Seeder
             CalendarOfActivitySeeder::class,
             CourseSeeder::class,
             GradeSeeder::class,
-            ScheduleSeeder::class,
+            //ScheduleSeeder::class,
         ]);
     }
 }

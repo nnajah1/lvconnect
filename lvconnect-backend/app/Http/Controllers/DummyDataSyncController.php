@@ -235,23 +235,28 @@ class DummyDataSyncController extends Controller
     {
         try {
             $academicYear = '2024-2025';
-            $yearLevels = [1, 2, 3, 4];
-            $externalProgramIds = [7, 8, 9];
+            $yearLevelLabels = [
+                1 => '1st Year',
+                2 => '2nd Year',
+                3 => '3rd Year',
+                4 => '4th Year',
+            ];
+            $externalProgramIds = [4, 7, 8, 10, 11, 12];
 
             $totalInserted = 0;
             $totalSkipped = 0;
 
             foreach ($externalProgramIds as $programId) {
-                foreach ($yearLevels as $yearLevel) {
+                foreach ($yearLevelLabels as $yearLevelInt => $yearLevelStr) {
                     $response = Http::withToken(env('SCHEDULE_API_TOKEN'))
                         ->get(env('SCHEDULE_API_URL') . '/api/schedule-management/external/uploaded', [
                             'program_id'    => $programId,
-                            'year_level'    => $yearLevel,
+                            'year_level'    => $yearLevelStr,
                             'academic_year' => $academicYear,
                         ]);
 
                     if ($response->failed()) {
-                        \Log::warning("Failed to fetch schedule for Program ID $programId, Year Level $yearLevel");
+                        \Log::warning("Failed to fetch schedule for Program ID $programId, Year Level $yearLevelStr");
                         continue;
                     }
 
@@ -274,7 +279,7 @@ class DummyDataSyncController extends Controller
                             $exists = Schedule::where([
                                 'course_id'     => $courseId,
                                 'program_id'    => $programId,
-                                'year_level'    => $yearLevel,
+                                'year_level'    => $yearLevelStr,
                                 'academic_year' => $academicYear,
                                 'day'           => $scheduleItem['day'],
                                 'start_time'    => $scheduleItem['start'],
@@ -285,12 +290,12 @@ class DummyDataSyncController extends Controller
                                 Schedule::create([
                                     'course_id'     => $courseId,
                                     'program_id'    => $programId,
-                                    'year_level'    => $yearLevel,
+                                    'year_level'    => $yearLevelStr,
                                     'academic_year' => $academicYear,
                                     'semester'      => $entry['semester'],
                                     'day'           => $scheduleItem['day'],
-                                    'start_time'    => Carbon::parse($scheduleItem['start']),
-                                    'end_time'      => Carbon::parse($scheduleItem['end']),
+                                    'start_time'    => \Carbon\Carbon::parse($scheduleItem['start']),
+                                    'end_time'      => \Carbon\Carbon::parse($scheduleItem['end']),
                                     'room'          => $props['room_name'] ?? null,
                                     'instructor'    => $props['instructor_name'] ?? null,
                                     'course_name'   => $props['course_name'] ?? null,
@@ -308,7 +313,7 @@ class DummyDataSyncController extends Controller
             return response()->json([
                 'message'  => 'Schedules synced successfully.',
                 'inserted' => $totalInserted,
-                'skipped'  => $totalSkipped
+                'skipped'  => $totalSkipped,
             ]);
         } catch (\Exception $e) {
             return response()->json([
