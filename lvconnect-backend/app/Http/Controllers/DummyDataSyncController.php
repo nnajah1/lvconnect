@@ -253,35 +253,38 @@ class DummyDataSyncController extends Controller
             ]);
 
             foreach ($externalProgramIds as $programId) {
-                foreach ($yearLevelLabels as $yearLevelInt => $yearLevelStr) {
+                foreach ($yearLevelLabels as $yearLevelStr) {
                     \Log::info("Fetching schedule", [
                         'program_id' => $programId,
                         'year_level' => $yearLevelStr,
                         'academic_year' => $academicYear,
                     ]);
 
-                    $response = Http::withToken(env('SCHEDULE_API_TOKEN'))
-                        ->get(env('SCHEDULE_API_URL') . '/api/schedule-management/external/uploaded', [
-                            'program_id'    => $programId,
-                            'year_level'    => $yearLevelStr,
-                            'academic_year' => $academicYear,
-                        ]);
+                    // Send token as query param like in Postman
+                    $response = Http::get(env('SCHEDULE_API_URL') . '/api/schedule-management/external/uploaded', [
+                        'program_id'    => $programId,
+                        'academic_year' => $academicYear,
+                        'year_level'    => $yearLevelStr,
+                        'Authorization' => 'Bearer' . env('SCHEDULE_API_TOKEN'),
+                    ]);
 
                     if ($response->failed()) {
                         \Log::warning("Failed to fetch schedule for Program ID $programId, Year Level $yearLevelStr");
                         continue;
                     }
 
-                    $entries = $response->json();
+                    $data = $response->json();
 
-                    if (!is_array($entries)) {
+                    \Log::info("Received schedule data", ['program_id' => $programId, 'year_level' => $yearLevelStr, 'data' => $data]);
+
+                    if (!is_array($data)) {
                         \Log::warning("Unexpected response format for Program ID $programId, Year Level $yearLevelStr");
                         continue;
                     }
 
-                    foreach ($entries as $entry) {
+                    foreach ($data as $entry) {
                         if (!isset($entry['schedule_json']) || !is_array($entry['schedule_json'])) {
-                            \Log::warning("Missing or invalid schedule_json for entry", [
+                            \Log::warning("Missing or invalid schedule_json", [
                                 'entry' => $entry,
                                 'program_id' => $programId,
                                 'year_level' => $yearLevelStr,
@@ -294,7 +297,7 @@ class DummyDataSyncController extends Controller
                             $courseId = $scheduleItem['course_id'] ?? null;
 
                             if (!$courseId) {
-                                \Log::warning("Course ID missing, skipping.", [
+                                \Log::warning("Course ID missing, skipping", [
                                     'schedule_item' => $scheduleItem,
                                     'program_id' => $programId,
                                     'year_level' => $yearLevelStr,
@@ -320,8 +323,8 @@ class DummyDataSyncController extends Controller
                                     'academic_year' => $academicYear,
                                     'semester'      => $entry['semester'],
                                     'day'           => $scheduleItem['day'],
-                                    'start_time'    => Carbon::parse($scheduleItem['start']),
-                                    'end_time'      => Carbon::parse($scheduleItem['end']),
+                                    'start_time'    => \Carbon\Carbon::parse($scheduleItem['start']),
+                                    'end_time'      => \Carbon\Carbon::parse($scheduleItem['end']),
                                     'room'          => $props['room_name'] ?? null,
                                     'instructor'    => $props['instructor_name'] ?? null,
                                     'course_name'   => $props['course_name'] ?? null,
