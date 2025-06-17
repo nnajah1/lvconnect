@@ -32,13 +32,14 @@ const UserCreateFormModal = ({ isOpen, closeModal, formItem, setIsSuccessModalOp
                 <DynamicModal isOpen={isOpen}
                     closeModal={closeModal}
                     showCloseButton={false}
-                    title="Create New School Form"
+                    title="Create School Form"
                     description="Fill out the form below to update a school form."
-                    showTitle={false}
+                    showTitle={true}
                     showDescription={false}
-                    className="max-w-[60rem]! max-h-[85vh]! bg-[#EAF2FD]! overflow-auto!">
+                    // className="max-w-[60rem]! max-h-[85vh]! bg-[#EAF2FD]! overflow-auto!"
+                    >
 
-                    <StudentEditForm closeModal={closeModal} onSuccess={handleSuccess} formId={formItem.id} />
+                    <StudentEditForm closeModal={closeModal} formId={formItem.id} />
 
                 </DynamicModal>
             )}

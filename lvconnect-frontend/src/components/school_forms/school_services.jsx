@@ -18,7 +18,7 @@ const InstitutionalSystems = () => {
       <div className="flex flex-col sm:flex-row items-stretch p-2.5 gap-2.5 w-full">
   {/* First Card */}
   <a
-    href="/digital-library"
+    href="https://www.lvcclibrary.digital/"
     className="box-border flex flex-col justify-between items-center py-3 px-2.5 gap-2.5 w-full sm:w-[230px] border border-solid border-[#CED4DA] rounded-[4px] mb-2.5 sm:mb-0 transition-all hover:shadow-md"
   >
     <div className="flex flex-col items-center p-[1px] gap-2.5 w-auto h-auto">

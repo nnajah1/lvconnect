@@ -100,11 +100,11 @@ export default function CalendarActivities({ onBack, selectedDate, isAdmin }) {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
           {!isAdmin && (
-            <button onClick={onBack} className="text-gray-600 hover:text-gray-800 text-lg cursor-pointer">
-              ← Back
+            <button onClick={onBack} className="text-blue-900 hover:text-gray-800 text-lg cursor-pointer">
+              ← 
             </button>
           )}
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Calendar of Activities</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900 text-center">Calendar of Activities</h1>
         </div>
 
         {isAdmin && (

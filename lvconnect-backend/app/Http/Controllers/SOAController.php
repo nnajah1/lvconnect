@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademicYear;
+use App\Models\Fee;
 use App\Models\FeeCategory;
 use Illuminate\Http\Request;
 use App\Models\FeeTemplate;
@@ -22,9 +23,10 @@ class SOAController extends Controller
 
         if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             return FeeTemplate::with('fees', 'academicYear')
-                ->whereHas('academicYear', function ($query) {
-                    $query->where('is_active', 0);
-                })
+                // ->whereHas('academicYear', function ($query) {
+                //     $query->where('is_active', 0);
+                // })
+                ->orderBy('updated_at', 'desc')
                 ->get();
         }
 
@@ -46,9 +48,8 @@ class SOAController extends Controller
             // Inactive Academic Years
             $pastTemplates = FeeTemplate::where('is_visible', true)
                 ->with('fees', 'academicYear')
-                ->whereHas('academicYear', function ($query) {
-                    $query->where('is_active', 0);
-                })
+                
+                 ->orderBy('updated_at', 'desc')
                 ->get();
 
             return response()->json([
@@ -311,6 +312,25 @@ class SOAController extends Controller
 
         return response()->json(['message' => 'SOA updated successfully', 'data' => $template->load('fees')]);
     }
+
+       public function toggleVisibility(Request $request, $id)
+    {
+        $user = JWTAuth::authenticate();
+
+        if (!$user->hasRole('registrar')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $form = FeeTemplate::findOrFail($id);
+
+        $form->is_visible = !$form->is_visible;
+        $form->save();
+
+        return response()->json([
+            'message' => 'Visibility updated successfully.',
+        ]);
+    }
+
 
     /**
      * Remove the specified resource from storage.

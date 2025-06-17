@@ -306,8 +306,8 @@ const Enrollment = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
        <div>
-         <h1 className="text-2xl text-secondary font-bold">Enrollment</h1>
-        <p className="text-[16px] text-gray-600 mt-1">Manage student enrollment periods, review submissions, and approve enrollments.</p>
+         <h1 className="text-2xl text-secondary font-bold">Enrollment Management</h1>
+        <p className="text-sm text-gray-600 mt-1">Manage student enrollment periods, review submissions, and approve enrollments.</p>
        </div>
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>

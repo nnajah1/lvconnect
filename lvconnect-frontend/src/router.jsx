@@ -40,6 +40,8 @@ import RoleManagement from "./pages/admins/systemAdmin/RoleManagement";
 import PageError from "./layouts/Error";
 import StudentHandbook from "./components/school_forms/studentHandbook";
 import FormBuilder from "./components/school_forms/FormBuilder";
+import EnrollmentPage from "./components/enrollment/userEnrollmentPage";
+import StudentServices from "./pages/student/UserStudentServices";
 
 
 const router = createBrowserRouter([
@@ -92,10 +94,12 @@ const router = createBrowserRouter([
                         children: [
                             { index: true, element: <UserDashboard /> },
                             { path: "enrollment", element: <UserEnrollment mode="edit" editType="partial" /> },
+                            { path: "enrollment/enrollment-form", element: <EnrollmentPage /> },
                             { path: "grades", element: <Grades /> },
                             { path: "soa", element: <StudentSoa /> },
                             { path: "surveys", element: <VisibleSurveys /> },
-                            { path: "student-services", element: <VisibleForms /> },
+                            { path: "school-forms", element: <VisibleForms /> },
+                            { path: "student-services", element: <StudentServices /> },
                             { path: "student-services/student-handbook", element: <StudentHandbook /> }, 
                         ],
                     },

@@ -234,7 +234,7 @@ const SurveyBuilder = forwardRef(({
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="survey-input survey-input-title border border-[#2CA4DD] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2CA4DD] h-10 px-3 w-full"
+                        className="font-medium border border-[#2CA4DD] bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2CA4DD] h-10 px-3 w-full"
                     />
                 </div>
 
@@ -257,14 +257,14 @@ const SurveyBuilder = forwardRef(({
                                     placeholder={`Question ${index + 1} *`}
                                     value={q.question}
                                     onChange={(e) => handleQuestionChange(q.id, e.target.value)}
-                                    className="question-input w-full p-2 border-b focus:outline-none focus:border-blue-500"
+                                    className="text-sm w-full px-2 border-b focus:outline-none focus:border-blue-500"
                                 />
                             </div>
 
                             <select
                                 value={q.type}
                                 onChange={(e) => handleTypeChange(q.id, e.target.value)}
-                                className="w-36 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-36 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm m-auto"
                             >
                                 {QUESTION_TYPES.map((type) => (
                                     <option key={type} value={type}>
@@ -281,18 +281,18 @@ const SurveyBuilder = forwardRef(({
                             <div className="space-y-1 pl-2">
                                 {q.choices.map((choice, i) => (
                                     <div key={i} className="flex items-center space-x-3">
-                                        <div className="flex-shrink-0 flex items-center justify-center h-6">
+                                        <div className="flex-shrink-0 flex items-center justify-center h-6  m-auto">
                                             {q.type === "Multiple choice" && (
                                                 <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
                                             )}
                                             {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
-                                            {q.type === "Dropdown" && <RiArrowDropDownLine size={16} className="text-gray-400" />}
+                                            {q.type === "Dropdown" && <RiArrowDropDownLine size={20} className="text-gray-400" />}
                                         </div>
                                         <input
                                             type="text"
                                             value={choice}
                                             onChange={(e) => handleChoiceChange(q.id, i, e.target.value)}
-                                            className="flex-1 text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 h-6 leading-6"
+                                            className="flex-1 text-gray-600 bg-transparent border-none outline-none placeholder-gray-400 h-6 leading-6 m-auto"
                                             placeholder="Option"
                                         />
                                         {q.choices.length > 1 && (
@@ -311,9 +311,9 @@ const SurveyBuilder = forwardRef(({
                                             <div className="w-4 h-4 border-2 border-gray-400 rounded-full"></div>
                                         )}
                                         {q.type === "Checkboxes" && <div className="w-4 h-4 border-2 border-gray-400 rounded"></div>}
-                                        {q.type === "Dropdown" && <RiArrowDropDownLine className="w-4 h-4 text-gray-400" />}
+                                        {q.type === "Dropdown" && <RiArrowDropDownLine size={20} className="text-gray-400" />}
                                     </div>
-                                    <button onClick={() => addChoice(q.id)} className="text-blue-500 hover:text-blue-600 font-medium h-6 leading-6">
+                                    <button onClick={() => addChoice(q.id)} className="text-blue-900 hover:text-blue-800 font-medium h-6 leading-6 text-sm">
                                         Add option
                                     </button>
                                 </div>
@@ -366,7 +366,7 @@ const SurveyBuilder = forwardRef(({
 
             <button
                 onClick={addQuestion}
-                className="btn-add-question w-fit py-2  bg-gray-100 hover:bg-gray-200 rounded-lg flex gap-2"
+                className="p-4 w-fit py-2 bg-blue-900 hover:bg-blue-900 rounded text-white flex gap-2"
             >
                 + Add question
             </button>

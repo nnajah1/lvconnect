@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Eye, EyeOff, Edit, Calendar } from 'lucide-react';
+import DynamicModal from '../dynamic/DynamicModal';
 
 
-export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther = false, handleEdit, userRole }) => (
-  <div className="bg-gray-50 shadow-md rounded-lg p-6 mb-6">
+export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther = false, handleEdit, userRole, isModalOpen, closeModal }) => (
+  
+  <DynamicModal
+   isOpen={isModalOpen}
+          closeModal={closeModal}
+          showCloseButton={false}
+          title="View Statement of Account"
+          description="Fill out the form below to create a new SOA."
+          showTitle={true}
+          showDescription={false}
+  >
+    <div className="bg-gray-50 shadow-md rounded-lg p-6 mb-6">
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
       <button
         onClick={onToggle}
@@ -11,7 +22,7 @@ export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther 
       >
         <Calendar className="w-5 h-5" />
         {title}
-        {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+        {/* {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />} */}
       </button>
       {userRole === "registrar" && (
         <div className="flex items-center gap-2">
@@ -162,6 +173,7 @@ export const SOADetailsView = ({ soaData, isCollapsed, onToggle, title, isOther 
       </>
     )}
   </div>
+  </DynamicModal>
 );
 
 

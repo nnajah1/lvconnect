@@ -6,6 +6,9 @@ import { Loader2, Loader3 } from "@/components/dynamic/loader";
 import EnrollmentForm from "@/components/enrollment/userEnrollmentForm";
 import { formatLabel } from "@/utils/formatDate";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { useLocation, useNavigate } from "react-router-dom";
 
 const UserEnrollment = ({ mode, editType }) => {
   const [enrollment, setEnrollment] = useState(null);
@@ -85,6 +88,7 @@ const UserEnrollment = ({ mode, editType }) => {
     has_sibling_in_lvcc: false,
   });
 
+  const navigate = useNavigate();
 
 
   const loadEnrollment = async () => {
@@ -104,8 +108,6 @@ const UserEnrollment = ({ mode, editType }) => {
   useEffect(() => {
     loadEnrollment();
   }, []);
-
-
 
   useEffect(() => {
     if (!studentId) return;
@@ -128,10 +130,9 @@ const UserEnrollment = ({ mode, editType }) => {
 
   if (isLoading) {
     return (
-     <Loader3 />
+      <Loader3 />
     )
   };
-
   if (!enrollment) {
     return (
       <div className="student-form-container">
@@ -161,114 +162,67 @@ const UserEnrollment = ({ mode, editType }) => {
     latestRecordYearDisplay = 'No year level data';
   }
 
-  // 1. Filter for records belonging to the active enrollment schedule
   const activeScheduleRecords = enrolleeRecords.filter(
     rec => rec.enrollment_schedule_id === enrollment.id
   );
-
-  // 2. Filter for previous enrollment records (not matching the active schedule)
   const previousEnrolleeRecords = enrolleeRecords.filter(
     rec => rec.enrollment_schedule_id !== enrollment.id
   );
 
-  // 3. Group previous records by academic year
-  const groupedPreviousRecords = previousEnrolleeRecords.reduce((acc, record) => {
-    const academicYear = record.enrollment_schedule?.academic_year?.school_year;
-    if (academicYear) {
-      if (!acc[academicYear]) {
-        acc[academicYear] = [];
-      }
-      acc[academicYear].push(record);
-    }
-    return acc;
-  }, {});
-
-  // Convert grouped object to an array of [year, records] pairs for easier mapping and sorting
-  const sortedAcademicYears = Object.entries(groupedPreviousRecords).sort((a, b) => {
-    // Basic numerical sort for academic years (e.g., "2023-2024" vs "2024-2025")
-    const yearA = parseInt(a[0].split('-')[0]);
-    const yearB = parseInt(b[0].split('-')[0]);
-    return yearB - yearA; // Sort descending (latest academic year first)
-  });
-
-  // Check for submission button conditions
-  const hasRecordForActiveSchedule = activeScheduleRecords.length > 0; // Simplified check
+  const hasRecordForActiveSchedule = activeScheduleRecords.length > 0;
   const hasRejectedRecordForActiveSchedule = activeScheduleRecords.some(
     rec => rec.enrollment_status === 'Rejected'
   );
 
+  const activeYear = enrollment.academic_year?.school_year;
+  const activeSemester = enrollment.semester;
+
+  const combinedGroupedRecords = {};
+
+  // Add active semester
+  if (activeYear && activeSemester) {
+    if (!combinedGroupedRecords[activeYear]) {
+      combinedGroupedRecords[activeYear] = {};
+    }
+    if (!combinedGroupedRecords[activeYear][activeSemester]) {
+      combinedGroupedRecords[activeYear][activeSemester] = [];
+    }
+    combinedGroupedRecords[activeYear][activeSemester].push(...activeScheduleRecords);
+  }
+
+  // Add previous records
+  previousEnrolleeRecords.forEach(record => {
+    const year = record.enrollment_schedule?.academic_year?.school_year;
+    const semester = record.enrollment_schedule?.semester || 'Unknown';
+
+    if (year) {
+      if (!combinedGroupedRecords[year]) {
+        combinedGroupedRecords[year] = {};
+      }
+      if (!combinedGroupedRecords[year][semester]) {
+        combinedGroupedRecords[year][semester] = [];
+      }
+      combinedGroupedRecords[year][semester].push(record);
+    }
+  });
+
+  const sortedYearsWithSemesters = Object.entries(combinedGroupedRecords).sort((a, b) => {
+    const yearA = parseInt(a[0].split('-')[0]);
+    const yearB = parseInt(b[0].split('-')[0]);
+    return yearB - yearA;
+  });
+
+  console.log(enrolleeRecords)
   return (
-    <div className="student-form-wrapper">
-      <h1 className="student-form-title">Enrollment</h1>
-
-      {/* --- Current Enrollment Schedule Section --- */}
-     <div className="student-form-container">
-      <div className="student-form-header">
-        Current Enrollment Schedule: {enrollment.academic_year?.school_year} - {formatLabel(enrollment.semester)}
+    <div className="enrollment-dashboard-wrapper p-6">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-[#1a2b4c]">Enrollment</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Submit enrollment for the semester by updating your information.
+        </p>
       </div>
-      {!expanded && (
-        <div className="flex flex-col sm:flex-row items-start justify-between m-6 border border-gray-300 rounded-md p-6">
-
-          <div className="flex flex-col flex-grow">
-            {latestRecord && (
-              <p className="subenroll-program-text">
-                <span className="subenroll-label">Program & Year Level:</span>{" "}
-                {latestRecord.program?.program_name} - {latestRecordYearDisplay}
-              </p>
-            )}
-
-            {hasRecordForActiveSchedule ? (
-              activeScheduleRecords.map((record, idx) => (
-                <div
-                  key={record.id || idx}
-                >
-                  {/* Showing submission date and status of THIS specific submission */}
-                  <div className="text-xs text-gray-500 mb-1">
-                    Submitted: {new Date(record.submission_date).toLocaleDateString()}
-                  </div>
-                  <div className="subenroll-status mb-2">
-                    <span
-                      className={`subenroll-status-label ${record.enrollment_status === 'Enrolled'
-                        ? 'text-green-600'
-                        : record.enrollment_status === 'pending'
-                          ? 'text-yellow-600'
-                          : record.enrollment_status === 'Rejected'
-                            ? 'text-red-600'
-                            : 'text-gray-600'
-                        }`}
-                    >
-                      Status: {record.enrollment_status}
-                    </span>
-                  </div>
-                  {record.admin_remarks && record.admin_remarks.trim() !== "" && (
-                    <p className="text-sm text-gray-500 italic">
-                      Admin Remarks: {record.admin_remarks}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              // Fallback for "Not yet enrolled"
-              <div className="subenroll-status">
-                <p className="text-gray-600 font-semibold">
-                  Not enrolled
-                </p>
-              </div>
-            )}
-          </div> {/* END left-aligned content wrapper */}
-
-          <div className="p-2 flex items-center">
-            {(enrollment.is_active &&
-              (!hasRecordForActiveSchedule || hasRejectedRecordForActiveSchedule)) && (
-                <button onClick={toggleEnroll} className="subenroll-submit-btn cursor-pointer whitespace-nowrap">
-                  <PiIdentificationCardFill className="mr-2 h-5 w-5" />
-                  Submit Enrollment
-                </button>
-              )}
-          </div>
-        </div>
-      )}
-        {expanded && (
+      {/* {expanded && (
+        <div className="md:col-span-2">
           <EnrollmentForm
             mode={mode}
             editType={editType}
@@ -280,60 +234,96 @@ const UserEnrollment = ({ mode, editType }) => {
             isExpanded={setExpanded}
             loadEnroll={loadEnrollment}
           />
-        )}
-      </div>
+        </div>
+      )} */}
+      {sortedYearsWithSemesters.length > 0 && (
+        <div className="mt-10 space-y-6">
+          {sortedYearsWithSemesters.map(([academicYear, semesters]) => (
+            <div key={academicYear} className="border border-gray-200 rounded-lg p-4 ">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2">
+                Academic Year: {academicYear}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.entries(semesters).map(([semester, records]) => {
+                  const isCurrentActiveSemester =
+                    academicYear === activeYear && semester === activeSemester;
 
-      {/* --- Previous Enrollment Records Section --- */}
-      {sortedAcademicYears.length > 0 && (
-        <div className="student-form-container mt-8"> {/* Added margin-top for separation */}
-          <div className="student-form-header">
-            Previous Enrollment Records
-          </div>
-          <div className="m-6 border border-gray-300 rounded-md p-6">
-            {sortedAcademicYears.map(([academicYear, records]) => (
-              <div key={academicYear} className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3 border-b pb-2">
-                  Academic Year: {academicYear}
-                </h3>
-                {records.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((record, idx) => ( // Sort records within each year by created_at
-                  <div
-                    key={record.id || idx}
-                    className="mb-4 p-4 border rounded-lg bg-gray-50"
-                  >
-                    {record.program?.program_name && record.year_level && (
-                      <p className="text-sm font-medium text-gray-800 mb-1">
-                        Program and year level: {record.program.program_name} - {yearLevelMap[record.year_level] || 'N/A'}
-                      </p>
-                    )}
-                    <div className="text-xs text-gray-500 mb-1">
-                      Semester: {formatLabel(record.enrollment_schedule?.semester)} | Submitted: {new Date(record.submission_date).toLocaleDateString()}
-                    </div>
-                    <div className="subenroll-status mb-2">
-                       <span
-                        className={`subenroll-status-label ${record.enrollment_status === 'enrolled'
-                          ? 'text-green-600' : record.enrollment_status === 'pending' ? 'text-yellow-600'
-                          : record.enrollment_status === 'Rejected'
-                            ? 'text-red-600'
-                            : 'text-gray-600'
-                          }`}
-                      >
-                        Status: {record.enrollment_status}
-                      </span>
-                    </div>
-                    {record.admin_remarks && record.admin_remarks !== "" && (
-                      <p className="text-sm text-gray-500 italic">
-                        Admin Remarks: {record.admin_remarks}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  return (
+                    <Card key={semester} className="border border-gray-100 shadow-sm">
+                      <div className="border-b border-gray-200 text-lg font-semibold px-4 py-2">
+                        <p>{formatLabel(semester)}</p>
+                      </div>
+                      <CardContent className="space-y-3">
+                        {records
+                          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                          .map((record, idx) => (
+                            <div key={record.id || idx} className="space-y-1">
+                              {/* {record.program?.program_name && record.year_level && (
+                                <p className="text-sm font-medium text-gray-800">
+                                  Program & Year Level: {record.program.program_name} - {yearLevelMap[record.year_level] || 'N/A'}
+                                </p>
+                              )} */}
+                              <div className="text-xs text-gray-500">
+                                Submitted: {new Date(record.submission_date).toLocaleDateString()}
+                              </div>
+                              <div className="status-info">
+                                <span className="status-label text-sm font-medium text-gray-600">Status:</span>
+                                <Badge className={`ml-2 ${record.enrollment_status === 'enrolled'
+                                  ? 'bg-green-100 text-green-800'
+                                  : record.enrollment_status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : record.enrollment_status === 'Rejected'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-gray-100 text-gray-700'
+                                  }`}>
+                                  {record.enrollment_status}
+                                </Badge>
+                              </div>
+                              {record.admin_remarks?.trim() && record.enrollment_status !== "enrolled" && (
+                                <p className="text-sm text-gray-500 italic">
+                                  Admin Remarks: {record.admin_remarks}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        {isCurrentActiveSemester &&
+                          (enrollment.is_active &&
+                            (!hasRecordForActiveSchedule || hasRejectedRecordForActiveSchedule)) && (
+                            <Button
+                              onClick={() =>
+                                navigate('/my/enrollment/enrollment-form', {
+                                  state: {
+                                    mode,
+                                    editType,
+                                    studentId,
+                                    studentData,
+                                    enrollmentData: enrollment,
+                                    // loadEnrollment
+                                  },
+                                })
+                              }
+                              className="submit-enrollment-btn w-full bg-slate-700 hover:bg-slate-800 text-white"
+                            >
+                              Submit Enrollment
+                            </Button>
+                          )}
+
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+
         </div>
       )}
     </div>
   );
+
+
+
 };
 
 

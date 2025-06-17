@@ -4,6 +4,7 @@ import Calendar from "@/components/dashboards/student_dashboard/calendar"
 import SchoolUpdates from "@/components/dashboards/student_dashboard/updates"
 import CalendarActivities from "@/components/dashboards/comms_dashboard/calendar_of_activities"
 import { getClassSchedule } from "@/services/axios"
+import { formatLabel } from "@/utils/formatDate"
 const semesterInfo = {
   schoolYear: "2024–2025",
   semester: "First Semester"
@@ -100,7 +101,7 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2 sm:p-3 lg:p-6 font-sans">
+    <div className="min-h-screen p-2 sm:p-3 lg:p-6 font-sans">
       <div className="max-w-7xl mx-auto">
         {showCalendarActivities ? (
           <CalendarActivities onBack={handleBackFromCalendar} selectedDate={selectedDate} isAdmin={false} />
@@ -113,7 +114,7 @@ const UserDashboard = () => {
                   <div className="mb-3 sm:mb-4 flex-shrink-0">
                     <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-blue-900">Class schedule</h1>
                     <p className="text-gray-500 text-xs sm:text-sm lg:text-base">
-                      School year {semesterInfo.schoolYear} | {semesterInfo.semester}
+                      School year {semesterInfo.schoolYear} | {formatLabel(semesterInfo.semester)}
                     </p>
                   </div>
 
@@ -279,13 +280,13 @@ const UserDashboard = () => {
         ) : (
           <div className="h-[85vh] sm:h-[80vh] flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-6">
             <div className="flex-1 bg-white rounded-lg sm:rounded-xl shadow p-3 sm:p-4 lg:p-6 overflow-y-auto">
-              <button onClick={handleBack} className="text-sm sm:text-base text-blue-600 mb-3 sm:mb-4 hover:underline cursor-pointer">
-                ← Back
+              <button onClick={handleBack} className="text-sm sm:text-base text-blue-900 mb-3 sm:mb-4 hover:underline cursor-pointer">
+                ← 
               </button>
               <div className="text-xs sm:text-sm text-gray-500 mb-2">
-                {selectedUpdate.type} &gt; <span className="text-blue-600 font-medium">{selectedUpdate.title}</span>
+                {selectedUpdate.type} &gt; <span className="text-blue-900 font-medium">{selectedUpdate.title}</span>
               </div>
-              <h1 className="text-base sm:text-lg lg:text-xl font-bold text-blue-800 mb-3 sm:mb-4">{selectedUpdate.title}</h1>
+              <h1 className="text-base sm:text-lg lg:text-xl font-bold text-blue-900 mb-3 sm:mb-4">{selectedUpdate.title}</h1>
               <div
                 className="prose prose-sm max-w-none text-xs sm:text-sm lg:text-base text-gray-800 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: selectedUpdate.content }}

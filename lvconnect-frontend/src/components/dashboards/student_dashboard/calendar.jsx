@@ -87,9 +87,9 @@ const Calendar = ({ onDateClick }) => {
             key={day}
             className={`text-xs sm:text-sm text-center rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center cursor-pointer transition-colors mx-auto ${
               isToday
-                ? "bg-blue-500 text-white"
+                ? "bg-blue-900 text-white"
                 : isSelected
-                  ? "bg-blue-100 text-blue-700 ring-1 sm:ring-2 ring-blue-300"
+                  ? "bg-blue-100 text-blue-900 ring-1 sm:ring-2 ring-blue-300"
                   : !isCurrentMonth
                     ? "text-gray-300"
                     : "text-gray-700 hover:bg-gray-200"

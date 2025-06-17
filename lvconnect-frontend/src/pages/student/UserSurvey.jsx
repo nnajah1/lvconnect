@@ -62,17 +62,15 @@ const VisibleSurveys = () => {
         {/* Title and Subtitle */}
         <div>
           <h1 className="text-2xl font-bold text-[#253965]">Survey</h1>
-          <p className="text-[16px] text-gray-600 mt-1">View and answer available survey questionnaires</p>
+          <p className="text-sm text-gray-600 mt-1">View and answer available survey questionnaires</p>
         </div>
         {/* Search Input */}
         <div>
           <SearchBar value={globalFilter} onChange={setGlobalFilter} />
         </div>
       </div>
-      <div className="student-service-school-forms-container">
-        <div className="student-service-school-forms-header">Surveys</div>
         <DataTable columns={Columns} data={survey} context="Surveys" globalFilter={globalFilter} isLoading={loading} />
-      </div>
+   
       {/* Modals */}
       {formItem && (
         <UserCreateSurveyModal
