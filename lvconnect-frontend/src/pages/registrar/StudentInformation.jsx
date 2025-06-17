@@ -1,5 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { UserPlus, Users, RefreshCw, Calendar } from 'lucide-react'
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { smActionsConditions, smActions, registrarSchema, newStudentSchema, archiveSchema } from "@/tableSchemas/studentManagement";
@@ -11,6 +12,7 @@ import { toast } from "react-toastify";
 import { useUserRole } from "@/utils/userRole";
 import CreateAccountModal from "@/components/enrollment/createAccount";
 import DynamicTabs from "@/components/dynamic/dynamicTabs";
+
 
 const StudentInformation = () => {
   const userRole = useUserRole();
@@ -205,33 +207,37 @@ const StudentInformation = () => {
         <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
       </div>
       <div className="flex itemd-center justify-end p-4 gap-2">
-        <button
-          onClick={() => setShowSingleForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
-        >
-          Add Student
-        </button>
-        <button
-          onClick={() => setShowBatchForm(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
-        >
-          Create Batch Account
-        </button>
-        {newStudent && activeTab === "new_accounts" && (
-          <>
-            <button
-              onClick={() => setSyncAccount(true)}
-              className="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700 cursor-pointer"
-            >
-              Sync New Accounts
-            </button>
-            <button
-            onClick={() => setSyncGrades(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+     <button
+        onClick={() => setShowSingleForm(true)}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer flex items-center gap-2"
+      >
+        <UserPlus className="w-4 h-4" />
+        Add Student
+      </button>
+      <button
+        onClick={() => setShowBatchForm(true)}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer flex items-center gap-2"
+      >
+        <Users className="w-4 h-4" />
+        Create Batch Account
+      </button>
+      {newStudent && activeTab === "new_accounts" && (
+        <>
+          <button
+            onClick={() => setSyncAccount(true)}
+            className="bg-violet-600 text-white px-4 py-2 rounded hover:bg-violet-700 cursor-pointer flex items-center gap-2"
           >
+            <RefreshCw className="w-4 h-4" />
+            Sync New Accounts
+          </button>
+          <button
+            onClick={() => setSyncGrades(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer flex items-center gap-2"
+          >
+            <Calendar className="w-4 h-4" />
             Sync class schedules
           </button>
-          </>
+  </>
 
         )}
 

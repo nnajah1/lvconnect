@@ -84,7 +84,7 @@ export default function StudentInfoSection({ personalInfo, canEditField, onChang
           { value: "married", label: "Married" },
           { value: "widowed", label: "Widowed" },
           { value: "separated", label: "Separated" },
-          { value: "divorced", label: "Divorced" },]}
+          ]}
         />
       </div>
 
