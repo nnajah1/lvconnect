@@ -253,8 +253,9 @@ class DummyDataSyncController extends Controller
             ]);
 
             foreach ($externalProgramIds as $programId) {
-                foreach ($yearLevelLabels as $yearLevelInt => $yearLevelStr) {
-                    \Log::info("Fetching schedule", [
+                foreach ($yearLevelLabels as $yearNumber => $yearLevelStr) {
+
+                    \Log::info('Fetching schedule', [
                         'program_id' => $programId,
                         'year_level' => $yearLevelStr,
                         'academic_year' => $academicYear,
@@ -263,53 +264,88 @@ class DummyDataSyncController extends Controller
                     $response = Http::withToken(env('SCHEDULE_API_TOKEN'))
                         ->get(env('SCHEDULE_API_URL') . '/api/schedule-management/external/uploaded', [
                             'program_id'    => $programId,
-                            'year_level'    => $yearLevelStr,
                             'academic_year' => $academicYear,
+                            'year_level'    => $yearLevelStr,
                         ]);
 
                     if ($response->failed()) {
-                        \Log::warning("Failed to fetch schedule for Program ID $programId, Year Level $yearLevelStr");
+                        \Log::warning("Failed to fetch schedule", [
+                            'program_id' => $programId,
+                            'year_level' => $yearLevelStr,
+                            'status'     => $response->status(),
+                            'body'       => $response->body(),
+                        ]);
                         continue;
                     }
 
-                    $entries = $response->json();
+                    $responseData = $response->json();
+                    $scheduleGroups = $responseData['schedules'] ?? null;
 
-                    if (!is_array($entries)) {
-                        \Log::warning("Unexpected response format for Program ID $programId, Year Level $yearLevelStr");
+                    if (!is_array($scheduleGroups)) {
+                        \Log::warning('Missing or invalid schedule_json for entry', [
+                            'entry' => $responseData['schedules'] ?? $responseData,
+                        ]);
                         continue;
                     }
 
-                    foreach ($entries as $entry) {
-                        if (!isset($entry['schedule_json']) || !is_array($entry['schedule_json'])) {
-                            \Log::warning("Missing or invalid schedule_json for entry", [
-                                'entry' => $entry,
-                                'program_id' => $programId,
-                                'year_level' => $yearLevelStr,
+                    \Log::info('Fetched schedule groups', [
+                        'program_id' => $programId,
+                        'year_level' => $yearLevelStr,
+                        'group_count' => count($scheduleGroups),
+                    ]);
+
+                    foreach ($scheduleGroups as $groupIdx => $group) {
+                        $semester = $group['semester'] ?? null;
+                        $scheduleItems = $group['schedule_json'] ?? [];
+
+                        if (!is_array($scheduleItems)) {
+                            \Log::warning('Missing or invalid schedule_json for entry', [
+                                'entry' => $group,
                             ]);
                             continue;
                         }
 
-                        foreach ($entry['schedule_json'] as $scheduleItem) {
-                            $props = $scheduleItem['extendedProps'] ?? [];
-                            $courseId = $scheduleItem['course_id'] ?? null;
+                        \Log::info('Processing schedule group', [
+                            'program_id' => $programId,
+                            'year_level' => $yearLevelStr,
+                            'group_index' => $groupIdx,
+                            'semester' => $semester,
+                            'item_count' => count($scheduleItems),
+                        ]);
 
-                            if (!$courseId) {
-                                \Log::warning("Course ID missing, skipping.", [
-                                    'schedule_item' => $scheduleItem,
+                        foreach ($scheduleItems as $itemIdx => $item) {
+                            $props = $item['extendedProps'] ?? [];
+
+                            $courseId = $item['course_id'] ?? null;
+                            $day = $item['day'] ?? null;
+                            $start = $item['start'] ?? null;
+                            $end = $item['end'] ?? null;
+
+                            if (!$courseId || !$day || !$start || !$end) {
+                                \Log::warning("Missing required schedule data", [
                                     'program_id' => $programId,
                                     'year_level' => $yearLevelStr,
+                                    'group_index' => $groupIdx,
+                                    'item_index' => $itemIdx,
+                                    'course_id' => $courseId,
+                                    'day' => $day,
+                                    'start' => $start,
+                                    'end' => $end,
                                 ]);
                                 continue;
                             }
+
+                            $startTime = \Carbon\Carbon::parse($start)->format('H:i:s');
+                            $endTime = \Carbon\Carbon::parse($end)->format('H:i:s');
 
                             $exists = Schedule::where([
                                 'course_id'     => $courseId,
                                 'program_id'    => $programId,
                                 'year_level'    => $yearLevelStr,
                                 'academic_year' => $academicYear,
-                                'day'           => $scheduleItem['day'],
-                                'start_time'    => $scheduleItem['start'],
-                                'end_time'      => $scheduleItem['end'],
+                                'day'           => $day,
+                                'start_time'    => $startTime,
+                                'end_time'      => $endTime,
                             ])->exists();
 
                             if (!$exists) {
@@ -318,35 +354,39 @@ class DummyDataSyncController extends Controller
                                     'program_id'    => $programId,
                                     'year_level'    => $yearLevelStr,
                                     'academic_year' => $academicYear,
-                                    'semester'      => $entry['semester'],
-                                    'day'           => $scheduleItem['day'],
-                                    'start_time'    => Carbon::parse($scheduleItem['start']),
-                                    'end_time'      => Carbon::parse($scheduleItem['end']),
+                                    'semester'      => $semester,
+                                    'day'           => $day,
+                                    'start_time'    => $startTime,
+                                    'end_time'      => $endTime,
                                     'room'          => $props['room_name'] ?? null,
                                     'instructor'    => $props['instructor_name'] ?? null,
                                     'course_name'   => $props['course_name'] ?? null,
                                     'course_code'   => $props['course_code'] ?? null,
                                 ]);
                                 $totalInserted++;
-                                \Log::info('Inserted schedule', [
-                                    'course_id' => $courseId,
+                                \Log::info('Inserted new schedule', [
                                     'program_id' => $programId,
                                     'year_level' => $yearLevelStr,
-                                    'academic_year' => $academicYear,
-                                    'day' => $scheduleItem['day'],
-                                    'start_time' => $scheduleItem['start'],
-                                    'end_time' => $scheduleItem['end'],
+                                    'semester' => $semester,
+                                    'course_id' => $courseId,
+                                    'day' => $day,
+                                    'start_time' => $startTime,
+                                    'end_time' => $endTime,
+                                    'room' => $props['room_name'] ?? null,
+                                    'instructor' => $props['instructor_name'] ?? null,
+                                    'course_name' => $props['course_name'] ?? null,
+                                    'course_code' => $props['course_code'] ?? null,
                                 ]);
                             } else {
                                 $totalSkipped++;
                                 \Log::info('Skipped existing schedule', [
-                                    'course_id' => $courseId,
                                     'program_id' => $programId,
                                     'year_level' => $yearLevelStr,
-                                    'academic_year' => $academicYear,
-                                    'day' => $scheduleItem['day'],
-                                    'start_time' => $scheduleItem['start'],
-                                    'end_time' => $scheduleItem['end'],
+                                    'semester' => $semester,
+                                    'course_id' => $courseId,
+                                    'day' => $day,
+                                    'start_time' => $startTime,
+                                    'end_time' => $endTime,
                                 ]);
                             }
                         }
