@@ -160,7 +160,7 @@ const VisibleForms = () => {
         description="The School Form has been successfully updated."
       >
         <button
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          className="px-4 py-2  bg-blue-900 hover:bg-blue-800 text-white "
           onClick={() => setIsSuccessModalOpen(false)}
         >
           Back to School Forms

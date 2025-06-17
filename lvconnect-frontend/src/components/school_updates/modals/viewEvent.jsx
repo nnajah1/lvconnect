@@ -38,7 +38,7 @@ export const ViewEventModal = ({ event, onClose }) => {
         </div>
 
         <div className="flex justify-end mt-4">
-          <button onClick={onClose} className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer">
+          <button onClick={onClose} className=" bg-gray-500 text-white hover:bg-gray-400 px-4 py-2 rounded cursor-pointer">
             Close
           </button>
         </div>
