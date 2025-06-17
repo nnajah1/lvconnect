@@ -1,4 +1,5 @@
-import { Eye, Pencil, Trash, Trash2, UserRoundCheck, UserRoundX } from "lucide-react";
+import StatusBadge from "@/components/dynamic/statusBadge";
+import { Eye, PenBoxIcon, Pencil, Trash, Trash2, UserRoundCheck, UserRoundX } from "lucide-react";
 
 export const roleSchema = {
     // id: { header: "#", display: true },
@@ -13,40 +14,47 @@ export const roleSchema = {
         display: true,
         filterable: true,
         customCell: (value, original) => {
-            return original?.roles && original?.roles.length > 0
-                ? original.roles.join(", ")
-                : "No roles";
-        }
+    return original?.roles && original.roles.length > 0
+        ? original.roles.join(", ").toUpperCase()
+        : "No Roles";
+}
+
     },
-    is_active: { header: "Status", display: true, customCell: (value) => (value === 1 ? "Active" : "Inactive") },
+  is_active: {
+  header: "Status",
+  display: true,
+  customCell: (value) => {
+    const label = value === 1 ? "Active" : "Inactive";
+    return <StatusBadge status={label} />;
+  },
+},
 
 
 };
 
 export const actions = (openModal, openModalDelete, openModalReactivate, openModalDeactivate) => ({
     update: {
-        icon: () => <Pencil size={18} />,
+        label: "Update",
+        icon: () => <PenBoxIcon size={18} />,
         fn: (id, item) => openModal(item),
         variant: () => "ghost",
-        className: "hover:bg-blue-100 flex p-1 text-xs sm:text-sm max-w-xs"
+        className: "hover:bg-blue-100 bg-blue-900 text-white"
     },
     reactivate: {
-        icon: () => <UserRoundCheck size={18} className="text-white"/>,
+        label: "Reactivate",
+        icon: () => <UserRoundCheck size={18} />,
         fn: (id, item) => openModalReactivate(item),
-        variant: () => "ghost",
-        className: "hover:bg-green-200 bg-green-400 flex p-1 text-xs sm:text-sm max-w-xs"
     },
     deactivate: {
-        icon: () => <UserRoundX size={18} className="text-white" />,
+        
+        label: "Deactivate",
+        icon: () => <UserRoundX size={18} />,
         fn: (id, item) => openModalDeactivate(item),
-        variant: () => "ghost",
-        className: "hover:bg-red-200 bg-red-500 flex p-1 text-xs sm:text-sm max-w-xs"
     },
     delete: {
+        label: "Delete",
         icon: () => <Trash2 size={18} />,
         fn: (id, item) => openModalDelete(item),
-        variant: () => "default",
-        className: "hover:bg-red-200 bg-red-500 flex p-1 text-xs sm:text-sm max-w-xs"
     },
 
 })

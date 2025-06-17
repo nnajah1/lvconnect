@@ -50,6 +50,7 @@ export const useSchoolAdminDashboard = () => {
         stats: [],
         demographics: [],
         programs: [],
+        breakdown: [],
     });
 
     
@@ -61,7 +62,7 @@ export const useSchoolAdminDashboard = () => {
             setLoading(true);
             try {
                 const res = await getSchoolAdminDashboard();
-                const { stats, student_demographics, higher_ed_population } = res;
+                const { stats, student_population, higher_ed_population, breakdown_of_funds } = res;
 
                 const parsedStats = Object.entries(stats).map(([label, value]) => ({
                     label,
@@ -70,8 +71,9 @@ export const useSchoolAdminDashboard = () => {
 
                 setData({
                     stats: parsedStats,
-                    demographics: student_demographics,
+                    demographics: student_population,
                     programs: higher_ed_population,
+                    breakdown: breakdown_of_funds,
                 });
 
                 setLoading(false);
@@ -92,6 +94,7 @@ export const useRegistrarDashboard = () => {
     const [data, setData] = useState({
         stats: [],
         programs: [],
+        pie: []
     });
 
     const { setLoading } = useLoading();
@@ -102,7 +105,7 @@ export const useRegistrarDashboard = () => {
             setLoading(true);
             try {
                 const res = await getRegistrarDashboard();
-                const { stats, higher_ed_population } = res;
+                const { stats, student_population, enrolled_per_program } = res;
 
                 const parsedStats = Object.entries(stats).map(([label, value]) => ({
                     label,
@@ -111,7 +114,8 @@ export const useRegistrarDashboard = () => {
 
                 setData({
                     stats: parsedStats,
-                    programs: higher_ed_population,
+                    programs: student_population,
+                    pie: enrolled_per_program
                 });
 
                 setLoading(false);

@@ -24,11 +24,12 @@ const CreateAccountModal = ({ isOpen, closeModal, availableRoles, fetchData }) =
                 <DynamicModal isOpen={isOpen}
                     closeModal={closeModal}
                     showCloseButton={false}
-                    title="Create New Account"
-                    description="Fill out the form below to create a new account."
-                    showTitle={false}
-                    showDescription={false}
-                    className="max-w-[45rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                    title="Create New User"
+                    description="Fill out the form below to create a new user."
+                    showTitle={true}
+                    showDescription={true}
+                    // className="max-w-[45rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!"
+                    >
 
                     <AccountForm
                         isOpen={isOpen}

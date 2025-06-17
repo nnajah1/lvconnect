@@ -41,7 +41,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
             $first = strtolower(preg_replace('/[^a-zA-Z]/', '', $data['first_name']));
             $last = strtolower(preg_replace('/[^a-zA-Z]/', '', $data['last_name']));
             $baseEmail = $first . $last;
-            $email = $baseEmail . '@example.com';
+            $email = $baseEmail . '@student.laverdad.edu.ph';
 
             $nameEmailExists = User::where('first_name', $data['first_name'])
                 ->where('last_name', $data['last_name'])
