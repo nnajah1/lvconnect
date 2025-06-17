@@ -116,7 +116,7 @@ class DashboardController extends Controller
         ];
 
         $studentsInFloodedAreas = DB::table('student_information')
-            ->whereIn('`house_no/street`', $floodedStreets)
+            ->whereIn('house_no/street', $floodedStreets)
             ->count();
 
 
