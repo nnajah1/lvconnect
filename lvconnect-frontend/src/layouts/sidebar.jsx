@@ -6,7 +6,7 @@ import { roleMenus } from "@/config/roleMenus";
 
 
 import { Link, useLocation } from "react-router-dom"
-import { X } from "lucide-react"
+import { X } from 'lucide-react'
 import { toast } from "react-toastify";
 import { switchRole } from "@/services/axios";
 import { roleRedirectMap } from "@/utils/roleRedirectMap";
@@ -141,7 +141,7 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-2">
+      <nav className="flex-1 px-2 overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <ul className="space-y-1">
           {menuItems.map((item) => {
             // 🔹 Handle Dropdown Menus
