@@ -148,7 +148,7 @@ const RoleManagement = () => {
             onClick={() => {
               setIsOpen(true)
             }}
-            className="flex items-center space-x-2 bg-[#2CA4DD] text-white px-3 py-2 rounded-md cursor-pointer"
+            className="flex items-center space-x-2 bg-blue-900 text-white px-3 py-2 rounded-md cursor-pointer"
           >
             <CiCirclePlus size={25} />
             <span>Add User</span>

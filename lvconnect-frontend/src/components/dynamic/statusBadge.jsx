@@ -15,6 +15,7 @@ const statusStyles = {
 
   not_enrolled: "bg-gray-100 text-gray-800 border-gray-300",
   enrolled: "bg-blue-100 text-blue-800 border-blue-300",
+  Pending: "bg-orange-100 text-orange-800 border-orange-300",
   // rejected: "bg-yellow-100 text-yellow-800 border-yellow-300",
 };
 

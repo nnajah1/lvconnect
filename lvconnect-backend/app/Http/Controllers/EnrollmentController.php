@@ -28,7 +28,7 @@ class EnrollmentController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if ($user->hasRole('student')) {
+        if ($user->hasAnyRole(['student', 'superadmin'])) {
             $studentInfoId = $user->studentInformation?->id;
 
             if (!$studentInfoId) {
@@ -68,37 +68,43 @@ class EnrollmentController extends Controller
     }
 
     public function AdminView(Request $request)
-{
-    $user = JWTAuth::authenticate();
+    {
+        $user = JWTAuth::authenticate();
 
-    $request->validate([
-        'academic_year_id' => 'required|exists:academic_years,id',
-        'semester' => 'required|in:first_semester,second_semester',
-    ]);
+        $request->validate([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'semester' => 'required|in:first_semester,second_semester',
+        ]);
 
-    $academicYear = $request->input('academic_year_id');
-    $semester = $request->input('semester');
+        $academicYear = $request->input('academic_year_id');
+        $semester = $request->input('semester');
 
-    if ($user->hasRole(['registrar', 'superadmin'])) {
-        $students = StudentInformation::whereHas('enrolleeRecord.enrollmentSchedule', function ($query) use ($academicYear, $semester) {
-            $query->where('academic_year_id', $academicYear)
-                  ->where('semester', $semester);
-        })
-        ->with(['enrolleeRecord' => function ($query) use ($academicYear, $semester) {
-            $query->where('enrollment_status', '!=', 'archived')
-                  ->whereHas('enrollmentSchedule', function ($subQuery) use ($academicYear, $semester) {
-                      $subQuery->where('academic_year_id', $academicYear)
-                               ->where('semester', $semester);
-                  })
-                  ->with(['enrollmentSchedule', 'program']);
-        }])
-        ->get();
+        if ($user->hasRole(['registrar', 'superadmin'])) {
+            $students = StudentInformation::whereHas('enrolleeRecord', function ($query) use ($academicYear, $semester) {
+                $query->where('enrollment_status', '!=', 'archived')
+                    ->whereHas('enrollmentSchedule', function ($subQuery) use ($academicYear, $semester) {
+                        $subQuery->where('academic_year_id', $academicYear)
+                            ->where('semester', $semester);
+                    });
+            })
+                ->with([
+                    'enrolleeRecord' => function ($query) use ($academicYear, $semester) {
+                        $query->where('enrollment_status', '!=', 'archived')
+                            ->whereHas('enrollmentSchedule', function ($subQuery) use ($academicYear, $semester) {
+                                $subQuery->where('academic_year_id', $academicYear)
+                                    ->where('semester', $semester);
+                            })
+                            ->with(['enrollmentSchedule', 'program']);
+                    }
+                ])
+                ->get();
 
-        return response()->json($students);
+
+            return response()->json($students);
+        }
+
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
-
-    return response()->json(['message' => 'Unauthorized'], 403);
-}
 
 
     public function showEnrolled()
@@ -378,7 +384,7 @@ class EnrollmentController extends Controller
 
         if ($user->hasAnyRole(['registrar', 'superadmin'])) {
             $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+                'user_id' => 'required|exists:users,id',
             ]);
 
             $targetUserId = $validated['user_id'];
@@ -523,7 +529,7 @@ class EnrollmentController extends Controller
                 $academicYear = $latestSchedule->academicYear;
 
                 if ($academicYear) {
-                   $studentUser = User::findOrFail($validated['user_id']);
+                    $studentUser = User::findOrFail($validated['user_id']);
                     if ($studentUser) {
                         $studentUser->notify(new EnrollmentStatusNotification('enrolled', $academicYear));
                     }
@@ -665,7 +671,7 @@ class EnrollmentController extends Controller
 
         User::whereIn('id', $userIds)->chunk(20, function ($users) use ($year, $data) {
             foreach ($users as $user) {
-            $user->notify(new EnrollmentNotification($year, $data['semester'], true));
+                $user->notify(new EnrollmentNotification($year, $data['semester'], true));
             }
         });
 

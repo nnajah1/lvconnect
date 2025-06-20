@@ -107,7 +107,7 @@ class CreateAccountController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user || !$user->hasRole('registrar')) {
+        if (!$user || !$user->hasRole(['registrar', 'superadmin'])) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
@@ -190,7 +190,7 @@ class CreateAccountController extends Controller
     {
         $authUser = JWTAuth::authenticate();
 
-        if (!$authUser || !$authUser->hasRole('registrar')) {
+        if (!$authUser || !$authUser->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
@@ -287,7 +287,7 @@ class CreateAccountController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (!$user || !$user->hasRole('registrar')) {
+        if (!$user || !$user->hasAnyRole(['registrar', 'superadmin'])) {
             return response()->json(['error' => 'Not authorized'], 403);
         }
 
@@ -451,7 +451,7 @@ class CreateAccountController extends Controller
             return response()->json(['error' => 'Cannot update another superadmin'], 403);
         }
 
-        $allowedAdminRoles = ['registrar', 'psas', 'scadmin', 'comms'];
+        $allowedAdminRoles = ['registrar', 'psas', 'scadmin', 'comms', 'student'];
         $roles = $request->input('roles');
 
         if (empty($roles)) {

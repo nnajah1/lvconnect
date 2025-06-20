@@ -84,7 +84,7 @@ class CalendarOfActivityController extends Controller
     {
         $user = JWTAuth::authenticate();
 
-        if (! $user->hasAnyRole(['comms', 'student'])) {
+        if (! $user->hasAnyRole(['comms', 'student', 'superadmin'])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

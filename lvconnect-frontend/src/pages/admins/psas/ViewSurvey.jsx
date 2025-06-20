@@ -35,11 +35,12 @@ const ViewSurveyResponseModal = ({ isOpen, closeModal, submittedItem }) => {
             ) : (
                 <DynamicModal isOpen={isOpen}
                     closeModal={closeModal}
-                    title="Submit Survey"
+                    title="Submitted Survey"
                     description="Fill out the survey."
-                    showTitle={false}
+                    showTitle={true}
                     showDescription={false}
-                    className="min-w-[40rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!">
+                    // className="min-w-[40rem]! max-h-[35rem]! bg-[#EAF2FD]! overflow-auto!"   
+                    >
 
                     <SurveyAdminView isOpen={isOpen} closeModal={closeModal} responseData={responseData} />
 

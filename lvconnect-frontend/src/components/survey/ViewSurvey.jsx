@@ -18,9 +18,9 @@ const SurveyAdminView = ({ responseData }) => {
   const { survey, answers, submitted_at } = responseData;
 
   return (
-    <div className="mx-auto p-6 md:p-8">
+    <div className="mx-auto px-6 md:px-8">
       <div className="text-center mb-8 bg-white rounded-xl p-2">
-        <p className="mt-2 text-gray-600">{submitted_at}</p>
+        <p className="pb-2 text-gray-600">{submitted_at}</p>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{survey.title}</h1>
         <p className="mt-2 text-gray-600">{survey.description}</p>
       </div>

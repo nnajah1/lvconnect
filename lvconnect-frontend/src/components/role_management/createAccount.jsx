@@ -126,7 +126,7 @@ const AccountForm = ({
                 <label className="block text-sm font-medium mb-1">Roles</label>
                 <div className="flex flex-wrap gap-4">
                     {availableRoles
-                        .filter(role => !["student", "superadmin"].includes(role))
+                        .filter(role => ![ "superadmin"].includes(role))
                         .map((role) => (
                             <label key={role} className="flex items-center gap-2">
                                 <input
