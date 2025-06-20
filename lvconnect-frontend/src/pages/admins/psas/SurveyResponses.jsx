@@ -15,7 +15,7 @@ import { ChevronLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import SummaryAnalytics from "@/components/dashboards/psas_dashboard/analyticsSummary";
 import { getAnalytics } from "@/services/dashboardAPI";
-import {  Breadcrumbs } from "@/components/dynamic/breadcrumbs";
+import { Breadcrumbs } from "@/components/dynamic/breadcrumbs";
 
 const SurveyResponses = () => {
   const userRole = useUserRole();
@@ -72,13 +72,13 @@ const SurveyResponses = () => {
     loadSurveyResponses();
   }, []);
 
-  
-   
+
+
   const tabs = [
     {
       label: "Summary",
       value: "summary",
-      content: <SummaryAnalytics surveyId={surveyId}/>
+      content: <SummaryAnalytics surveyId={surveyId} />
     },
     {
       label: "Individual",
@@ -93,16 +93,21 @@ const SurveyResponses = () => {
         <ChevronLeft />
       </button> */}
 
-       <Breadcrumbs rootName="Surveys" rootHref="/psas-admin/surveys" name={name} />
+      <Breadcrumbs rootName="Surveys" rootHref="/psas-admin/surveys" name={name} />
 
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold mb-4">Responses</h1>
+        <div className="py-8">
+          <h1 className="text-2xl font-bold text-[#253965]">Student Responses</h1>
+          <p className="text-sm text-gray-600 mt-1">View survey responses of students</p>
+        </div>
         {/* Search Input */}
-        <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
+        {activeTab === "individual" && (
+          <div><SearchBar value={globalFilter} onChange={setGlobalFilter} /></div>
+        )}
       </div>
 
 
-      <DynamicTabs tabs={tabs} activeTab={activeTab} 
+      <DynamicTabs tabs={tabs} activeTab={activeTab}
         onTabChange={setActiveTab}
         className="mb-2" />
 

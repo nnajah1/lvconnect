@@ -97,13 +97,13 @@ const SummaryAnalytics = ({ surveyId }) => {
         <Card key={qIndex} className="w-full border-0 shadow-lg bg-card-background">
           <CardHeader className="pb-6 border-b border-gray-300">
             <CardTitle className="text-xl font-bold text-gray-800">{question.question}</CardTitle>
-            {question.type !== 'short answer' && question.responses?.length > 0 && (
+            {/* {question.type !== 'short answer' && question.responses?.length > 0 && (
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                   {getTotalResponses(question)} responses
                 </Badge>
               </div>
-            )}
+            )} */}
           </CardHeader>
 
           <CardContent>
@@ -141,12 +141,12 @@ const SummaryAnalytics = ({ surveyId }) => {
                     {text}
                   </div>
                 ))}
-                {question.responses.length > 3 && (
+                {/* {question.responses.length > 3 && (
                   <Button variant="ghost" className="w-full justify-between p-0 h-auto">
                     <span className="text-sm text-blue-600">See all {question.responses.length} responses</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
-                )}
+                )} */}
               </div>
             )}
 
