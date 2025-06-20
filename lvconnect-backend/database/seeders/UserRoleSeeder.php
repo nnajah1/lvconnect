@@ -41,7 +41,8 @@ class UserRoleSeeder extends Seeder
         $superAdminRole = Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'api']);
 
         $superAdminUsers = [
-            ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],            
+            ['first_name' => 'Juan', 'last_name' => 'Dela Cruz', 'email' => 'juandelacruz@student.laverdad.edu.ph'],
+            ['first_name' => 'Sherline', 'last_name' => 'De Guzman', 'email' => 'Sherlinedeguzman@student.laverdad.edu.ph'],
         ];
 
         foreach ($superAdminUsers as $data) {

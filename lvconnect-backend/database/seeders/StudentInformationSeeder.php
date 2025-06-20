@@ -14,7 +14,7 @@ class StudentInformationSeeder extends Seeder
         $faker = Faker::create();
 
         // Get all users with the 'student' role 
-        $studentUsers = User::role('student')->get();
+        $studentUsers = User::role(['student', 'superadmin'])->get();
 
         if ($studentUsers->isEmpty()) {
             $this->command->warn('No student users found. Skipping StudentInformationSeeder.');
