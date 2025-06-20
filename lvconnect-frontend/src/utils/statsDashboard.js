@@ -54,7 +54,7 @@ export const statSchoolAdmin = {
   },
 
   pending_school_updates: {
-    label: 'Total Institutional Investment in Scholarship',
+    label: 'Pending School Updates',
     icon: HiOutlineChartPie,
     color: 'bg-yellow-500',
   },

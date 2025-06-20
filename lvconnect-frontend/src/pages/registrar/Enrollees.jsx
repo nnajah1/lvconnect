@@ -14,6 +14,7 @@ import {mapToApiPayload, programOptions, religionOptions, incomeOptions, fields 
 import { useUserRole } from "@/utils/userRole";
 import { Loader2 } from "@/components/dynamic/loader";
 import { toast } from "react-toastify";
+import { Breadcrumbs } from "@/components/dynamic/breadcrumbs";
 
 const Enrollees = ({ mode, editType }) => {
   const userRole = useUserRole();
@@ -246,20 +247,8 @@ const Enrollees = ({ mode, editType }) => {
 
   return (
     <div className="flex flex-col items-start w-full min-h-screen">
-
-      <div className="w-full p-2 sticky -top-5 bg-muted">
-
-        <ActionButtons
-          isEditing={isEditing}
-          handleSave={handleSave}
-          handleArchive={handleArchive}
-          handleCancel={handleCancel}
-          handleEditToggle={handleEditToggle}
-          handleBack={handleBack}
-          mode={mode}
-          userRole={userRole}
-          editType={editType}
-        />
+       <Breadcrumbs name="Student Information"/>
+      <div className="w-full">
    
         <ProfileSection
           isEditing={isEditing}
@@ -276,7 +265,8 @@ const Enrollees = ({ mode, editType }) => {
 
 
       <div className="w-full">
-        <StudentInfoSection
+       <div className="w-full border-b border-gray-300">
+         <StudentInfoSection
           isEditing={isEditing}
           personalInfo={studentData}
           canEditField={canEditField}
@@ -296,6 +286,7 @@ const Enrollees = ({ mode, editType }) => {
         <SchoolInfoSection educationInfo={studentData}
           canEditField={canEditField} onChange={handleFieldChange} />
 
+       </div>
 
         <div className="w-full">
           <SectionHeader title="GUARDIAN INFORMATION" />
@@ -332,6 +323,19 @@ const Enrollees = ({ mode, editType }) => {
             religionOptions={religionOptions}
             prefix="guardian"
           />
+
+          
+        <ActionButtons
+          isEditing={isEditing}
+          handleSave={handleSave}
+          handleArchive={handleArchive}
+          handleCancel={handleCancel}
+          handleEditToggle={handleEditToggle}
+          handleBack={handleBack}
+          mode={mode}
+          userRole={userRole}
+          editType={editType}
+        />
         </div>
       </div>
     </div>

@@ -10,47 +10,49 @@ export default function ActionButtons({
   handleCancel,
   handleEditToggle,
   handleBack,
-  mode, 
+  mode,
   editType,
   userRole
 }) {
   return (
     <div className="add_actions_container">
-      <button className="add_back_btn" onClick={handleBack}>
+      {/* <button className="add_back_btn" onClick={handleBack}>
         <ChevronLeft className="add_back_icon" />
-      </button>
+      </button> */}
 
-    {mode === "edit" && (
-  <div className="add_btn_group">
-    {isEditing ? (
-      <>
-        {userRole === "registrar" && (
-          <>
-            {editType === "full" && (
-              <>
-                <button onClick={handleSave} className="add_action_btn save">Save</button>
-                {/* <button onClick={handleArchive} className="add_action_btn archive">Archive</button> */}
-              </>
-            )}
-            {editType === "partial" && (
-              <button onClick={handleSave} className="add_action_btn save">Submit</button>
-            )}
-          </>
-        )}
-        {userRole === "student" && (
-          <button onClick={handleSave} className="add_action_btn save">Submit</button>
-        )}
+      {mode === "edit" && (
+        <div className="add_btn_group">
+          {isEditing ? (
+            <>
+              {userRole === "registrar" && (
+                <>
+                
+                  <button onClick={handleCancel} className="add_action_btn cancel">Cancel</button>
+                  {editType === "full" && (
+                    <>
+                      <button onClick={handleSave} className="add_action_btn save">Save</button>
+                      {/* <button onClick={handleArchive} className="add_action_btn archive">Archive</button> */}
+                    </>
+                  )}
 
-        <button onClick={handleCancel} className="add_action_btn cancel">Cancel</button>
-      </>
-    ) : (
-      <Button 
-      // onClick={handleEditToggle} 
-      disabled
-      className="">Enrolled</Button>
-    )}
-  </div>
-)}
+                  {editType === "partial" && (
+                    <button onClick={handleSave} className="add_action_btn save">Submit</button>
+                  )}
+                </>
+              )}
+              {userRole === "student" && (
+                <button onClick={handleSave} className="add_action_btn save">Submit</button>
+              )}
+
+            </>
+          ) : (
+            <Button
+              // onClick={handleEditToggle} 
+              disabled
+              className="">Enrolled</Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

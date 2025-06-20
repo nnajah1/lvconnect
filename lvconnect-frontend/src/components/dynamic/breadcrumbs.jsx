@@ -8,21 +8,27 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
-export function Breadcrumbs({ rootName = "Home", rootHref = "/" , name}) {
+export function Breadcrumbs({ rootName, rootHref, name }) {
   const location = useLocation()
   const segments = location.pathname.split("/").filter(Boolean)
 
   const parentSegment = segments.at(-2)
   const currentSegment = segments.at(-1)
-  const parentHref = "/" + segments.slice(0, -1).join("/")
+  const parentHref = segments.at(0)
+
+  const fallbackRootName = rootName || segments[1] || "Home"
+  const fallbackRootHref = rootHref || `/${parentHref}/${segments[1] || ""}`
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to={rootHref} className="capitalize no-underline hover:no-underline text-blue-900">
-              {rootName}
+            <Link
+              to={fallbackRootHref}
+              className="capitalize no-underline hover:no-underline text-blue-900"
+            >
+              {fallbackRootName}
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -32,7 +38,7 @@ export function Breadcrumbs({ rootName = "Home", rootHref = "/" , name}) {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage className="capitalize text-blue-900">
-                  {name || decodeURIComponent(currentSegment)}
+                {name || decodeURIComponent(currentSegment)}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </>

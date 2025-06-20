@@ -1,6 +1,6 @@
 import StatusBadge from "@/components/dynamic/statusBadge";
 import { useUserRole } from "@/utils/userRole";
-import { Archive, Check, ExternalLink, Eye, Pencil, X } from "lucide-react";
+import { Archive, ExternalLink, PenBoxIcon } from "lucide-react";
 
 export const registrarSchema = {
   full_name: {
@@ -139,7 +139,7 @@ export const smActions = (viewModal, openModal, openArchiveModal) => ({
   },
   update: {
     label: "Update",
-    icon: () => <Pencil size={16} />,
+    icon: () => <PenBoxIcon size={16} />,
     fn: (id, item) => openModal(item),
   },
   archive: {
@@ -152,7 +152,8 @@ export const smActions = (viewModal, openModal, openArchiveModal) => ({
 })
 
 export const smActionsConditions = {
-  view: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'archived',
+  // view: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status === 'archived',
+  view: true,
   update: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status !== 'archived',
   archive: (item, context, userRole) => item.enrollee_record?.[0]?.enrollment_status !== 'archived',
 };
