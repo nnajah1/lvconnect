@@ -473,11 +473,6 @@ class CreateAccountController extends Controller
         }
 
         $admin->syncRoles($request->roles);
-        $firstRole = $request->roles[0] ?? $admin->getRoleNames()->first();
-        if ($firstRole) {
-            $admin->active_role = $firstRole;
-            $admin->save();
-        }
 
         return response()->json([
             'message' => 'Admin role updated successfully',
