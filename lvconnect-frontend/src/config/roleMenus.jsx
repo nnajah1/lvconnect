@@ -1,11 +1,11 @@
-import { HiHome, HiOutlineHome, HiClipboardDocumentList, HiOutlineClipboardDocumentList, HiOutlineUsers, HiUsers, HiMiniShieldCheck } from "react-icons/hi2";
+import { HiHome, HiOutlineHome, HiClipboardDocumentList, HiOutlineClipboardDocumentList, HiOutlineUsers, HiUsers, HiMiniShieldCheck, HiRadio, HiOutlineRadio, HiOutlineBuildingOffice } from "react-icons/hi2";
 import { FaAddressCard, FaRegAddressCard, FaFileAlt, FaRegFileAlt } from "react-icons/fa";
 import { RiGraduationCapFill, RiGraduationCapLine, RiArchiveFill, RiFileCopy2Fill, RiFileCopy2Line } from "react-icons/ri";
 import { IoNewspaperOutline, IoNewspaper } from "react-icons/io5";
 import { GoArchive } from "react-icons/go";
 import { MdOutlineFileCopy, MdFileCopy } from "react-icons/md";
 import { BiSolidFolderOpen, BiFolderOpen } from "react-icons/bi";
-import { HiFolder, HiOutlineFolder, HiOutlineShieldCheck } from "react-icons/hi"
+import { HiBookOpen, HiFolder, HiLibrary, HiNewspaper, HiOutlineBookOpen, HiOutlineFolder, HiOutlineLibrary, HiOutlineNewspaper, HiOutlineShieldCheck, HiOutlineSpeakerphone, HiOutlineUser, HiSpeakerphone, HiUser } from "react-icons/hi"
 
 export const roleMenus = [
   // Student
@@ -79,7 +79,7 @@ export const roleMenus = [
     path: "/comms-admin/archive",
     roles: ["comms"],
     solidIcon: GoArchive,
-    outlineIcon: GoArchive, // No outline version available
+    outlineIcon: GoArchive, 
   },
 
   // School Admin
@@ -161,14 +161,15 @@ export const roleMenus = [
   },
   {
     name: "Student",
+    path: "/my",
     roles: ["superadmin"],
     dropdown: [
-      {
-        name: "Student",
-        path: "/my",
-        solidIcon: HiHome,
-        outlineIcon: HiOutlineHome,
-      },
+      // {
+      //   name: "Student",
+      //   path: "/my",
+      //   solidIcon: HiBookOpen,
+      //   outlineIcon: HiOutlineBookOpen,
+      // },
       {
         name: "Enrollment",
         path: "/my/enrollment",
@@ -206,19 +207,20 @@ export const roleMenus = [
         outlineIcon: MdOutlineFileCopy,
       },
     ],
-    solidIcon: HiHome,
-    outlineIcon: HiOutlineHome,
+    solidIcon: HiBookOpen,
+    outlineIcon: HiOutlineBookOpen,
   },
   {
     name: "Communications Officer",
+    path: "/comms-admin",
     roles: ["superadmin"],
     dropdown: [
-      {
-        name: "Comms Dashboard",
-        path: "/comms-admin",
-        solidIcon: HiHome,
-        outlineIcon: HiOutlineHome,
-      },
+      // {
+      //   name: "Comms Dashboard",
+      //   path: "/comms-admin",
+      //   solidIcon: HiSpeakerphone,
+      //   outlineIcon: HiOutlineSpeakerphone,
+      // },
       {
         name: "Update Management",
         path: "/comms-admin/posts",
@@ -232,19 +234,20 @@ export const roleMenus = [
         outlineIcon: GoArchive,
       },
     ],
-    solidIcon: HiHome,
-    outlineIcon: HiOutlineHome,
+    solidIcon: HiSpeakerphone,
+    outlineIcon: HiOutlineSpeakerphone,
   },
   {
-    name: "College Chancellor ",
+    name: "College Chancellor",
+    path: "/school-admin",
     roles: ["superadmin"],
     dropdown: [
-      {
-        name: "School Admin Dashboard",
-        path: "/school-admin",
-        solidIcon: HiHome,
-        outlineIcon: HiOutlineHome,
-      },
+      // {
+      //   name: "School Admin Dashboard",
+      //   path: "/school-admin",
+      //   solidIcon: HiUser,
+      //   outlineIcon: HiOutlineUser,
+      // },
       {
         name: "School Updates",
         path: "/school-admin/posts",
@@ -252,19 +255,20 @@ export const roleMenus = [
         outlineIcon: MdOutlineFileCopy,
       },
     ],
-    solidIcon: HiHome,
-    outlineIcon: HiOutlineHome,
+    solidIcon: HiUser,
+    outlineIcon: HiOutlineUser,
   },
   {
     name: "Prefect",
+    path: "/psas-admin",
     roles: ["superadmin"],
     dropdown: [
-      {
-        name: "PSAS Dashboard",
-        path: "/psas-admin",
-        solidIcon: HiHome,
-        outlineIcon: HiOutlineHome,
-      },
+      // {
+      //   name: "PSAS Dashboard",
+      //   path: "/psas-admin",
+      //   solidIcon: HiLibrary,
+      //   outlineIcon: HiOutlineLibrary,
+      // },
       {
         name: "Survey Management",
         path: "/psas-admin/surveys",
@@ -278,19 +282,20 @@ export const roleMenus = [
         outlineIcon: BiFolderOpen,
       },
     ],
-    solidIcon: HiHome,
-    outlineIcon: HiOutlineHome,
+    solidIcon: HiLibrary,
+    outlineIcon: HiOutlineLibrary,
   },
   {
     name: "Registrar",
+    path: "/registrar",
     roles: ["superadmin"],
     dropdown: [
-      {
-        name: "Registrar Dashboard",
-        path: "/registrar",
-        solidIcon: HiHome,
-        outlineIcon: HiOutlineHome,
-      },
+      // {
+      //   name: "Registrar Dashboard",
+      //   path: "/registrar",
+      //   solidIcon: HiNewspaper,
+      //   outlineIcon: HiOutlineNewspaper,
+      // },
       {
         name: "Enrollment Management",
         path: "/registrar/enrollment",
@@ -310,8 +315,8 @@ export const roleMenus = [
         outlineIcon: HiOutlineClipboardDocumentList,
       },
     ],
-    solidIcon: HiHome,
-    outlineIcon: HiOutlineHome,
+    solidIcon: HiNewspaper,
+    outlineIcon: HiOutlineNewspaper,
   },
 
 ];

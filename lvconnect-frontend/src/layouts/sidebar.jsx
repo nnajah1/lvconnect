@@ -85,7 +85,7 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
     return location.pathname === targetPath || location.pathname.startsWith(targetPath + "/");
   };
 
-
+  // for switch role
   // useEffect(() => {
   //   if (user) {
   //     setSelectedRole(user.active_role || user.roles?.[0]?.name);
@@ -121,7 +121,7 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
             <X size={21} />
           </button>
         ) : (
-          <button onClick={() => setIsExpanded(!isExpanded)} className="text-white">
+          <button onClick={() => setIsExpanded(!isExpanded)} className="text-white cursor-pointer">
             <RxTextAlignJustify size={21} />
           </button>
         )}
@@ -141,124 +141,150 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-2 overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <ul className="space-y-1">
-          {menuItems.map((item) => {
-            // 🔹 Handle Dropdown Menus
-            if (item.dropdown) {
-              const isAnyChildActive = item.dropdown.some((child) => isPathActive(child.path))
-              const isOpen = openDropdown === item.name || isAnyChildActive
+     <nav className="flex-1 px-2 overflow-y-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+  <ul className="space-y-1">
+    {menuItems.map((item) => {
+      // Handle Dropdown Menus
+      if (item.dropdown) {
+        const isAnyChildActive = item.dropdown.some((child) => isPathActive(child.path))
+        const isParentActive = item.path ? isPathActive(item.path) : false
+        const isActive = isParentActive || isAnyChildActive
+        const isOpen = openDropdown === item.name || isAnyChildActive
 
-              const ParentIcon = isAnyChildActive ? item.solidIcon : item.outlineIcon
+        const ParentIcon = isActive ? item.solidIcon : item.outlineIcon
 
-              return (
-                <li key={item.name}>
-                  {/* Parent link */}
-                  <button
-                    onClick={() => setOpenDropdown(openDropdown === item.name ? null : item.name)}
-                    className={`w-full flex items-center rounded-lg p-3 transition-all duration-200 ease-in-out group ${isExpanded ? "space-x-3" : "justify-center"
-                      } ${isAnyChildActive
-                        ? "bg-[#1BA3D6] text-white "
-                        : "hover:bg-white/10 hover:shadow-md hover:scale-[1.02] text-white/90 hover:text-white"
-                      }`}
-                  >
-                    <ParentIcon
-                      size={21}
-                      className={`transition-transform duration-200 ${isOpen && isExpanded ? "rotate-3" : ""
-                        } ${isAnyChildActive ? "text-white" : "text-white/90 group-hover:text-white"}`}
-                    />
-                    {isExpanded && (
-                      <span className="font-medium text-sm tracking-wide flex-1 text-left">{item.name}</span>
-                    )}
-                    {isExpanded && (
-                      <svg
-                        className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
-                          } ${isAnyChildActive ? "text-white" : "text-white/70"}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    )}
-                  </button>
-
-                  {/* Dropdown children */}
-                  {isOpen && isExpanded && (
-                    <ul className="pl-4 mt-2 space-y-1 border-l-2 border-white/10 ml-4 animate-in slide-in-from-top-2 duration-200">
-                      {item.dropdown.map((child) => {
-                        const isActive = isPathActive(child.path)
-                        const ChildIcon = isActive ? child.solidIcon : child.outlineIcon
-
-                        return (
-                          <li key={child.name}>
-                            <Link
-                              to={child.path}
-                              onClick={onLinkClick}
-                              className={`flex items-center rounded-lg p-2.5 space-x-3 transition-all duration-200 ease-in-out group relative ${isActive
-                                ? "bg-gradient-to-r from-[#20C1FB] to-[#1BA3D6] text-white shadow-md shadow-[#20C1FB]/20 scale-[1.02]"
-                                : "hover:bg-white/8 hover:shadow-sm hover:scale-[1.01] text-white/80 hover:text-white"
-                                }`}
-                            >
-                              {isActive && (
-                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                              )}
-                              <ChildIcon
-                                size={18}
-                                className={`transition-colors duration-200 ${isActive ? "text-white" : "text-white/80 group-hover:text-white"
-                                  }`}
-                              />
-                              <span className="font-medium text-sm tracking-wide">{child.name}</span>
-                            </Link>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </li>
-              )
-            }
-
-            // 🔸 Handle Flat Menus
-            const isActive = isPathActive(item.path)
-            const Icon = isActive ? item.solidIcon : item.outlineIcon
-
-            return (
-              <li key={item.name}>
+        return (
+          <li key={item.name}>
+            {/* Parent link - Split into clickable area and dropdown toggle */}
+            <div className={`flex items-center rounded-lg transition-all duration-200 ease-in-out group ${
+              isActive
+                ? "bg-[#1BA3D6] text-white "
+                : "hover:bg-white/10 hover:shadow-md hover:scale-[1.02] text-white/90 hover:text-white"
+            }`}>
+              
+              {/* Main clickable area */}
+              {item.path ? (
                 <Link
                   to={item.path}
                   onClick={onLinkClick}
-                  className={`flex items-center rounded-lg p-3 transition-all duration-200 ease-in-out group relative ${isExpanded ? "space-x-3" : "justify-center"
-                    } ${isActive
-                      ? "bg-[#1BA3D6] text-white"
-                      : "hover:bg-white/10 hover:shadow-md hover:scale-[1.02] text-white/90 hover:text-white"
-                    }`}
+                  className={`flex items-center flex-1 py-3 ${isExpanded ? "space-x-3 px-3" : "justify-center"}`}
                 >
-                  {/* {isActive && isExpanded && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
-                  )}
-                  <Icon
+                  <ParentIcon
                     size={21}
-                    className={`transition-colors duration-200 ${isActive ? "text-white" : "text-white/90 group-hover:text-white"
-                      }`}
-                  /> */}
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <Icon
-                      size={21}
-                      className={`transition-colors duration-200
+                    className={`min-w-[21px] min-h-[21px] transition-transform duration-200 
                       ${isActive ? "text-white" : "text-white/90 group-hover:text-white"}`}
-                    />
-                  </div>
-                  {isExpanded && <span className="font-medium text-sm tracking-wide">{item.name}</span>}
+                  />
+                  {isExpanded && (
+                    <span className="font-medium text-sm tracking-wide flex-1 text-left">{item.name}</span>
+                  )}
                 </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+              ) : (
+                <div className={`flex items-center flex-1 p-3 ${isExpanded ? "space-x-3" : "justify-center"}`}>
+                  <ParentIcon
+                    size={21}
+                    className={`min-w-[21px] min-h-[21px] transition-transform duration-200 
+                      ${isOpen && isExpanded ? "rotate-3" : ""}
+                      ${isActive ? "text-white" : "text-white/90 group-hover:text-white"}`}
+                  />
+                  {isExpanded && (
+                    <span className="font-medium text-sm tracking-wide flex-1 text-left">{item.name}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Dropdown toggle button */}
+              {isExpanded && (
+                <button
+                  onClick={() => setOpenDropdown(openDropdown === item.name ? null : item.name)}
+                  className="p-3 hover:bg-white/10 rounded-r-lg"
+                >
+                  <svg
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                      } ${isActive ? "text-white" : "text-white/70"}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Dropdown children */}
+            {isOpen && (
+              <ul className={`mt-2 space-y-1 animate-in slide-in-from-top-2 duration-200 ${isExpanded ? 'pl-4 border-l-2 border-white/10 ml-4' : 'pl-0'
+                }`}>
+                {item.dropdown.map((child) => {
+                  const isChildActive = isPathActive(child.path)
+                  const ChildIcon = isChildActive ? child.solidIcon : child.outlineIcon
+
+                  return (
+                    <li key={child.name}>
+                      <Link
+                        to={child.path}
+                        onClick={onLinkClick}
+                        className={`flex items-center rounded-lg p-2.5 transition-all duration-200 ease-in-out group relative ${isExpanded ? "space-x-3" : "justify-center"
+                          } ${isChildActive
+                            ? "bg-gradient-to-r from-[#20C1FB] to-[#1BA3D6] text-white shadow-md shadow-[#20C1FB]/20 scale-[1.02]"
+                            : "hover:bg-white/8 hover:shadow-sm hover:scale-[1.01] text-white/80 hover:text-white"
+                          }`}
+                      >
+                        {isChildActive && isExpanded && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                        )}
+                        <div className="w-6 h-6 flex items-center justify-center">
+                          <ChildIcon
+                            size={18}
+                            className={`transition-colors duration-200 ${isChildActive ? "text-white" : "text-white/80 group-hover:text-white"
+                              }`}
+                          />
+                        </div>
+                        {isExpanded && (
+                          <span className="font-medium text-sm tracking-wide">{child.name}</span>
+                        )}
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </li>
+        )
+      }
+
+      // Handle Flat Menus
+      const isActive = isPathActive(item.path)
+      const Icon = isActive ? item.solidIcon : item.outlineIcon
+
+      return (
+        <li key={item.name}>
+          <Link
+            to={item.path}
+            onClick={onLinkClick}
+            className={`flex items-center rounded-lg p-3 transition-all duration-200 ease-in-out group relative ${isExpanded ? "space-x-3" : "justify-center"
+              } ${isActive
+                ? "bg-[#1BA3D6] text-white"
+                : "hover:bg-white/10 hover:shadow-md hover:scale-[1.02] text-white/90 hover:text-white"
+              }`}
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              <Icon
+                size={21}
+                className={`transition-colors duration-200
+                ${isActive ? "text-white" : "text-white/90 group-hover:text-white"}`}
+              />
+            </div>
+            {isExpanded && <span className="font-medium text-sm tracking-wide">{item.name}</span>}
+          </Link>
+        </li>
+      )
+    })}
+  </ul>
+</nav>
 
       {/* Role Switcher */}
-      {user?.roles?.length > 1 && (
+      {/* {user?.roles?.length > 1 && (
         <div className="mt-auto pt-4">
           <label className="block text-xs font-medium text-white mb-1">
             Switch Role for Alpha Testers:
@@ -276,7 +302,7 @@ function SidebarContent({ isExpanded, setIsExpanded, menuItems, location, onLink
             ))}
           </select>
         </div>
-      )}
+      )} */}
     </div>
   )
 }

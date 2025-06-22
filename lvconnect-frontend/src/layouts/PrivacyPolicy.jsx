@@ -1,17 +1,12 @@
 import React, { useState } from "react";
 import DynamicModal from "@/components/dynamic/DynamicModal";
 
-export default function PrivacyPolicy() {
-  const [isOpen, setIsOpen] = useState(true);
-
-  const closeModal = () => {
-    setIsOpen(false);
-  };
-
+export default function PrivacyPolicy({isOpen, onClose}) {
+  
   return (
     <DynamicModal
       isOpen={isOpen}
-      closeModal={closeModal}
+      closeModal={onClose}
       title="Privacy Policy"
       showFooter={false}
     >

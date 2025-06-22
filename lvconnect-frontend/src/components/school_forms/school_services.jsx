@@ -62,12 +62,12 @@ const InstitutionalSystems = () => {
   return (
     <div className="box-border flex flex-col items-start p-2.5 gap-2.5 w-full max-w-full border border-solid border-[#CED4DA] rounded-lg mx-auto">
       <div className="flex flex-col items-start p-0 w-full">
-        <h5 className="font-lato font-semibold text-xl leading-5 text-[#1F3463] mb-3">
+        <h5 className="font-lato font-semibold text-lg leading-5 text-[#1F3463] mb-3">
           Institutional Systems
         </h5>
 
         <div className="font-inter font-medium text-sm flex items-center text-[#686868]">
-          Access other institutional systems through quick links.
+          Access other institutional systems through quick links
         </div>
       </div>
 
