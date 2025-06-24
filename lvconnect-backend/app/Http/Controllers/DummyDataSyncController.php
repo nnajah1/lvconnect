@@ -43,7 +43,7 @@ class DummyDataSyncController extends Controller
                     continue;
                 }
 
-                $validCivilStatus = ['single', 'married', 'divorced', 'widowed'];
+                $validCivilStatus = ['single', 'married', 'widowed'];
                 $civilStatus = strtolower($applicant['marital_status'] ?? 'single');
                 if (!in_array($civilStatus, $validCivilStatus)) {
                     $civilStatus = 'single';
@@ -153,10 +153,8 @@ class DummyDataSyncController extends Controller
 
                 if (!empty($applicant['grades']) && is_array($applicant['grades'])) {
                     foreach ($applicant['grades'] as $gradeData) {
-                        // Accept both string course name/code or array with course info
                         $courseIdentifier = $gradeData['course'] ?? null;
                         if (is_array($courseIdentifier)) {
-                            // If course is an array, try to use 'id', 'course', or 'course_code'
                             if (isset($courseIdentifier['id'])) {
                                 $course = Course::find($courseIdentifier['id']);
                             } elseif (isset($courseIdentifier['course_code'])) {
@@ -167,7 +165,6 @@ class DummyDataSyncController extends Controller
                                 $course = null;
                             }
                         } else {
-                            // If course is a string, try both course name and code
                             $course = Course::where('course', $courseIdentifier)
                                 ->orWhere('course_code', $courseIdentifier)
                                 ->first();
