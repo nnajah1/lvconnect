@@ -27,7 +27,7 @@ export const getNotEnrolled = async ({academic_year_id, semester}) => {
   const response = await api.get("/not-enrolled", {
     params: { academic_year_id, semester }
   });
-  return response.data;a
+  return response.data;
 };
 
 export const getEnrolled = async () => {
@@ -131,6 +131,6 @@ export const syncGradesSchedules = () => {
   return api.post('/sync-schedules');
 };
 
-export const syncAccounts = () => {
+export const accountSync = () => {
   return api.post('/sync-dummy-data');
 };

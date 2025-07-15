@@ -4,7 +4,7 @@ import { UserPlus, Users, RefreshCw, Calendar } from 'lucide-react'
 import { DataTable } from "@/components/dynamic/DataTable";
 import { getColumns } from "@/components/dynamic/getColumns";
 import { smActionsConditions, smActions, registrarSchema, newStudentSchema, archiveSchema } from "@/tableSchemas/studentManagement";
-import { archiveData, bulkArchiveEnrollment, getNewStudents, getStudents, syncAccounts, syncGradesSchedules } from "@/services/enrollmentAPI";
+import { archiveData, bulkArchiveEnrollment, getNewStudents, getStudents, accountSync, syncGradesSchedules } from "@/services/enrollmentAPI";
 import { ConfirmationModal, DataModal, InfoModal, WarningModal } from "@/components/dynamic/alertModal";
 import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "@/components/dynamic/searchBar";
@@ -171,7 +171,7 @@ const StudentInformation = () => {
     }
 
     try {
-      await syncAccounts();
+      await accountSync();
       toast.success("New accounts sync successfully!");
       setSyncAccount(false);
       await loadNewStudents();
